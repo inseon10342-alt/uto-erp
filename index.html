@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>업무관리</title>
+<title>UTO 업무관리</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=1">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="업무관리">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css" media="print" onload="this.media='all'">
 <script src="config.js"></script>
@@ -1063,7 +1071,7 @@ PAGES.settings = async (m) => {
   <section class="panel"><div class="ph"><h2>데이터 원본</h2><span class="tag ${S.source === '웹' ? 'g' : 'w'}">지금: ${S.source}</span></div><div class="sec">
     <p style="margin:0 0 8px">${S.source === '엑셀' ? '지금은 <b>통합관리 엑셀이 원본</b>입니다. 엑셀에서 입력하고 아래 「엑셀 가져오기」로 반영합니다. 엑셀에서 오는 표는 웹에서 고칠 수 없습니다(거래명세서·사용자는 예외).' : '지금은 <b>웹이 원본</b>입니다. 웹에서 등록·수정하고, 엑셀 가져오기는 쓸 수 없습니다. 공유용 모바일 뷰어가 계속 최신 내용을 보이려면 3단계의 엑셀 자동 내보내기가 필요합니다.'}</p>
     <button class="btn ${S.source === '엑셀' ? 'pri' : ''}" id="sw">${S.source === '엑셀' ? '웹을 원본으로 전환…' : '엑셀을 원본으로 되돌리기…'}</button></div></section>
-  <section class="panel"><div class="ph"><h2>엑셀 가져오기</h2><span class="sub">Drive 에서 이름에 「통합관리」가 들어간 가장 최근 .xlsm</span></div><div class="sec">
+  <section class="panel"><div class="ph"><h2>엑셀 가져오기</h2><span class="sub">회사 Google Drive 의 통합관리 엑셀</span></div><div class="sec" id="srcBox"><div class="sub">Drive 에서 엑셀 파일을 찾는 중…</div></div><div class="sec">
     <p class="sub" style="margin:0 0 8px">가져오기는 미리보기 → 확인 → 실행 순서이고, 실행 직전 DB 를 자동 백업합니다. 같은 엑셀을 여러 번 가져와도 중복되지 않습니다(고유 ID 기준).</p>
     <button class="btn pri" id="imp" ${S.source === '웹' ? 'disabled' : ''}>미리보기</button><div id="impOut"></div></div></section>
   <section class="panel"><div class="ph"><h2>데이터 현황</h2></div><div class="sec"><dl class="kv">${Object.entries(S.counts).map(([k, v]) => `<dt>${k}</dt><dd>${v}건</dd>`).join('')}</dl>${b.dbUrl ? `<p style="margin:10px 0 0"><a href="${esc(b.dbUrl)}" target="_blank" rel="noopener">업무관리 DB 스프레드시트 열기</a> <span class="sub">(직접 고치지 마세요 — 버전·이력이 남지 않습니다)</span></p>` : ''}</div></section>
@@ -1074,11 +1082,27 @@ PAGES.settings = async (m) => {
     if (prompt(msg) !== '전환') return;
     const r = await api('setSource', { value: to }); S.source = r.source; toast('원본: ' + r.source); render();
   };
+  const drawSrc = (x) => {
+    const box = $('#srcBox'); if (!box) return;
+    const cur = x.current;
+    box.innerHTML = `<h3>가져올 엑셀 파일</h3>
+      ${x.error ? `<div class="note">${esc(x.error)}</div>` : ''}
+      ${cur ? `<div class="li" style="padding-bottom:4px"><div class="g"><div class="t1">${esc(cur.name)}</div><div class="t2">수정 ${esc(cur.modified)}${x.last ? ' · 마지막 가져오기 ' + esc(x.last) : ''}</div></div>
+        <span class="tag ${x.pinned ? 't' : 'plain'}">${x.pinned ? '고정' : '자동 선택'}</span><a class="btn sm" href="${esc(cur.url)}" target="_blank" rel="noopener">Drive 에서 열기</a></div>
+        <p class="sub" style="margin:6px 0 12px">${x.pinned ? '이 파일만 가져옵니다. 새 버전(v65 등)으로 바꾸면 아래 목록에서 다시 고르세요. <button class="btn sm ghost" id="unpin">자동 선택으로 되돌리기</button>' : '이름에 「통합관리」가 들어간 엑셀 중 가장 최근에 수정된 파일을 자동으로 가져옵니다. 다른 파일이 잡히지 않게 하려면 「이 파일로 고정」을 누르세요.'}</p>` : ''}
+      <details ${x.pinned && !x.error ? '' : 'open'}><summary class="sub" style="cursor:pointer;margin-bottom:8px">Drive 에서 찾은 엑셀 ${x.files.length}개</summary>
+      ${x.files.map((f) => { const on = cur && f.id === cur.id; return `<div class="li"><div class="g"><div style="font-weight:${on ? 600 : 400}">${esc(f.name)}</div><div class="t2">수정 ${esc(f.modified)}</div></div>
+        <a class="btn sm ghost" href="${esc(f.url)}" target="_blank" rel="noopener">열기</a>${x.pinned === f.id ? '<span class="tag t">고정됨</span>' : `<button class="btn sm" data-pin="${esc(f.id)}">이 파일로 고정</button>`}</div>`; }).join('') || '<div class="sub">이름에 「통합관리」가 들어간 엑셀(.xlsm/.xlsx)이 없습니다.</div>'}
+      </details>`;
+    $$('[data-pin]', box).forEach((b) => (b.onclick = async () => { b.disabled = true; try { drawSrc(await api('setSourceFile', { id: b.dataset.pin })); toast('가져올 엑셀을 고정했습니다'); $('#impOut').innerHTML = ''; } catch (e) { toast(e.message, 1); b.disabled = false; } }));
+    if ($('#unpin', box)) $('#unpin', box).onclick = async () => { try { drawSrc(await api('setSourceFile', { id: '' })); toast('자동 선택으로 되돌렸습니다'); $('#impOut').innerHTML = ''; } catch (e) { toast(e.message, 1); } };
+  };
+  api('sourceList').then(drawSrc).catch((e) => { const b = $('#srcBox'); if (b) b.innerHTML = `<div class="note">${esc(e.message)}</div>`; });
   $('#imp').onclick = async () => {
     const out = $('#impOut'); out.innerHTML = '<div class="sub" style="margin-top:8px">엑셀을 읽는 중입니다 (30초~1분)…</div>';
     try {
       const r = await api('importPreview');
-      out.innerHTML = `<div style="margin-top:12px"><b>${esc(r.source.name)}</b> <span class="sub">수정 ${esc(r.source.modified)}</span></div>
+      out.innerHTML = `<div style="margin-top:12px"><span class="sub">읽은 파일</span> <b>${esc(r.source.name)}</b> <span class="sub">수정 ${esc(r.source.modified)}</span>${r.source.url ? ` · <a href="${esc(r.source.url)}" target="_blank" rel="noopener">Drive 에서 열기</a>` : ''}</div>
       <table class="mini" style="margin-top:8px"><thead><tr><th>표</th><th class="num">엑셀</th><th class="num">지금 DB</th><th class="num">추가</th><th class="num">변경</th><th class="num">삭제</th><th class="num">같음</th></tr></thead><tbody>${Object.entries(r.tables).map(([t, v]) => `<tr><td>${t}</td><td class="num">${v.엑셀}</td><td class="num">${v.지금}</td><td class="num">${v.추가}</td><td class="num">${v.변경}</td><td class="num ${v.삭제 ? 'bad' : ''}">${v.삭제}</td><td class="num">${v.같음}</td></tr>`).join('')}</tbody></table>
       <h3 style="font-size:12.5px;margin:12px 0 4px">검증 (엑셀이 계산한 값 vs 가져온 값으로 다시 계산)</h3><table class="mini"><tbody>${r.checks.map((c) => `<tr><td>${esc(c.항목)}</td><td class="num">${typeof c.엑셀 === 'number' ? won(c.엑셀) : esc(c.엑셀)}</td><td class="num">${typeof c.DB === 'number' ? won(c.DB) : esc(c.DB)}</td><td>${c.엑셀 === c.DB && !c.차이건수 ? '<span class="ok">일치</span>' : '<span class="bad">차이</span>'}</td></tr>`).join('')}</tbody></table>
       ${r.warnings.length ? `<div class="note" style="margin-top:10px">${r.warnings.slice(0, 15).map(esc).join('<br>')}${r.warnings.length > 15 ? `<br>… 외 ${r.warnings.length - 15}건` : ''}</div>` : ''}
@@ -1120,7 +1144,7 @@ async function start() {
     fromHash();
   } catch (e) { if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
 }
-const APP_VERSION = '2026-11-13b';
+const APP_VERSION = '2026-11-13d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
