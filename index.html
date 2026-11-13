@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>업무관리</title>
+<title>UTO 업무관리</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=1">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="업무관리">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.css" media="print" onload="this.media='all'">
 <script src="config.js"></script>
@@ -160,7 +168,10 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
 .day{min-height:132px;padding:8px;border-radius:var(--r-sm);background:var(--bg2)}
 .day .dn{font-size:12px;color:var(--sub);margin-bottom:8px}.day.today{background:var(--pri-l)}.day.today .dn{color:var(--pri-d);font-weight:700}
 .ev{display:block;width:100%;text-align:left;font-size:12px;line-height:1.4;padding:6px 8px;margin-bottom:6px;border-radius:5px;background:#fff;border:0;border-left:3px solid var(--pri-m);cursor:pointer;color:var(--ink)}
-.week .ev{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.week .evn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+.week .ev em{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
+.todo-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:start;width:100%;padding:13px 20px;border:0;border-top:1px solid var(--line2);background:none;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.todo-row:first-child{border-top:0}.todo-row:hover{background:#FAFBFB}.todo-row .tag{justify-self:start;margin-top:1px}
 .ev em{display:block;font-style:normal;color:var(--sub);font-size:11.5px}
 .ev.k-점검{border-left-color:var(--done)}.ev.k-예정{border-left-color:var(--prog)}.ev.k-기한{border-left-color:var(--warn)}.ev.k-연락{border-left-color:var(--acc)}
 .ev.done{color:#A9AFB5;border-left-color:#D5D9DD}
@@ -279,6 +290,7 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
   tfoot tr{background:var(--bg2)}tfoot td{background:none}
   .mini td{padding:3px 0}
   .feed .it2{grid-template-columns:minmax(0,1fr);gap:4px;padding:14px 16px}
+  .todo-row{grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px}
   .kv{grid-template-columns:96px minmax(0,1fr)}
   .money3 div{padding:8px 10px}.money3 b{font-size:13.5px}
   .sec{padding:16px}.dhead{padding:16px}
@@ -591,7 +603,7 @@ PAGES.home = async (m) => {
   </div>
   <div class="grid2"><div class="col">
     <section class="panel"><div class="ph"><h2>이번 주 일정</h2><span class="sub">${md(r.week.from)} – ${md(r.week.to)}</span><a href="#schedule" data-go="schedule">달력</a></div>
-      <div class="week">${days.map((d) => { const ev = r.week.events.filter((e) => e.d === d); return `<div class="day ${d === r.today ? 'today' : ''}"><div class="dn">${WD[new Date(d + 'T00:00:00').getDay()]} ${+d.slice(8)}${d === r.today ? ' · 오늘' : ''}</div>${ev.map((e) => `<button class="ev k-${e.k} ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}">${esc(e.현장)}<em>${esc(KCOL[e.k])} · ${esc(e.t || '')}</em></button>`).join('')}</div>`; }).join('')}</div></section>
+      <div class="week">${days.map((d) => { const ev = r.week.events.filter((e) => e.d === d); return `<div class="day ${d === r.today ? 'today' : ''}"><div class="dn">${WD[new Date(d + 'T00:00:00').getDay()]} ${+d.slice(8)}${d === r.today ? ' · 오늘' : ''}</div>${ev.map((e) => `<button class="ev k-${e.k} ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}" title="${esc(e.현장)} · ${esc(KCOL[e.k])} ${esc(e.t || '')}"><span class="evn">${esc(e.현장)}</span><em>${e.k === '연락' ? '연락 · ' : e.k === '기한' ? '기한 · ' : ''}${esc(e.t || '')}</em></button>`).join('')}</div>`; }).join('')}</div></section>
     <section class="panel"><div class="ph"><h2>보고서 제출 기한</h2><span class="sub">작성 중 ${k.작성중}건 · 기한 가까운 순</span></div><div class="tbox">
       <table><thead><tr><th>현장 · 점검항목</th><th>제출 기한</th><th>남은 날</th><th>비고</th></tr></thead><tbody>
       ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}</div><div class="t2">${esc(w.항목)} · 점검 ${esc(md(w.점검일))}</div></td><td class="nw">${esc(w.기한 || '—')}</td><td class="nw">${dlTag(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">작성 중인 보고서가 없습니다</td></tr>'}
@@ -615,7 +627,7 @@ function todoTable(r) {
     r.writing.filter((w) => w.남은날 != null && w.남은날 <= 7).map((w) => ({ k: w.남은날 < 0 ? ['r', '기한 초과'] : ['w', '기한 ' + dl(w.남은날)], 현장: w.현장, id: w.현장id, t: `${w.항목} · 보고서 제출 ${w.기한}` })),
     r.todo.map((x) => ({ k: ['r', '연락 지남'], 현장: x.현장, id: x.현장id, t: x.t })));
   if (!rows.length) return '';
-  return `<table class="mini"><tbody>${rows.map((x) => `<tr class="click" data-site="${esc(x.id)}"><td class="nw"><span class="tag ${x.k[0]}">${x.k[1]}</span></td><td>${esc(x.현장)}<div class="sub">${esc(x.t)}</div></td></tr>`).join('')}</tbody></table>`;
+  return `<div>${rows.map((x) => `<button class="todo-row" data-site="${esc(x.id)}"><span class="tag ${x.k[0]}">${x.k[1]}</span><span style="min-width:0"><span class="t1" style="font-weight:500;display:block">${esc(x.현장)}</span><span class="t2" style="display:block">${esc(x.t)}</span></span></button>`).join('')}</div>`;
 }
 PAGES.todo = async (m) => {
   const r = await api('dash');
@@ -1136,7 +1148,7 @@ async function start() {
     fromHash();
   } catch (e) { if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
 }
-const APP_VERSION = '2026-11-13c';
+const APP_VERSION = '2026-11-13e';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
