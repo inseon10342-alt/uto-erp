@@ -1209,7 +1209,7 @@ PAGES.schedule = async (m, p) => {
   const cnt = (k) => r.events.filter((e) => e.k === k && e.d.slice(0, 7) === ym).length;
   const aRow = (e) => `<button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</span></span></button>`;
   const days = [...new Set(monthEv.map((e) => e.d))].sort();
-  m.innerHTML = head('점검 일정', `<div class="seg" role="group" aria-label="보기">${['달력', '목록'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전 달">‹</button><b style="min-width:96px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm" aria-label="다음 달">›</button><button class="btn" id="tm">오늘</button>`) + `
+  m.innerHTML = head('점검 일정', `<div class="seg" role="group" aria-label="보기">${['달력', '목록'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전 달">‹</button><b style="min-width:96px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm" aria-label="다음 달">›</button><button class="btn" id="tm">오늘</button>${editBtn('점검', ic('plus', 15) + ' 점검 일정 추가', 'pri', 'id="addI"')}`) + lockNote('점검 일정') + `
   <div class="sumline"><div><span>이번 달 점검</span><b>${cnt('점검')}<small>건</small></b></div><div><span>점검 예정</span><b>${cnt('예정')}<small>건</small></b></div><div><span>보고서 기한</span><b class="${cnt('기한') ? 'warn' : ''}">${cnt('기한')}<small>건</small></b></div><div><span>다음 연락 예정</span><b>${cnt('연락')}<small>건</small></b></div></div>
   <div class="filters"><div class="chips" role="group" aria-label="표시 항목">${Object.entries(KCOL).map(([k, n]) => `<button class="chip ${st.kinds.includes(k) ? 'on' : ''}" data-k="${k}" aria-pressed="${st.kinds.includes(k)}"><i class="k-${k}"></i>${n}</button>`).join('')}</div><span class="cnt">흐린 항목은 완료·종료된 점검</span></div>
   ${st.view === '목록' ? `<section class="panel"><div class="ph"><h2>${st.mo + 1}월 일정</h2><span class="sub">${monthEv.length}건 · 날짜순</span></div><div class="agenda">${days.map((d) => `<div class="dgrp ${d === T ? 'today' : ''}"><div class="dl"><b>${+d.slice(8)}</b>${WD[new Date(d + 'T00:00:00').getDay()]}${d === T ? ' · 오늘' : ''}</div><div class="its">${monthEv.filter((e) => e.d === d).map(aRow).join('')}</div></div>`).join('') || '<div class="empty">일정 없음</div>'}</div></section>`
@@ -1218,6 +1218,7 @@ PAGES.schedule = async (m, p) => {
   const mv = (n) => { const d = new Date(st.y, st.mo + n, 1); st.y = d.getFullYear(); st.mo = d.getMonth(); render(); };
   $('#pm').onclick = () => mv(-1); $('#nm').onclick = () => mv(1);
   $('#tm').onclick = () => { st.y = now.getFullYear(); st.mo = now.getMonth(); st.sel = today(); render(); };
+  if ($('#addI')) $('#addI').onclick = () => openForm('점검', { 예정일: st.sel >= today() ? st.sel : '' }, () => { invalidate(); render(); }); // 달력에서 고른 날을 점검 예정일로
   $$('[data-v]', m).forEach((b) => (b.onclick = () => { st.view = b.dataset.v; pref.set('calView', st.view); render(); }));
   $$('[data-d]', m).forEach((b) => (b.onclick = () => { st.sel = b.dataset.d; render(); }));
   $$('[data-k]', m).forEach((b) => (b.onclick = () => { const k = b.dataset.k, i = st.kinds.indexOf(k); if (i >= 0) { if (st.kinds.length > 1) st.kinds.splice(i, 1); } else st.kinds.push(k); pref.set('calKinds', st.kinds); render(); }));
@@ -2064,7 +2065,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14l';
+const APP_VERSION = '2026-11-14m';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
