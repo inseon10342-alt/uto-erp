@@ -371,6 +371,7 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
   .h1row{gap:6px}
   .strip,.strip.s4,.sumline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.strip>button,.sumline>*{border-top:1px solid var(--line2)}
   .strip button{padding:12px 14px}.strip b{font-size:18px}.strip em{white-space:normal}
+  .sumline>*:last-child:nth-child(odd),.strip>*:last-child:nth-child(odd){grid-column:1/-1;border-left:0!important} /* 홀수 개일 때 마지막 칸을 한 줄로 채워 빈칸·끊긴 테두리 없앰 */
   .filters .inp,.filters input[type=search]{width:100%!important;flex:1 1 100%}
   .filters select.inp{flex:1 1 40%}
   .seg{width:100%;overflow-x:auto}.seg button{flex:1;height:36px}
@@ -430,7 +431,8 @@ html{touch-action:manipulation}
   .top,.side,.crumb{display:none!important}
   .mbar{display:flex;align-items:center;gap:2px;position:sticky;top:0;z-index:30;height:52px;padding:0 4px;padding-top:env(safe-area-inset-top);background:#fff;border-bottom:1px solid var(--line)}
   .mbar h1{flex:1;margin:0 0 0 8px;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mbar .mback+h1{margin-left:2px}
+  .mbar .mback:not(.hide)+h1{margin-left:2px}
+  .mbar h1:first-child,.mbar .mback.hide+h1{margin-left:12px}
   .mbar .mback{order:-1;width:auto;padding:0 8px 0 4px;gap:2px;font-size:13px;font-weight:600;color:var(--sub2);flex:none}
   .h1row .backb{display:none}
   .mbar .badge{top:6px;right:6px}
@@ -2133,7 +2135,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14q';
+const APP_VERSION = '2026-11-14r';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
