@@ -1595,6 +1595,7 @@ PAGES.settings = async (m) => {
   <section class="panel" ${S.source === '웹' ? 'hidden' : ''}><div class="ph"><h2>엑셀 가져오기</h2><span class="sub">회사 Google Drive 의 통합관리 엑셀</span></div><div class="sec" id="srcBox"><div class="sub">Drive 에서 엑셀 파일을 찾는 중…</div></div><div class="sec">
     <p class="sub" style="margin:0 0 8px">가져오기는 미리보기 → 확인 → 실행 순서이고, 실행 직전 DB 를 자동 백업합니다. 같은 엑셀을 여러 번 가져와도 중복되지 않습니다(고유 ID 기준).</p>
     <button class="btn pri" id="imp" ${S.source === '웹' ? 'disabled' : ''}>미리보기</button><div id="impOut"></div></div></section>
+  <section class="panel"><div class="ph"><h2>서버 자동 업데이트</h2><span class="sub">GitHub uto-erp/server → Apps Script</span></div><div class="sec" id="updBox"><div class="sub">확인하는 중…</div></div></section>
   <section class="panel"><div class="ph"><h2>데이터 현황</h2></div><div class="sec"><dl class="kv">${Object.entries(S.counts).map(([k, v]) => `<dt>${k}</dt><dd>${v}건</dd>`).join('')}</dl>${b.dbUrl ? `<p style="margin:10px 0 0"><a href="${esc(b.dbUrl)}" target="_blank" rel="noopener">업무관리 DB 스프레드시트 열기</a> <span class="sub">(직접 고치지 마세요 — 버전·이력이 남지 않습니다)</span></p>` : ''}</div></section>
   <section class="panel"><div class="ph"><h2>거래명세서 공급자 정보</h2><span class="sub">통합관리 엑셀 「거래명세서」 시트에서 가져옴</span></div><div class="sec" id="coBox"><div class="sub">불러오는 중…</div></div></section>`;
   lookups(true).then((L) => { const co = L.company, box = $('#coBox'); if (!box) return;
@@ -1615,6 +1616,9 @@ PAGES.settings = async (m) => {
       <button class="btn pri" id="xlNow">지금 엑셀에 저장</button>`;
     $('#xlNow', box).onclick = async () => { const bt = $('#xlNow', box); bt.disabled = true; bt.textContent = '저장하는 중… (30초 안팎)'; try { const r = await api('exportNow'); toast(r.result.줄 ? `엑셀에 저장했습니다 (${r.result.줄}줄)` : '엑셀과 같아서 저장할 것이 없습니다'); drawXl(r); } catch (e) { toast(e.message, 1); api('exportInfo').then(drawXl).catch(() => {}); } };
   };
+  const drawUpd = (x) => { const bx = $('#updBox'); if (!bx) return; bx.innerHTML = `${x.error ? `<div class="note">마지막 자동 업데이트가 실패했습니다: ${esc(x.error)}</div>` : ''}<dl class="kv"><dt>지금 서버 코드</dt><dd>${esc(x.code)}</dd><dt>마지막 업데이트</dt><dd>${esc(x.deployed || '아직 없음')}</dd><dt>자동 업데이트</dt><dd>${x.auto ? '<span class="tag g">켜짐 · 5분마다 확인</span>' : '<span class="tag w">꺼짐</span> <span class="sub">Apps Script 편집기에서 installUpdater 를 한 번 실행하세요</span>'}</dd></dl><button class="btn" id="updNow" style="margin-top:8px">지금 업데이트 확인</button>`;
+    $('#updNow', bx).onclick = async () => { const bt = $('#updNow', bx); bt.disabled = true; bt.textContent = '확인하는 중…'; try { const r = await api('updateNow'); toast(r.result.changed ? `서버를 ${r.result.version} 으로 업데이트했습니다` : '이미 최신입니다'); drawUpd(r); } catch (e) { toast(e.message, 1); api('updateInfo').then(drawUpd).catch(() => {}); } }; };
+  api('updateInfo').then(drawUpd).catch((e) => { const bx = $('#updBox'); if (bx) bx.innerHTML = `<div class="sub">${esc(/알 수 없는 요청/.test(e.message) ? '서버가 아직 자동 업데이트 기능이 없는 버전입니다.' : e.message)}</div>`; });
   if (S.source === '웹') api('exportInfo').then(drawXl).catch((e) => { const bx = $('#xlBox'); if (bx) bx.innerHTML = `<div class="note">${esc(e.message)}</div>`; });
   $('#sw').onclick = async () => {
     const to = S.source === '엑셀' ? '웹' : '엑셀';
@@ -2032,7 +2036,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14g';
+const APP_VERSION = '2026-11-14h';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
