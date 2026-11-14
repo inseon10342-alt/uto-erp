@@ -73,6 +73,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .crumb{font-size:12px;color:var(--sub)}
 .h1row{display:flex;align-items:center;gap:6px;margin:2px 0 12px;flex-wrap:wrap;min-height:32px}
 .h1row h1{margin:0;font-size:18px;font-weight:700;flex:1;min-width:180px}
+.fold>summary{list-style:none;cursor:pointer;user-select:none}.fold>summary::-webkit-details-marker{display:none}.fold:not([open])>summary{border-bottom:0}
+.fold .chev{margin-left:auto;width:8px;height:8px;border-right:2px solid var(--sub);border-bottom:2px solid var(--sub);transform:rotate(45deg);margin-top:-4px;flex:none;transition:transform .15s}.fold[open] .chev{transform:rotate(-135deg);margin-top:3px}
 .backb{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px 0 6px;border:1px solid var(--line);border-radius:var(--r);background:#fff;color:var(--sub2);font:inherit;font-size:12.5px;cursor:pointer;flex:none}.backb:hover{background:var(--bg2);color:var(--ink)}
 /* ── 버튼·입력 (높이 32px 통일) */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:var(--h);padding:0 12px;border-radius:var(--r);border:1px solid #D3D8DD;background:#fff;cursor:pointer;white-space:nowrap;font-size:13px;font-weight:500;color:var(--ink)}
@@ -138,6 +140,23 @@ tfoot td{background:#F8F9FA;font-weight:700;border-top:1px solid var(--line);bor
 .mini th{background:none}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .nw{white-space:nowrap}
+th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
+@media (min-width:761px){
+.mt th,.mt td{padding:0 12px;vertical-align:middle}
+.mt td{height:50px;padding-top:5px;padding-bottom:5px}
+.mt tfoot td{height:38px}
+.mt .date{text-align:center;width:92px}
+.mt .c{text-align:center;white-space:nowrap}
+.mt .act{width:1%;text-align:right;white-space:nowrap;padding-left:4px}
+.mt .tc{min-width:220px}
+.mt .tc .t1,.mt .tc .t2{word-break:keep-all;overflow-wrap:anywhere}
+.mt .t2{margin-top:2px}
+.grid2.cgrid{grid-template-columns:minmax(0,1fr)}
+@media (min-width:1760px){.grid2.cgrid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}}
+.mt td.num .dbar{justify-content:flex-end;min-width:150px}
+.mt td.num .dbar .b{flex:0 0 64px}
+.mt td.num .dbar .num{min-width:84px}
+}
 .warn{color:var(--warn-t)}.bad{color:var(--bad-t)}.ok{color:var(--done-t)}.muted{color:#B5BBC1}
 .pager{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:6px 10px;border-top:1px solid var(--line);font-size:12px;color:var(--sub)}
 /* ── 상태 배지 */
@@ -232,6 +251,12 @@ tfoot td{background:#F8F9FA;font-weight:700;border-top:1px solid var(--line);bor
 .agenda .ai .k{flex:none;width:52px;font-size:11px;font-weight:600}
 .agenda .ai .an{min-width:0;word-break:keep-all}
 .agenda .ai.done{color:#A9AFB5}
+.agenda .air{display:flex;align-items:center;gap:6px}
+.agenda .air .ai{flex:1;min-width:0}
+.agenda .air .xdel{flex:none;padding:1px 7px;font-size:11px;color:var(--sub2);opacity:0;transition:opacity .1s}
+.agenda .air:hover .xdel,.agenda .air .xdel:focus-visible{opacity:1}
+.agenda .air .xdel:hover{color:var(--bad-t);border-color:currentColor}
+@media (hover:none){.agenda .air .xdel{opacity:1}}
 .todo-row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:start;width:100%;padding:8px 12px;border:0;border-top:1px solid var(--line2);background:none;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
 .todo-row:first-child{border-top:0}.todo-row:hover{background:#F8FAFB}.todo-row .tag{justify-self:start;margin-top:1px}
 .ev em{display:block;font-style:normal;color:var(--sub);font-size:11px}
@@ -1022,10 +1047,11 @@ PAGES.home = async (m) => {
       <div class="legend" style="margin-top:8px">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n} <b>${dist[i]}</b></span>`).join('')}</div></div></section>
     <section class="panel"><div class="ph"><h2>최근 연락</h2><a href="#contacts" data-go="contacts">전체</a></div><div class="sec">
       ${timeline(r.contacts.slice(0, 5).map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} ${c.담당자 || ''}`, h: `<a href="#" data-site="${esc(c.현장id)}">${esc(c.현장명)}</a><div class="sub">${esc(String(c.메모 || c.공정 || '').slice(0, 70))}</div>` }))) || '<div class="sub">없음</div>'}</div></section>
-    ${r.recent.length ? `<section class="panel"><div class="ph"><h2>최근 변경</h2><span class="sub">웹에서 등록·수정</span></div><div class="sec"><table class="mini"><tbody>${r.recent.map((x) => `<tr><td class="nw sub">${esc(x.시각)}</td><td>${esc(x.표)} ${esc(x.동작)}</td><td class="sub">${esc(x.사용자)}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
+    ${r.recent.length ? `<details class="panel fold" id="recentBox" ${S.recentOpen ? 'open' : ''}><summary class="ph"><h2>최근 변경</h2><span class="sub">웹에서 등록·수정 ${r.recent.length}건 · 마지막 ${esc(r.recent[0].시각)}</span><i class="chev" aria-hidden="true"></i></summary><div class="sec"><table class="mini"><tbody>${r.recent.map((x) => `<tr><td class="nw sub">${esc(x.시각)}</td><td>${esc(x.표)} ${esc(x.동작)}</td><td class="sub">${esc(x.사용자)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
   </div></div>`;
   bindCommon(m);
   $('#rf').onclick = async () => { try { await api('refresh'); } catch (e) {} invalidate(); LK = null; render(); };
+  if ($('#recentBox')) $('#recentBox').addEventListener('toggle', (e) => { S.recentOpen = e.target.open; }); // 처음엔 접힘, 펼친 상태는 이번 접속 동안 기억
 };
 function todoTable(r) {
   const B = r.builder || {};
@@ -1056,7 +1082,9 @@ function bindCommon(root) {
 
 // ---------- 현장 목록
 PAGES.sites = async (m, p) => {
-  const r = await api('sites', {}, { cache: true });
+  const [r, rc] = await Promise.all([api('sites', {}, { cache: true }), api('contracts', {}, { cache: true })]);
+  const cday = {}; rc.contracts.slice().sort((a, b) => (a.연도 || 0) - (b.연도 || 0) || String(a.계약일 || '').localeCompare(String(b.계약일 || ''))).forEach((c) => { if (c.계약일 || !cday[c.현장id]) cday[c.현장id] = c.계약일 || ''; }); // 현장별 가장 최근 계약의 계약일
+  r.sites.forEach((x) => { x.계약일 = cday[x.id] || ''; });
   const st = S.sitesF = S.sitesF || { s: '진행', gu: '', q: '', sort: '', dir: 'asc', pg: 0 };
   const gus = [...new Set(r.sites.map((s) => s.관할구).filter(Boolean))].sort();
   const act = r.sites.filter((s) => s.진행);
@@ -1066,7 +1094,7 @@ PAGES.sites = async (m, p) => {
     S._siteRows = rows;
     const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
     $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((s) => `<tr class="click ${s.id === p.id ? 'sel' : ''}" data-id="${s.id}"><td style="min-width:230px"><div class="t1">${esc(s.현장명)}${s.계약수 > 1 ? ` <span class="tag plain">계약 ${s.계약수}</span>` : ''}</div><div class="t2">${esc([s.관할구, s.시공사].filter(Boolean).join(' · '))}</div></td>
-      <td class="nw">${(() => { const c = [0, 0, 0, 0, 0, 0]; (s.단계목록 || []).forEach(([, x]) => c[sIdx(x)]++); return `<b>${s.완료}</b><span class="sub"> / ${s.점검} 완료</span>${c[2] ? ` <span class="tag w">작성 중 ${c[2]}</span>` : ''}${c[3] + c[4] ? ` <span class="tag t">청구·입금 대기 ${c[3] + c[4]}</span>` : ''}`; })()}</td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="nw"><span class="prog"><i style="width:${Math.min(100, s.수금률 * 100)}%"></i></span><span class="sub">${pct(s.수금률)}</span></td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
+      <td class="nw date">${s.계약일 ? esc(s.계약일) : '<span class="muted">—</span>'}</td><td class="nw">${(() => { const c = [0, 0, 0, 0, 0, 0]; (s.단계목록 || []).forEach(([, x]) => c[sIdx(x)]++); return `<b>${s.완료}</b><span class="sub"> / ${s.점검} 완료</span>${c[2] ? ` <span class="tag w">작성 중 ${c[2]}</span>` : ''}${c[3] + c[4] ? ` <span class="tag t">청구·입금 대기 ${c[3] + c[4]}</span>` : ''}`; })()}</td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="nw"><span class="prog"><i style="width:${Math.min(100, s.수금률 * 100)}%"></i></span><span class="sub">${pct(s.수금률)}</span></td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
     $('#pg').innerHTML = pager(rows.length, st.pg, per, 'site');
     $('#cnt').textContent = `${rows.length}곳`;
     $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('sites', { id: tr.dataset.id })));
@@ -1077,7 +1105,7 @@ PAGES.sites = async (m, p) => {
   <div class="filters"><div class="seg" role="group" aria-label="상태">${['진행', '완료', '전체'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x === '진행' ? '진행 중' : x}</button>`).join('')}</div>
     <select class="inp" id="gu"><option value="">관할구 전체</option>${gus.map((g) => `<option ${st.gu === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>
     <input class="inp" id="q" type="search" placeholder="현장명·시공사·주소" value="${esc(st.q)}" style="width:220px"><span class="cnt" id="cnt"></span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr>${[['현장', '현장명'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '다음' || k === '최근연락' ? 'opt' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div><div id="pg"></div></section>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr>${[['현장', '현장명'], ['계약일', '계약일'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '다음' || k === '최근연락' ? 'opt' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
@@ -1085,7 +1113,7 @@ PAGES.sites = async (m, p) => {
   $('#q').oninput = (e) => { st.q = e.target.value; st.pg = 0; draw(); };
   $$('[data-sort]', m).forEach((th) => (th.onclick = () => { const k = th.dataset.sort; st.dir = st.sort === k && st.dir === 'asc' ? 'desc' : 'asc'; st.sort = k; render(); }));
   $('#add').onclick = () => openForm('현장', {}, (row) => go('sites', { id: row.id }));
-  $('#xl').onclick = () => exportXlsx('현장목록', [['현장', [['현장명', '관할구', '주소', '시공사', '발주처', '점검', '완료', '작성중', '다음 점검', '보고서 기한', '계약금', '수금', '입금 대기', '수금률', '최근 연락']].concat(S._siteRows.map((s) => [s.현장명, s.관할구, s.주소, s.시공사, s.발주처, s.점검, s.완료, s.작성중, s.다음, s.기한, s.계약금, s.수금, s.대기, Math.round(s.수금률 * 100) + '%', s.최근연락]))]]);
+  $('#xl').onclick = () => exportXlsx('현장목록', [['현장', [['현장명', '계약일', '관할구', '주소', '시공사', '발주처', '점검', '완료', '작성중', '다음 점검', '보고서 기한', '계약금', '수금', '입금 대기', '수금률', '최근 연락']].concat(S._siteRows.map((s) => [s.현장명, s.계약일, s.관할구, s.주소, s.시공사, s.발주처, s.점검, s.완료, s.작성중, s.다음, s.기한, s.계약금, s.수금, s.대기, Math.round(s.수금률 * 100) + '%', s.최근연락]))]]);
   if (p.id) siteDetail($('#det'), p.id, p.tab);
 };
 async function siteDetail(el, id, tab) {
@@ -1103,7 +1131,7 @@ async function siteDetail(el, id, tab) {
       <div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div></div>
       <div class="sec"><h3>점검 회차별 진행</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
       <div class="sec"><h3>현장 정보</h3><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구 · 규모</dt><dd>${esc([s.관할구, s.규모].filter(Boolean).join(' · ') || '-')}</dd>
-      <dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
+      <dt>계약일</dt><dd>${r.contracts.length > 1 ? r.contracts.map((c) => `${esc(c.연도 || '')} · ${esc(c.계약일 || '—')}`).join('<br>') : esc(c0.계약일 || '—')}</dd><dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
       ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3>${timeline([{ d: `${r.contacts[0].연락일} · ${r.contacts[0].방법 || ''} · ${r.contacts[0].담당자 || ''}`, h: esc(r.contacts[0].메모 || r.contacts[0].공정 || '') }])}</div>` : ''}`,
     items: () => `<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><span class="sub">날짜순 · 점검일(없으면 예정일)</span>${editBtn('점검', ic('plus', 14) + ' 점검 추가', 'sm', 'id="addI"')}</div><div class="sec">${timeline(r.items.slice().sort((a, b) => String(itemDate(a) || '9').localeCompare(String(itemDate(b) || '9'))).map((x) => { const i = sIdx(x.단계); return { c: i === 5 ? 'g' : i === 2 ? 'w' : i >= 3 ? 't' : '', d: itemDate(x) ? `${itemDate(x)}${x.점검일 ? '' : ' (예정)'}` : '날짜 미정', tag: stageTag(x.단계), h: `<b>${esc(x.항목)}</b>${x.기한 ? ` <span class="sub">· 보고서 기한 ${esc(x.기한)}</span>` : ''}${x.발송일 ? ` <span class="sub">· 발송 ${esc(x.발송일)}</span>` : ''}${x.시기 && !x.점검일 ? `<div class="sub">${esc(x.시기)}</div>` : ''} ${editBtn('점검', '수정', 'sm ghost', `data-ei="${esc(x.id)}"`)}` }; }))}</div>`,
     contact: () => `<div class="sec" style="display:flex;justify-content:flex-end">${editBtn('연락', ic('plus', 14) + ' 연락 기록 추가', 'sm', 'id="addT"')}</div><div class="sec">${timeline(r.contacts.map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} · ${c.담당자 || ''}`, c: c.다음연락 && c.다음연락 <= today() ? 'w' : '', h: `${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}<div class="pre">${esc(c.메모)}</div>${c.다음연락 ? `<div class="sub">다음 연락 ${esc(c.다음연락)}</div>` : ''} ${editBtn('연락', '수정', 'sm ghost', `data-et="${esc(c.id)}"`)}` }))) || '<div class="sub">연락 기록 없음</div>'}</div>`,
@@ -1114,7 +1142,7 @@ async function siteDetail(el, id, tab) {
       <div class="sec"><h3>계산서 · 입금</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : 't', d: `${b.발행일 || '발행 없음'}`, tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span>` }))) || '<div class="sub">없음</div>'}</div>
       <div class="sec"><button class="btn sm" id="mkTS">거래명세서 만들기</button></div>`,
     photo: () => `<div class="sec"><div class="note info" style="margin:0 0 8px">현장사진은 사진대지 웹앱 코드를 받은 뒤 이 자리에 회차별 갤러리로 연결합니다.</div><div class="gallery">${'<div></div>'.repeat(8)}</div></div>`,
-    contract: () => r.contracts.map((c) => `<div class="sec" style="cursor:pointer" data-contract="${esc(c.id)}"><div style="display:flex;gap:8px;align-items:center">${stTag(c.상태)}<b style="flex:1">${esc(c.계약명)}</b><span class="sub">${c.연도}</span></div>
+    contract: () => r.contracts.map((c) => `<div class="sec" style="cursor:pointer" data-contract="${esc(c.id)}"><div style="display:flex;gap:8px;align-items:center">${stTag(c.상태)}<b style="flex:1">${esc(c.계약명)}</b><span class="sub">${c.연도} · 계약일 ${esc(c.계약일 || '—')}</span></div>
       <div class="dbar" style="margin-top:6px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="sub">수금 ${pct(c.수금률)} · ${won(c.수금)} / ${won(c.계약금)}원</span></div></div>`).join('') || '<div class="empty">계약 없음</div>',
     docs: () => r.docs.map((d) => `<div class="sec li"><span class="tag plain">${esc(d.종류)}</span><div class="g"><b>${esc(d.번호 || '(임시저장)')}</b> <span class="sub">${esc(d.일자)} · ${won(d.합계)}원</span></div><button class="btn sm" data-doc="${esc(d.id)}">열기</button></div>`).join('') || '<div class="empty">이 현장 문서가 없습니다</div>',
   };
@@ -1150,7 +1178,7 @@ PAGES.contracts = async (m, p) => {
     const sum = rows.reduce((a, c) => [a[0] + c.공급가, a[1] + c.계약금, a[2] + c.수금, a[3] + c.대기], [0, 0, 0, 0]);
     $('#sl').innerHTML = `<div><span>${st.y ? st.y + '년 ' : ''}${st.s || '전체'} 계약</span><b>${rows.length}<small>건</small></b></div><div><span>공급가 합계 (VAT 별도)</span><b>${won(sum[0])}</b></div><div><span>계약금 합계 (VAT 포함)</span><b>${won(sum[1])}</b></div><div><span>수금</span><b class="ok">${won(sum[2])}<small>${sum[1] ? Math.round(sum[2] / sum[1] * 100) : 0}%</small></b></div><div><span>입금 대기</span><b class="${sum[3] ? 'warn' : ''}">${won(sum[3])}</b></div><div><span>남은 금액</span><b>${won(sum[1] - sum[2])}</b></div>`;
     const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
-    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw sub opt">${esc(c.계약일 || '—')}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
+    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw date">${c.계약일 ? esc(c.계약일) : '<span class="muted">—</span>'}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
     $('#tf').innerHTML = `<tr><td colspan="2">${rows.length}건 합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td><td colspan="2"></td></tr>`;
     $('#pg').innerHTML = pager(rows.length, st.pg, per, 'con');
     $('#cnt').textContent = rows.length + '건';
@@ -1164,7 +1192,7 @@ PAGES.contracts = async (m, p) => {
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${years.map((y) => `<option ${st.y === String(y) ? 'selected' : ''}>${y}</option>`).join('')}</select>
   <div class="seg" role="group" aria-label="상태">${['', '진행중', '완료', '종료', '취소'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x ? (x === '진행중' ? '진행 중' : x) : '전체'}</button>`).join('')}</div>
   <input class="inp" id="q" type="search" placeholder="계약명·발주처·번호" value="${esc(st.q)}" style="width:220px"><span class="sub">공급가 VAT 별도 · 계약금·수금 VAT 포함</span><span class="cnt" id="cnt"></span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="opt">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="date">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
   $('#y').onchange = (e) => { st.y = e.target.value; st.pg = 0; draw(); };
@@ -1213,7 +1241,9 @@ PAGES.schedule = async (m, p) => {
   const dayList = ev.filter((e) => e.d === st.sel);
   const monthEv = ev.filter((e) => e.d.slice(0, 7) === ym);
   const cnt = (k) => r.events.filter((e) => e.k === k && e.d.slice(0, 7) === ym).length;
-  const aRow = (e) => `<button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</span></span></button>`;
+  const evs = []; // 점검·예정 일정 삭제용
+  const aRow = (e) => { const del = (e.k === '점검' || e.k === '예정') ? editBtn('점검', '삭제', 'sm xdel', `data-ei="" data-xd="${evs.push(e) - 1}" aria-label="${esc(e.현장 + ' ' + (e.t || '') + ' 일정 삭제')}"`) : '';
+    return `<div class="air"><button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</span></span></button>${del}</div>`; };
   const days = [...new Set(monthEv.map((e) => e.d))].sort();
   m.innerHTML = head('점검 일정', `<div class="seg" role="group" aria-label="보기">${['달력', '목록'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전 달">‹</button><b style="min-width:96px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm" aria-label="다음 달">›</button><button class="btn" id="tm">오늘</button>${editBtn('점검', ic('plus', 15) + ' 점검 일정 추가', 'pri', 'id="addI"')}`) + lockNote('점검 일정') + `
   <div class="sumline"><div><span>이번 달 점검</span><b>${cnt('점검')}<small>건</small></b></div><div><span>점검 예정</span><b>${cnt('예정')}<small>건</small></b></div><div><span>보고서 기한</span><b class="${cnt('기한') ? 'warn' : ''}">${cnt('기한')}<small>건</small></b></div><div><span>다음 연락 예정</span><b>${cnt('연락')}<small>건</small></b></div></div>
@@ -1225,6 +1255,19 @@ PAGES.schedule = async (m, p) => {
   $('#pm').onclick = () => mv(-1); $('#nm').onclick = () => mv(1);
   $('#tm').onclick = () => { st.y = now.getFullYear(); st.mo = now.getMonth(); st.sel = today(); render(); };
   if ($('#addI')) $('#addI').onclick = () => openForm('점검', { 예정일: st.sel >= today() ? st.sel : '' }, () => { invalidate(); render(); }); // 달력에서 고른 날을 점검 예정일로
+  $$('[data-xd]', m).forEach((b) => (b.onclick = async (ev0) => {
+    ev0.stopPropagation();
+    const e = evs[+b.dataset.xd];
+    let row = null;
+    try {
+      const sd = await api('site', { id: e.현장id }), its = sd.items || [];
+      row = e.id ? its.find((x) => x.id === e.id) : null;
+      if (!row && !e.id) { const c = its.filter((x) => x.항목 === (e.t || '') && (e.k === '점검' ? x.점검일 === e.d : !x.점검일 && x.예정일 === e.d)); if (c.length === 1) row = c[0]; }
+    } catch (er) { toast(er.message, true); return; }
+    if (!row) { toast('삭제할 점검을 정확히 찾지 못했습니다. 현장 상세의 점검 탭에서 삭제해 주세요.'); return; }
+    if (!(await ask({ title: '점검 일정 삭제', msg: `${e.d} · ${e.현장}\n「${row.항목 || ''}」 ${e.k === '점검' ? '점검' : '점검 예정'}을 삭제합니다.\n이 점검 1건만 삭제되며, 변경 이력에 남아 복구할 수 있습니다.`, ok: '삭제', danger: true }))) return;
+    try { await api('del', { t: '점검', id: row.id, ver: row.버전 }); invalidate(); toast('점검 일정을 삭제했습니다'); render(); } catch (er) { toast(er.message, true); }
+  }));
   $$('[data-v]', m).forEach((b) => (b.onclick = () => { st.view = b.dataset.v; pref.set('calView', st.view); render(); }));
   $$('[data-d]', m).forEach((b) => (b.onclick = () => { st.sel = b.dataset.d; render(); }));
   $$('[data-k]', m).forEach((b) => (b.onclick = () => { const k = b.dataset.k, i = st.kinds.indexOf(k); if (i >= 0) { if (st.kinds.length > 1) st.kinds.splice(i, 1); } else st.kinds.push(k); pref.set('calKinds', st.kinds); render(); }));
@@ -1458,8 +1501,8 @@ PAGES.invoices = async (m) => {
     const rows = r.invoices.filter((b) => (!st.y || b.연도 === st.y) && (!st.s || (st.s === '입금 대기' ? b.미입금 > 0 : st.s === '입금 완료' ? !!b.입금일 : !b.발행일)) && (!st.q || norm(b.현장명 + b.품명 + b.발주처 + b.입금자).includes(norm(st.q))));
     S._invRows = rows;
     const sum = rows.reduce((a, b) => [a[0] + b.청구액, a[1] + b.수금액, a[2] + b.미입금], [0, 0, 0]);
-    $('#tb').innerHTML = rows.map((b) => `<tr><td style="min-width:220px"><div class="t1"><a href="#" data-site="${esc(b.현장id)}">${esc(b.현장명)}</a></div><div class="t2">${esc(b.품명)}${b.발주처 ? ' · ' + esc(b.발주처) : ''}</div></td><td class="nw sub">${esc(b.발행일 || '—')}</td><td class="num">${won(b.청구액)}</td><td class="nw sub">${esc(b.입금일 || '—')}</td><td class="num">${won(b.수금액)}</td><td class="num">${b.미입금 ? won(b.미입금) : '<span class="muted">—</span>'}</td><td>${b.미입금 ? `<span class="tag ${b.경과 > 30 ? 'r' : 'w'}">입금 대기 ${b.경과}일</span>` : b.발행일 ? '<span class="tag g">입금 완료</span>' : '<span class="tag">발행 없음</span>'}</td><td>${editBtn('청구', '수정', 'sm', `data-eb="${esc(b.id)}"`)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
-    $('#tf').innerHTML = `<tr><td colspan="2">${rows.length}건</td><td class="num">${won(sum[0])}</td><td></td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td colspan="2"></td></tr>`;
+    $('#tb').innerHTML = rows.map((b) => `<tr><td class="tc" style="min-width:220px"><div class="t1" title="${esc(b.현장명)}"><a href="#" data-site="${esc(b.현장id)}">${esc(b.현장명)}</a></div><div class="t2" title="${esc(b.품명 + (b.발주처 ? ' · ' + b.발주처 : ''))}">${esc(b.품명)}${b.발주처 ? ' · ' + esc(b.발주처) : ''}</div></td><td class="date sub">${esc(b.발행일 || '—')}</td><td class="num">${won(b.청구액)}</td><td class="date sub">${esc(b.입금일 || '—')}</td><td class="num">${won(b.수금액)}</td><td class="num">${b.미입금 ? won(b.미입금) : '<span class="muted">—</span>'}</td><td class="c">${b.미입금 ? `<span class="tag ${b.경과 > 30 ? 'r' : 'w'}">입금 대기 ${b.경과}일</span>` : b.발행일 ? '<span class="tag g">입금 완료</span>' : '<span class="tag">발행 없음</span>'}</td><td class="act">${editBtn('청구', '수정', 'sm', `data-eb="${esc(b.id)}"`)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
+    $('#tf').innerHTML = `<tr><td>합계 ${rows.length}건</td><td></td><td class="num">${won(sum[0])}</td><td></td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td colspan="2"></td></tr>`;
     bindCommon($('#tb'));
     $$('[data-eb]', m).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), () => { invalidate(); render(); })));
   };
@@ -1467,7 +1510,7 @@ PAGES.invoices = async (m) => {
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${ys.map((y) => `<option ${st.y === y ? 'selected' : ''}>${y}</option>`).join('')}</select>
   <div class="seg">${['', '입금 대기', '입금 완료', '발행 없음'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x || '전체'}</button>`).join('')}</div>
   <input class="inp" id="q" type="search" placeholder="현장·품명·발주처" value="${esc(st.q)}" style="width:220px"><span class="sub">금액은 VAT 포함</span></div>
-  <section class="panel tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">청구액</th><th>입금일</th><th class="num">수금액</th><th class="num">미입금</th><th>상태</th><th></th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></section>`;
+  <section class="panel tbox mt"><table><thead><tr><th>현장 · 품명</th><th class="date">발행일</th><th class="num">청구액</th><th class="date">입금일</th><th class="num">수금액</th><th class="num">미입금</th><th class="c">상태</th><th class="act"></th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></section>`;
   draw();
   $('#y').onchange = (e) => { st.y = e.target.value; draw(); };
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
@@ -1486,11 +1529,11 @@ PAGES.collect = async (m) => {
   <div class="sumline"><button data-go="contracts"><span>진행 중 계약금 합계</span><b>${won(sum[0])}<small>원 · ${act.length}건</small></b></button><div><span>수금</span><b class="ok">${won(sum[1])}<small>${sum[0] ? Math.round(sum[1] / sum[0] * 1000) / 10 : 0}%</small></b></div><button data-go="invoices"><span>청구 후 입금 대기 (전체)</span><b class="warn">${won(waitSum)}<small>원 · ${wait.length}건</small></b></button><div><span>아직 청구 전</span><b>${won(before)}</b></div></div>
   <section class="panel"><div class="ph"><h2>진행 중 계약금 구성</h2><span class="sub">VAT 포함</span></div><div class="sec">${hbar([['수금', sum[1], 'var(--done)'], ['입금 대기', sum[2], 'var(--prog)'], ['청구 전', before, 'var(--line)']])}
     <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금 <b>${won(sum[1])}</b></span><span><i style="background:var(--prog)"></i>입금 대기 <b>${won(sum[2])}</b></span><span><i style="background:var(--line)"></i>청구 전 <b>${won(before)}</b></span></div></div></section>
-  <div class="grid2" style="margin-top:12px"><section class="panel"><div class="ph"><h2>용역별 수금</h2><span class="sub">진행 중 ${act.length}건 · 계약금 큰 순</span></div><div class="tbox"><table><thead><tr><th>현장 · 발주처</th><th class="num">계약금</th><th>수금</th><th class="num">입금 대기</th><th class="num">남은 금액</th></tr></thead><tbody>
-  ${sortRows(act, '계약금', 'desc').map((c) => `<tr class="click" data-contract="${esc(c.id)}"><td><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.발주처)}</div></td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:140px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:64px">${won(c.수금)}</span></span></td><td class="num">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="num">${won(c.잔여)}</td></tr>`).join('')}</tbody>
+  <div class="grid2 cgrid" style="margin-top:12px"><section class="panel"><div class="ph"><h2>용역별 수금</h2><span class="sub">진행 중 ${act.length}건 · 계약금 큰 순</span></div><div class="tbox mt"><table><thead><tr><th>현장 · 발주처</th><th class="num">계약금</th><th class="num">수금</th><th class="num">입금 대기</th><th class="num">남은 금액</th></tr></thead><tbody>
+  ${sortRows(act, '계약금', 'desc').map((c) => `<tr class="click" data-contract="${esc(c.id)}"><td class="tc"><div class="t1" title="${esc(c.계약명)}">${esc(c.계약명)}</div><div class="t2" title="${esc(c.발주처)}">${esc(c.발주처)}</div></td><td class="num">${won(c.계약금)}</td><td class="num"><span class="dbar"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num">${won(c.수금)}</span></span></td><td class="num">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="num">${won(c.잔여)}</td></tr>`).join('')}</tbody>
   <tfoot><tr><td>합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td></tr></tfoot></table></div></section>
-  <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순</span></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
-  ${wait.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}</div><div class="t2">${esc(b.발행일)} · ${esc(b.품명)}</div></td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="3" class="empty">없음</td></tr>'}</tbody></table></div></section></div>`;
+  <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순</span></div><div class="tbox mt"><table><thead><tr><th>현장 · 품명</th><th class="date">발행일</th><th class="num">미입금</th><th class="c">경과</th></tr></thead><tbody>
+  ${wait.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td class="tc"><div class="t1" title="${esc(b.현장명)}">${esc(b.현장명)}</div><div class="t2" title="${esc(b.품명)}">${esc(b.품명)}</div></td><td class="date sub">${esc(b.발행일 || '—')}</td><td class="num">${won(b.미입금)}</td><td class="c"><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section></div>`;
   bindCommon(m);
   $('#xl').onclick = () => exportXlsx('수금현황', [['용역별', [['현장', '발주처', '계약금', '수금', '입금 대기', '잔여금', '수금률']].concat(act.map((c) => [c.계약명, c.발주처, c.계약금, c.수금, c.대기, c.잔여, Math.round(c.수금률 * 100) + '%']))], ['입금 대기', [['발행일', '현장', '품명', '입금자', '미입금', '경과일']].concat(wait.map((b) => [b.발행일, b.현장명, b.품명, b.입금자, b.미입금, b.경과]))]]);
 };
@@ -2071,7 +2114,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14o';
+const APP_VERSION = '2026-11-14p';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

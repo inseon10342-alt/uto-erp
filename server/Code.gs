@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-14a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-14b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -462,9 +462,9 @@ function schedule_(from, to) {
   const nm = (cid) => { const c = C[cid] || {}; return { 현장: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 종료: c.상태 && c.상태 !== '진행중' }; };
   live_('점검').forEach((x) => {
     const n = nm(x.계약id), st = stageOf_(x), done = st === '완료' || n.종료;
-    if (x.점검일) ev.push(Object.assign({ d: x.점검일, k: '점검', t: x.항목, done }, n));
-    else if (x.예정일) ev.push(Object.assign({ d: x.예정일, k: '예정', t: x.항목, done }, n));
-    if (st === '보고서 작성중' && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목 }, n));
+    if (x.점검일) ev.push(Object.assign({ d: x.점검일, k: '점검', t: x.항목, id: x.id, done }, n));
+    else if (x.예정일) ev.push(Object.assign({ d: x.예정일, k: '예정', t: x.항목, id: x.id, done }, n));
+    if (st === '보고서 작성중' && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목, id: x.id }, n));
   });
   const last = {};
   live_('연락').forEach((c) => { if (!last[c.현장id] || c.연락일 > last[c.현장id].연락일) last[c.현장id] = c; });
