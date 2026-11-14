@@ -102,7 +102,8 @@ textarea.inp{height:auto;min-height:64px;padding:6px 9px;resize:vertical}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);min-width:0}
 .panel+.panel{margin-top:12px}.grid2>.panel+.panel,.grid3>.panel+.panel,.split>.panel+.panel{margin-top:0}
 .ph{display:flex;align-items:center;gap:8px;padding:9px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line2);min-height:40px}
-.ph h2{margin:0;font-size:13.5px;font-weight:700;flex:1}
+.ph h2{margin:0;font-size:13.5px;font-weight:700;flex:1 0 auto;white-space:nowrap}
+.ph a{white-space:nowrap}
 .ph .sub{font-size:12px}
 .sub{color:var(--sub);font-size:12px}
 .t1{font-weight:600;color:var(--ink);word-break:keep-all}.t2{font-size:12px;color:var(--sub);margin-top:1px}
@@ -422,6 +423,7 @@ html{touch-action:manipulation}
   .tabs button{padding:12px 12px;font-size:14px}
   #toasts{bottom:calc(72px + env(safe-area-inset-bottom))}
   .stmt .paper{padding:8px}
+  .ph{row-gap:2px}.ph .sub{order:3;flex-basis:100%;font-size:12px}
   .chart{overflow-x:auto}.chart svg.wide{min-width:640px}
   .sumline.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.sumline.g3>*{border-left:1px solid var(--line2)!important;border-top:1px solid var(--line2)!important}.sumline.g3>*:nth-child(odd){border-left:0!important}.sumline.g3>*:nth-child(-n+2){border-top:0!important}
   .sumline b{font-size:16px}
@@ -1523,7 +1525,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14a';
+const APP_VERSION = '2026-11-14b';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
