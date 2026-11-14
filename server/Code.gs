@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-14c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -28,7 +28,7 @@ const SCHEMA = {
   거래처: ['id', '거래처명', '사업자번호', '대표자', '주소', '업태', '종목', '구분', '전화', '이메일', '비고'],
   계약: ['id', '현장id', '계약명', '연도', 'No', '계약일', '공급가', '부가세', '계약금', 'VAT기준', '종합보고서구분', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '상태',
     '발주처id', '실제입금처id', '시공사id', '용역코드', '준공예정일', '완료일', '비고', '입금비고', '기존수금', '기존미입금'],
-  점검: ['id', '계약id', '항목', '단계', '예정일', '점검일', '기한', '발송일', '시기', '위치', '내부검토', '비고'],
+  점검: ['id', '계약id', '항목', '단계', '예정일', '점검일', '기한', '발송일', '시기', '위치', '내부검토', '비고', '작성완료일'], // 작성완료일: 웹 전용 (엑셀에 칸 없음)
   청구: ['id', '계약id', '발행일', '품명', '청구액', '공급가', '부가세', '입금일', '수금액', '입금자', '상태', '연결점검', '계약외', '할증', '비고', '분할입금'],
   연락: ['id', '현장id', '연락일', '방법', '담당자', '공정', '메모', '예상점검', '예상시기', '다음연락', '비고', '작성자'],
   문서: ['id', '종류', '번호', '계약id', '현장id', '거래처id', '일자', '상태', '제목', '내용', '공급가', '세액', '합계', '파일', '작성자'],
@@ -228,6 +228,7 @@ function withAfter_(who, a, out) {
   });
   return Object.assign({}, out, { pre });
 }
+const WEB_ONLY = { 점검: ['작성완료일'] };
 const ACTIONS = {
   boot: (who) => ({ user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
@@ -245,7 +246,7 @@ const ACTIONS = {
   reviews: () => cached_('reviews', () => {
     const list = reviewsList_(), has = {}; list.forEach((r) => { has[r.계약id + '|' + key_(r.항목)] = 1; });
     const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처'), T = today_();
-    const writing = live_('점검').filter((x) => stageOf_(x) === '보고서 작성중' && !has[x.계약id + '|' + key_(x.항목)]).map((x) => { const c = C[x.계약id] || {}; return { 점검id: x.id, 계약id: x.계약id, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null }; })
+    const writing = live_('점검').filter((x) => isWriting_(stageOf_(x)) && !has[x.계약id + '|' + key_(x.항목)]).map((x) => { const c = C[x.계약id] || {}; return { 작성완료일: x.작성완료일 || '', 점검id: x.id, 계약id: x.계약id, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null }; })
       .sort((a, b) => (a.남은날 == null ? 9999 : a.남은날) - (b.남은날 == null ? 9999 : b.남은날));
     return { reviews: list, writing };
   }),
@@ -402,6 +403,7 @@ function validate_(t, r, cur) {
     if (others.some((x) => x.현장id === r.현장id && key_(x.계약명) === key_(r.계약명) && x.연도 === r.연도)) return '같은 현장·계약명·연도의 계약이 이미 있습니다.';
   }
   if (t === '점검' && (!r.계약id || !r.항목)) return '계약과 점검항목을 입력하세요.';
+  if (t === '점검' && r.작성완료일 && !r.점검일) return '보고서 작성 완료일은 점검일을 입력한 뒤에 넣을 수 있습니다.';
   if (t === '청구' && (!r.계약id || !(r.발행일 || r.입금일))) return '계약과 발행일(또는 입금일)을 입력하세요.';
   if (t === '연락' && (!r.현장id || !r.연락일)) return '현장과 연락일을 입력하세요.';
   if (t === '검토' && (!r.계약id || !r.항목 || !r.요청일)) return '계약, 점검항목, 검토요청일을 입력하세요.';
@@ -419,7 +421,12 @@ function contractMoney_(c, inv) {
   const wait = mine.filter((b) => !b.입금일 && b.발행일).reduce((s, b) => s + Math.max(0, b.청구액 - b.수금액), 0);
   return { 수금: paid, 대기: wait, 잔여: c.계약금 - paid, 수금률: c.계약금 ? paid / c.계약금 : 0, 청구: mine.reduce((s, b) => s + b.청구액, 0) };
 }
-function stageOf_(x) { return x.단계 || (x.발송일 ? '완료' : x.점검일 ? '보고서 작성중' : x.예정일 ? '점검 예정' : '점검 전'); }
+function stageOf_(x) {
+  const s = x.단계 || (x.발송일 ? '완료' : x.점검일 ? '보고서 작성중' : x.예정일 ? '점검 예정' : '점검 전');
+  // 보고서 작성 완료는 작성만 끝난 상태 — 검토·발송 단계로 넘기지 않음 (검토·발송은 실제 기록이 있을 때만)
+  return s === '보고서 작성중' && x.작성완료일 ? '보고서 작성 완료' : s;
+}
+function isWriting_(st) { return st === '보고서 작성중' || st === '보고서 작성 완료'; } // 아직 제출 전 (보고서 기한이 살아 있는 상태)
 function contractList_() {
   const S = byId_('현장'), Pn = byId_('거래처'), inv = live_('청구'), insp = live_('점검');
   return live_('계약').map((c) => {
@@ -443,13 +450,13 @@ function sitesList_() {
     const cs = contracts.filter((c) => c.현장id === s.id);
     const items = [].concat(...cs.map((c) => byC[c.id] || []));
     const active = cs.some((c) => c.상태 === '진행중');
-    const writing = items.filter((x) => stageOf_(x) === '보고서 작성중' && x.기한).map((x) => x.기한).sort();
+    const writing = items.filter((x) => isWriting_(stageOf_(x)) && x.기한).map((x) => x.기한).sort();
     const next = items.find((x) => ['점검 예정', '점검 전'].indexOf(stageOf_(x)) >= 0);
     const last = cts.filter((x) => x.현장id === s.id).sort((a, b) => String(b.연락일).localeCompare(String(a.연락일)))[0];
     const money = cs.reduce((a, c) => ({ 계약금: a.계약금 + c.계약금, 수금: a.수금 + c.수금, 대기: a.대기 + c.대기 }), { 계약금: 0, 수금: 0, 대기: 0 });
     const latest = cs[0] || {};
     return { id: s.id, 현장명: s.현장명, 관할구: s.관할구, 주소: s.주소, 규모: s.규모, 진행: active, 계약수: cs.length, 시공사: latest.시공사 || '', 발주처: latest.발주처 || '',
-      점검: items.length, 완료: items.filter((x) => stageOf_(x) === '완료').length + (active ? 0 : 0), 작성중: items.filter((x) => stageOf_(x) === '보고서 작성중').length,
+      점검: items.length, 완료: items.filter((x) => stageOf_(x) === '완료').length + (active ? 0 : 0), 작성중: items.filter((x) => stageOf_(x) === '보고서 작성중').length, 작성완료: items.filter((x) => stageOf_(x) === '보고서 작성 완료').length,
       기한: writing[0] || '', 남은날: writing[0] ? dd_(writing[0], T) : null, 다음: next ? next.항목 : '', 다음시기: next ? next.시기 : '',
       계약금: money.계약금, 수금: money.수금, 대기: money.대기, 수금률: money.계약금 ? money.수금 / money.계약금 : 0, 최근연락: last ? last.연락일 : '', 버전: s.버전,
       단계목록: items.map((x) => [x.항목, stageOf_(x)]) };
@@ -460,7 +467,7 @@ function siteDetail_(id) {
   if (!s) return { site: null };
   const cs = contractList_().filter((c) => c.현장id === id), ids = cs.map((c) => c.id);
   const T = today_();
-  const items = live_('점검').filter((x) => ids.indexOf(x.계약id) >= 0).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x), 남은날: x.기한 && stageOf_(x) === '보고서 작성중' ? dd_(x.기한, T) : null }));
+  const items = live_('점검').filter((x) => ids.indexOf(x.계약id) >= 0).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x), 남은날: x.기한 && isWriting_(stageOf_(x)) ? dd_(x.기한, T) : null }));
   return { site: clean_(s), contracts: cs, items, invoices: live_('청구').filter((b) => ids.indexOf(b.계약id) >= 0).map(clean_).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일))),
     contacts: live_('연락').filter((x) => x.현장id === id).map(clean_).sort((a, b) => String(b.연락일).localeCompare(String(a.연락일))),
     docs: live_('문서').filter((d) => d.현장id === id || ids.indexOf(d.계약id) >= 0).map(clean_),
@@ -482,7 +489,7 @@ function schedule_(from, to) {
     const n = nm(x.계약id), st = stageOf_(x), done = st === '완료' || n.종료;
     if (x.점검일) ev.push(Object.assign({ d: x.점검일, k: '점검', t: x.항목, id: x.id, done }, n));
     else if (x.예정일) ev.push(Object.assign({ d: x.예정일, k: '예정', t: x.항목, id: x.id, done }, n));
-    if (st === '보고서 작성중' && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목, id: x.id }, n));
+    if (isWriting_(st) && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목, id: x.id }, n));
   });
   const last = {};
   live_('연락').forEach((c) => { if (!last[c.현장id] || c.연락일 > last[c.현장id].연락일) last[c.현장id] = c; });
@@ -565,7 +572,7 @@ function dash_() {
   const insp = live_('점검'), C = byId_('계약'), S = byId_('현장');
   const Pn = byId_('거래처'), bname = (c) => ((Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '');
   const builder = {}; live_('계약').slice().sort((a, b) => a.연도 - b.연도).forEach((c) => { const n = bname(c); if (n) builder[c.현장id] = n; }); // 현장 → 시공사 (가장 최근 계약)
-  const writing = insp.filter((x) => stageOf_(x) === '보고서 작성중').map((x) => { const c = C[x.계약id] || {}; return { 현장: (S[c.현장id] || {}).현장명 || '', 현장id: c.현장id, 시공사: bname(c), 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null, 비고: x.비고 }; })
+  const writing = insp.filter((x) => isWriting_(stageOf_(x))).map((x) => { const c = C[x.계약id] || {}; return { 작성완료일: x.작성완료일 || '', 현장: (S[c.현장id] || {}).현장명 || '', 현장id: c.현장id, 시공사: bname(c), 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null, 비고: x.비고 }; })
     .sort((a, b) => (a.남은날 == null ? 9999 : a.남은날) - (b.남은날 == null ? 9999 : b.남은날));
   const mon = new Date(T + 'T00:00:00'); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
   const sun = new Date(mon.getTime() + 6 * 864e5);
@@ -575,7 +582,7 @@ function dash_() {
   const waitInv = m.invoices.filter((b) => b.미입금 > 0);
   const active = sites.filter((s) => s.진행);
   return { today: T, week: { from: iso_(mon), to: iso_(sun), events: schedule_(iso_(mon), iso_(sun)) },
-    kpi: { 진행현장: active.length, 완료현장: sites.length - active.length, 작성중: writing.length, 기한14: writing.filter((w) => w.남은날 != null && w.남은날 <= 14).length, 기한초과: writing.filter((w) => w.남은날 != null && w.남은날 < 0).length,
+    kpi: { 진행현장: active.length, 완료현장: sites.length - active.length, 작성중: writing.filter((w) => !w.작성완료일).length, 작성완료: writing.filter((w) => w.작성완료일).length, 기한14: writing.filter((w) => w.남은날 != null && w.남은날 <= 14).length, 기한초과: writing.filter((w) => w.남은날 != null && w.남은날 < 0).length,
       입금대기: waitInv.reduce((s, b) => s + b.미입금, 0), 입금대기건: waitInv.length, 계약진행: m.contracts.filter((c) => c.상태 === '진행중').length, 계약완료: m.contracts.filter((c) => c.상태 !== '진행중').length },
     writing: writing.slice(0, 12), waitInv: waitInv.sort((a, b) => b.경과 - a.경과).slice(0, 10), contacts: contactsList_().slice(0, 6), todo, builder,
     reviews: reviewsList_().filter((r) => r.대기), jobs: live_('일지').filter((j) => (j.상태 === '진행중' || j.상태 === '이월') && j.날짜 < T).sort((a, b) => String(b.날짜).localeCompare(String(a.날짜))).slice(0, 10).map(clean_),
@@ -861,8 +868,10 @@ function importCommit_(who, key) {
     FROM_EXCEL.forEach((t) => {
       if (!tables[t]) return; // 예전 미리보기에 없던 표는 건드리지 않음
       const old = {}; cur[t].forEach((r) => { old[r.id] = r; });
-      const rows = tables[t].map((r) => {
-        const o = old[r.id];
+      const wo = WEB_ONLY[t] || [];
+      const rows = tables[t].map((r0) => {
+        const o = old[r0.id], r = Object.assign({}, r0);
+        if (o) wo.forEach((c) => { if (r[c] == null || r[c] === '') r[c] = o[c]; }); // 엑셀에 칸이 없는 웹 전용 값은 가져오기 때 지우지 않음
         const same = o && SCHEMA[t].every((c) => String(o[c] == null ? '' : o[c]) === String(r[c] == null ? '' : r[c]));
         return Object.assign({}, r, { 버전: o ? (same ? o.버전 : o.버전 + 1) : 1, 수정일: o && same ? o.수정일 : now, 수정자: o && same ? o.수정자 : '가져오기', 삭제: '' });
       });
