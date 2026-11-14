@@ -73,6 +73,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .crumb{font-size:12px;color:var(--sub)}
 .h1row{display:flex;align-items:center;gap:6px;margin:2px 0 12px;flex-wrap:wrap;min-height:32px}
 .h1row h1{margin:0;font-size:18px;font-weight:700;flex:1;min-width:180px}
+.backb{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 10px 0 6px;border:1px solid var(--line);border-radius:var(--r);background:#fff;color:var(--sub2);font:inherit;font-size:12.5px;cursor:pointer;flex:none}.backb:hover{background:var(--bg2);color:var(--ink)}
 /* ── 버튼·입력 (높이 32px 통일) */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:var(--h);padding:0 12px;border-radius:var(--r);border:1px solid #D3D8DD;background:#fff;cursor:pointer;white-space:nowrap;font-size:13px;font-weight:500;color:var(--ink)}
 .btn:hover{background:var(--bg2)}
@@ -404,7 +405,9 @@ html{touch-action:manipulation}
   .top,.side,.crumb{display:none!important}
   .mbar{display:flex;align-items:center;gap:2px;position:sticky;top:0;z-index:30;height:52px;padding:0 4px;padding-top:env(safe-area-inset-top);background:#fff;border-bottom:1px solid var(--line)}
   .mbar h1{flex:1;margin:0 0 0 8px;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mbar .mback+h1{margin-left:0}
+  .mbar .mback+h1{margin-left:2px}
+  .mbar .mback{order:-1;width:auto;padding:0 8px 0 4px;gap:2px;font-size:13px;font-weight:600;color:var(--sub2);flex:none}
+  .h1row .backb{display:none}
   .mbar .badge{top:6px;right:6px}
   .mnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .mnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:58px;border:0;background:none;color:var(--sub);font-size:11.5px}
@@ -441,7 +444,7 @@ html{touch-action:manipulation}
 tr.on>td{background:var(--pri-l)!important}
 tr.grp>td{background:#F8F9FA;font-weight:700;font-size:12px;color:var(--sub2);padding-top:6px;padding-bottom:6px}
 h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub .sub{font-weight:400;margin-left:6px}
-.mbar{display:inline-block;width:56px;height:6px;background:var(--line2);border-radius:3px;overflow:hidden;vertical-align:middle}.mbar i{display:block;height:100%;background:var(--done)}
+.minibar{display:inline-block;width:56px;height:6px;background:var(--line2);border-radius:3px;overflow:hidden;vertical-align:middle}.minibar i{display:block;height:100%;background:var(--done)}
 .hbar.tall{height:12px;margin:10px 0 6px}
 /* ① 업무일지 */
 .jym{min-width:120px;text-align:center}
@@ -755,10 +758,14 @@ const PAGE_CAT = {}; MENU.forEach((c) => c.items.forEach((i) => { PAGE_CAT[i[0]]
 function pageName(p) { for (const c of MENU) for (const i of c.items) if (i[0] === p) return [c.n, i[1]]; return ['', '']; }
 function go(page, params, keepHash) {
   S.page = page; S.cat = PAGE_CAT[page] || 'dash'; S.params = params || {};
-  if (!keepHash) { const q = new URLSearchParams(S.params).toString(); history.pushState(null, '', '#' + page + (q ? '?' + q : '')); }
+  if (!keepHash) { const q = new URLSearchParams(S.params).toString(); const h = '#' + page + (q ? '?' + q : ''); if (h !== location.hash) { S.depth = (S.depth || 0) + 1; history.pushState({ d: S.depth }, '', h); } }
   render();
 }
-window.addEventListener('popstate', () => fromHash());
+window.addEventListener('popstate', (e) => { S.depth = (e.state && e.state.d) || 0; fromHash(); }); // 브라우저 뒤로가기와 같은 기록을 씀
+// 뒤로가기: 앱 안에서 이동한 기록이 있으면 직전 화면으로, 없으면(주소로 바로 연 첫 화면) 대시보드로
+function goBack() { if ((S.depth || 0) > 0) history.back(); else go('home'); }
+document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-back]'); if (b) { e.preventDefault(); goBack(); } });
+try { if (!history.state) history.replaceState({ d: 0 }, '', location.href); else S.depth = history.state.d || 0; } catch (e) {}
 function fromHash() { const h = location.hash.slice(1); const [p, q] = h.split('?'); if (p && PAGE_CAT[p]) go(p, Object.fromEntries(new URLSearchParams(q || '')), true); else go('home', {}, true); }
 
 // ===================== 틀 =====================
@@ -775,7 +782,7 @@ function shell() {
     <span class="who"><b>${esc(String(S.user.name).slice(0, 1))}</b><span>${esc(S.user.name)} · ${esc(S.user.role)}</span></span>
     <button class="tbtn" id="logout" aria-label="로그아웃" title="로그아웃">${ic('out', 17)}</button>
   </header>
-  <header class="mbar"><button class="tbtn mback ${MNAV_PAGES.includes(S.page) && !S.params.id ? 'hide' : ''}" id="mBack" aria-label="뒤로">${ic('back', 22)}</button><h1>${esc(pageName(S.page)[1])}</h1><button class="tbtn" id="mSearch" aria-label="검색">${ic('search', 20)}</button><button class="tbtn" id="mBell" aria-label="처리할 일">${ic('bell', 20)}${S.todoN ? `<span class="badge">${S.todoN}</span>` : ''}</button></header>
+  <header class="mbar"><button class="tbtn mback ${S.page === 'home' ? 'hide' : ''}" data-back aria-label="뒤로가기">${ic('back', 20)}<span>뒤로가기</span></button><h1>${esc(pageName(S.page)[1])}</h1><button class="tbtn" id="mSearch" aria-label="검색">${ic('search', 20)}</button><button class="tbtn" id="mBell" aria-label="처리할 일">${ic('bell', 20)}${S.todoN ? `<span class="badge">${S.todoN}</span>` : ''}</button></header>
   <div class="body">
     <aside class="side" aria-label="상세 메뉴"><h3>${cat.n}</h3>${cat.items.map(([k, n, cnt, later]) => `<button class="${k === S.page ? 'on' : ''} ${later ? 'later' : ''}" data-page="${k}">${n}${cnt && S.counts[cnt] != null ? `<span>${S.counts[cnt]}</span>` : later ? '<span>2차</span>' : ''}</button>`).join('')}</aside>
     <main class="main" id="main"></main>
@@ -786,7 +793,6 @@ function shell() {
   $('#logout').onclick = async () => { if (!(await ask({ title: '로그아웃', msg: '이 기기에서 로그아웃할까요?\n다시 쓰려면 이메일 인증이 필요합니다.', ok: '로그아웃' }))) return; try { await api('logout'); } catch (e) {} await logoutLocal(); };
   $('#bell').onclick = () => go('todo');
   $('#mBell').onclick = () => go('todo');
-  $('#mBack').onclick = () => { if (history.length > 1) history.back(); else go('home'); };
   $('#mSearch').onclick = () => openAllMenu(true);
   $$('[data-mnav]').forEach((b) => (b.onclick = () => { const k = b.dataset.mnav; if (k === 'all') openAllMenu(); else go(k); }));
   bindSearch($('#gq'), $('#gres'));
@@ -802,7 +808,7 @@ async function render() {
   if (PC_ONLY.includes(S.page) && isMobile()) { m.innerHTML = `<div class="panel" style="margin-top:12px"><div class="empty" style="padding:40px 20px"><b style="font-size:15px;color:var(--ink)">PC 전용 메뉴입니다</b><br><br>「${esc(n)}」은(는) 넓은 화면에서 쓰도록 만든 메뉴입니다.<br>PC에서 열어 주세요.<br><br><button class="btn" onclick="go('home')">홈으로</button></div></div>`; return; }
   try { await (PAGES[S.page] || PAGES.home)(m, S.params); } catch (e) { m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
 }
-function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row"><h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
+function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row">${S.page !== 'home' ? `<button class="backb" data-back type="button" aria-label="뒤로가기">${ic('back', 16)}<span>뒤로가기</span></button>` : ''}<h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
 function lockNote(what) { return excelLocked() ? `<div class="note">지금은 <b>엑셀이 원본</b>이라 ${what || '이 화면'}의 등록·수정은 엑셀에서 하고 「시스템관리 › 시스템 설정 › 엑셀 가져오기」로 반영합니다. 전환 후에는 여기서 바로 고칩니다.</div>` : ''; }
 function editBtn(t, label, cls, attrs) { const ok = can(WR[t]) && !(excelLocked() && t !== '문서'); if (!ok && /data-e[ibt]=/.test(attrs || '')) return ''; return `<button class="btn ${cls || 'sm'}" ${attrs || ''} ${ok ? '' : `disabled title="${excelLocked() ? '엑셀이 원본인 동안은 엑셀에서 고칩니다' : '권한이 없습니다'}"`}>${label}</button>`; }
 const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반' };
@@ -1813,7 +1819,7 @@ PAGES.report = async (m) => {
   </div>
   <section class="panel"><div class="ph"><div class="seg">${[['진행중', `진행 중 프로젝트 ${act.length}`], ['완료', `완료 프로젝트 ${done.length}`]].map(([k, n]) => `<button data-tab="${k}" class="${st.tab === k ? 'on' : ''}">${n}</button>`).join('')}</div><span class="sub" style="margin-left:auto">기준연도·번호 순 · 엑셀 현황보고 목록과 같은 칸</span></div>
     <div class="tbox"><table class="rplist"><thead><tr><th>No</th><th>기준연도</th><th>용역명 · 입금자</th><th class="num">계약금액</th><th class="num">부가세</th><th class="num">계약금 합계</th><th class="num">청구액 합계<br>(입금 대기)</th><th class="num">~${Y - 1}년<br>수금액</th><th class="num">${Y}년<br>수금액</th><th class="num">수금액 합계</th><th class="num">잔여금</th><th class="num">종합보고서</th><th>기성율</th><th class="num">미수금</th><th>비고</th></tr></thead><tbody>
-    ${list.map((x, i) => `<tr class="click" data-contract="${esc(x.id)}"><td class="sub">${i + 1}</td><td class="nw">${x.연도}년</td><td style="min-width:220px"><div class="t1">${esc(x.계약명)}</div><div class="t2">${esc(x.입금자)}</div></td><td class="num">${won(x.공급가)}</td><td class="num sub">${won(x.부가세)}</td><td class="num"><b>${won(x.계약금)}</b></td><td class="num ${x.대기 ? 'warn' : 'muted'}">${x.대기 ? won(x.대기) : '—'}</td><td class="num">${won(x.이전수금)}</td><td class="num">${won(x.올해수금)}</td><td class="num">${won(x.수금)}</td><td class="num">${won(x.잔여)}</td><td class="num">${x.종합보고서 ? won(x.종합보고서) : '<span class="muted">—</span>'}</td><td class="nw"><span class="mbar"><i style="width:${Math.min(100, x.기성율 * 100)}%"></i></span> ${pct(x.기성율)}</td><td class="num ${x.미수금 ? 'bad' : 'muted'}">${x.미수금 ? won(x.미수금) : '—'}</td><td class="sub" style="max-width:220px">${esc(x.비고)}</td></tr>`).join('') || '<tr><td colspan="15" class="empty">없음</td></tr>'}</tbody>
+    ${list.map((x, i) => `<tr class="click" data-contract="${esc(x.id)}"><td class="sub">${i + 1}</td><td class="nw">${x.연도}년</td><td style="min-width:220px"><div class="t1">${esc(x.계약명)}</div><div class="t2">${esc(x.입금자)}</div></td><td class="num">${won(x.공급가)}</td><td class="num sub">${won(x.부가세)}</td><td class="num"><b>${won(x.계약금)}</b></td><td class="num ${x.대기 ? 'warn' : 'muted'}">${x.대기 ? won(x.대기) : '—'}</td><td class="num">${won(x.이전수금)}</td><td class="num">${won(x.올해수금)}</td><td class="num">${won(x.수금)}</td><td class="num">${won(x.잔여)}</td><td class="num">${x.종합보고서 ? won(x.종합보고서) : '<span class="muted">—</span>'}</td><td class="nw"><span class="minibar"><i style="width:${Math.min(100, x.기성율 * 100)}%"></i></span> ${pct(x.기성율)}</td><td class="num ${x.미수금 ? 'bad' : 'muted'}">${x.미수금 ? won(x.미수금) : '—'}</td><td class="sub" style="max-width:220px">${esc(x.비고)}</td></tr>`).join('') || '<tr><td colspan="15" class="empty">없음</td></tr>'}</tbody>
     <tfoot><tr><td colspan="3">합계 ${list.length}건</td><td class="num">${won(sum(list, '공급가'))}</td><td class="num">${won(sum(list, '부가세'))}</td><td class="num">${won(sum(list, '계약금'))}</td><td class="num">${won(sum(list, '대기'))}</td><td class="num">${won(sum(list, '이전수금'))}</td><td class="num">${won(sum(list, '올해수금'))}</td><td class="num">${won(sum(list, '수금'))}</td><td class="num">${won(sum(list, '잔여'))}</td><td class="num">${won(sum(list, '종합보고서'))}</td><td></td><td class="num">${won(sum(list, '미수금'))}</td><td></td></tr></tfoot></table></div></section>`;
   bindCommon(m);
   $$('[data-y]', m).forEach((b) => (b.onclick = () => { st.y = b.dataset.y; render(); }));
@@ -2065,7 +2071,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14m';
+const APP_VERSION = '2026-11-14o';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
