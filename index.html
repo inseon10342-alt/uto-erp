@@ -397,6 +397,11 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left}
   tr.sel td:first-child{box-shadow:none}tr.sel{box-shadow:inset 3px 0 0 var(--pri)}
   tfoot tr{background:var(--bg2)}tfoot td{background:none}
   .mini td{padding:3px 0}
+  .tbox table:not(.items) td,.cardify td{height:auto} /* 카드 안 칸: 고정 높이 때문에 두 줄 제목이 아래 줄과 겹치던 것 */
+  .mini.stp tr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line2)}
+  .mini.stp td{display:block;width:auto!important;height:auto;padding:0;border:0}
+  .mini.stp td:nth-child(2){grid-column:1/-1;grid-row:2}
+  .mini.stp td:nth-child(3){grid-column:2;grid-row:1;text-align:right}
   .feed .it2{grid-template-columns:minmax(0,1fr);gap:4px;padding:14px 16px}
   .todo-row{grid-template-columns:minmax(0,1fr);gap:6px;padding:14px 16px}
   .kv{grid-template-columns:96px minmax(0,1fr)}
@@ -415,6 +420,18 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left}
   #toasts{left:12px;right:12px;bottom:12px;align-items:stretch}
 }
 @media (min-width:761px){.cal .cd .dot{display:none}}
+.sumline.flat{border:0;border-radius:0;margin:0;border-bottom:1px solid var(--line2)}
+.plist{display:flex;flex-direction:column;gap:4px;max-height:56vh;overflow:auto}
+.pli{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;text-align:left;padding:9px 10px;border:1px solid var(--line2);border-radius:var(--r);background:#fff;cursor:pointer}.pli:hover{background:var(--bg2)}
+.pli .t2{grid-column:1}.pli .tag{grid-column:2;grid-row:1/3;align-self:center}
+.fhead{display:flex;flex-direction:column;gap:6px;padding-bottom:10px;border-bottom:1px solid var(--line2)}
+.fhead .kv{display:grid;grid-template-columns:72px minmax(0,1fr);gap:3px 10px;margin:0}.fhead dt{color:var(--sub)}.fhead dd{margin:0}
+.fh{font-size:13px;margin:14px 0 6px}
+.fround{border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px;margin-bottom:6px}.fround.cur{border-color:var(--pri-m);background:#FAFBFC}
+.frh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.frh .btn{margin-left:auto}
+.flist{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.flist li{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.flist .fn{font-weight:500;word-break:break-all}.flist li .btn:first-of-type{margin-left:auto}
+.factions{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
 /* ── 휴대폰 전용 틀 */
 .mbar,.mnav{display:none}
 html{touch-action:manipulation}
@@ -442,6 +459,13 @@ html{touch-action:manipulation}
   .mbar .mback{order:-1;width:auto;padding:0 8px 0 4px;gap:2px;font-size:13px;font-weight:600;color:var(--sub2);flex:none}
   .h1row .backb{display:none}
   .mbar .badge{top:6px;right:6px}
+  /* 하단 탭 고정: 화면 전체(문서)는 움직이지 않고 가운데 본문만 스크롤 — 아이폰 사파리·홈 화면 앱에서 탭이 중간에 멈추던 현상 방지 */
+  html.appshell,html.appshell body{height:100%;overflow:hidden;overscroll-behavior:none}
+  html.appshell #app{height:100%;height:100dvh;display:flex;flex-direction:column}
+  html.appshell .mbar{position:relative;flex:none}
+  html.appshell .body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+  html.appshell .mnav{position:relative!important;flex:none}
+  html.appshell .main{padding-bottom:24px}
   .mnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .mnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:58px;border:0;background:none;color:var(--sub);font-size:11.5px}
   .mnav button.on{color:var(--pri);font-weight:700}
@@ -458,6 +482,7 @@ html{touch-action:manipulation}
   .agenda .ai{min-height:40px;align-items:center}
   .tabs button{padding:12px 12px;font-size:14px}
   #toasts{bottom:calc(72px + env(safe-area-inset-bottom))}
+  html.appshell #toasts{bottom:calc(70px + env(safe-area-inset-bottom))}
   .stmt .paper{padding:8px}
   .items{min-width:0;width:100%}.items thead{display:none}
   .items tr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 6px;padding:10px 0;border-bottom:1px solid var(--line2)}
@@ -699,6 +724,7 @@ async function api(action, arg, opt) {
   const p = (async () => {
     try {
       const r = await run('api', S.token, action, arg || {});
+      if (!write && !opt.cache) Object.values(S.cache).forEach((c) => { c.fresh = 0; }); // 다른 종류의 저장일 수 있으니 「방금 받은 결과 유지」를 끔
       if (write && r && r.ok && Array.isArray(r.pre)) { // 저장과 함께 받은 최신 조회 결과를 바로 써서 다시 부르지 않음
         S.cache = {}; const t = Date.now();
         r.pre.forEach(([a2, g2, res]) => { if (res && res.ok !== false) S.cache[a2 + JSON.stringify(g2)] = { t, fresh: t, p: Promise.resolve(Object.assign({ ok: true }, res)) }; });
@@ -803,7 +829,7 @@ async function exportXlsx(name, sheets) {
 // ===================== 메뉴 =====================
 const MENU = [
   { k: 'dash', n: '대시보드', items: [['home', '업무 현황'], ['todo', '내 할 일'], ['journal', '업무일지', '일지']] },
-  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['requests', '자료요청 · 메일', '자료요청'], ['reviews', '보고서 검토 관리', '검토'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
+  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['requests', '자료요청 · 메일', '자료요청'], ['reviews', '보고서 검토 관리', '검토'], ['finals', '종합보고서 관리'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
   { k: 'doc', n: '문서관리', items: [['cdoc', '계약서 작성', null, 1], ['estimate', '견적서 작성', null, 1], ['letter', '공문 작성', null, 1], ['statement', '거래명세서 작성'], ['reports', '보고서 관리', null, 1], ['docbox', '문서 보관함', '문서'], ['parcels', '택배 발송', '택배']] },
   { k: 'biz', n: '경영관리', items: [['report', '현황 보고'], ['sales', '매출 현황'], ['invoices', '세금계산서', '청구'], ['payments', '입금 관리'], ['collect', '수금 현황'], ['unpaid', '미수금 관리'], ['yearly', '연도별 실적']] },
   { k: 'base', n: '기초정보', items: [['partners', '거래처 관리', '거래처'], ['people', '담당자 관리'], ['works', '공종 및 용역 분류'], ['templates', '문서 양식 관리', null, 1]] },
@@ -825,6 +851,7 @@ function fromHash() { const h = location.hash.slice(1); const [p, q] = h.split('
 
 // ===================== 틀 =====================
 function shell() {
+  document.documentElement.classList.add('appshell');
   const cat = MENU.find((c) => c.k === S.cat) || MENU[0];
   const visibleCats = MENU.filter((c) => c.k !== 'sys' || can('관리자'));
   $('#app').innerHTML = `
@@ -856,18 +883,19 @@ function shell() {
 }
 async function render() {
   if (!S.token) return;
+  const rk = S.page + JSON.stringify(S.params || {}), sc0 = document.querySelector('.body'), keepY = rk === S._rk && sc0 ? sc0.scrollTop : 0; S._rk = rk;
   shell();
   const [c, n] = pageName(S.page);
   const m = $('#main');
   m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="empty">불러오는 중…</div>`;
   if (PC_ONLY.includes(S.page) && isMobile()) { m.innerHTML = `<div class="panel" style="margin-top:12px"><div class="empty" style="padding:40px 20px"><b style="font-size:15px;color:var(--ink)">PC 전용 메뉴입니다</b><br><br>「${esc(n)}」은(는) 넓은 화면에서 쓰도록 만든 메뉴입니다.<br>PC에서 열어 주세요.<br><br><button class="btn" onclick="go('home')">홈으로</button></div></div>`; return; }
   S.rec = [];
-  try { await (PAGES[S.page] || PAGES.home)(m, S.params); S.pageCalls = S.rec.slice(0, 6); S.rec = null; } catch (e) { S.rec = null; m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
+  try { await (PAGES[S.page] || PAGES.home)(m, S.params); S.pageCalls = S.rec.slice(0, 6); S.rec = null; if (keepY && isMobile()) { const sc = document.querySelector('.body'); if (sc) sc.scrollTop = keepY; } } catch (e) { S.rec = null; m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
 }
 function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row">${S.page !== 'home' ? `<button class="backb" data-back type="button" aria-label="뒤로가기">${ic('back', 16)}<span>뒤로가기</span></button>` : ''}<h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
 function lockNote(what) { return excelLocked() ? `<div class="note">지금은 <b>엑셀이 원본</b>이라 ${what || '이 화면'}의 등록·수정은 엑셀에서 하고 「시스템관리 › 시스템 설정 › 엑셀 가져오기」로 반영합니다. 전환 후에는 여기서 바로 고칩니다.</div>` : ''; }
-function editBtn(t, label, cls, attrs) { const ok = can(WR[t]) && !(excelLocked() && t !== '문서'); if (!ok && /data-e[ibth]=/.test(attrs || '')) return ''; return `<button class="btn ${cls || 'sm'}" ${attrs || ''} ${ok ? '' : `disabled title="${excelLocked() ? '엑셀이 원본인 동안은 엑셀에서 고칩니다' : '권한이 없습니다'}"`}>${label}</button>`; }
-const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반' };
+function editBtn(t, label, cls, attrs) { const ok = can(WR[t]) && !(excelLocked() && t !== '문서' && t !== '종합'); if (!ok && /data-e[ibth]=/.test(attrs || '')) return ''; return `<button class="btn ${cls || 'sm'}" ${attrs || ''} ${ok ? '' : `disabled title="${excelLocked() ? '엑셀이 원본인 동안은 엑셀에서 고칩니다' : '권한이 없습니다'}"`}>${label}</button>`; }
+const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반' };
 
 // 휴대폰 하단 메뉴: 홈 · 현장 · 일정 · 수금 · 전체
 const MNAV = [['home', '홈', 'home', ['home', 'todo']], ['sites', '현장', 'site', ['sites', 'contracts', 'contacts', 'requests']], ['schedule', '일정', 'cal', ['schedule']], ['collect', '수금', 'won', ['collect', 'invoices', 'sales', 'unpaid', 'yearly']], ['all', '전체', 'menu', null]];
@@ -919,6 +947,7 @@ const FORMS = {
   점검: [['#점검 대상'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['위치', 'text'], ['시기', 'text'],
     ['#일정'], ['예정일', 'date'], ['점검일', 'date'], ['작성완료일', 'date'], ['발송일', 'date'], ['#기타'], ['비고', 'area'], ['!보고서 상태는 따로 관리됩니다 — 작성 완료일: 보고서를 다 쓰고 저장한 날 (검토·발송 상태는 바뀌지 않음) · 검토: 보고서 검토 관리의 회신 결과 · 시공사 발송: 발송일. 보고서 기한(점검일 + 30일)은 자동 계산됩니다.']],
   청구: [['#세금계산서'], ['계약id', 'contract', 1, 'full'], ['발행일', 'date'], ['청구액', 'money'], ['품명', 'text', 0, 'full'], ['#입금'], ['입금일', 'date'], ['입금자', 'text'], ['#기타'], ['연결점검', 'text'], ['계약외', 'money'], ['할증', 'money'], ['비고', 'area'], ['분할입금', 'text', 0, 'full'], ['!수금액 · 공급가 · 부가세는 엑셀과 같이 청구액과 입금일로 자동 계산됩니다.']],
+  종합: [['#대상 (용역 완료 계약)'], ['계약id', 'contract', 1, 'full'], ['#요청'], ['차수', 'text'], ['요청일', 'date', 1], ['요청자', 'text'], ['#진행'], ['상태', 'sel:미작성,작성 중,제출 완료'], ['작성일', 'date'], ['제출일', 'date'], ['제출처', 'text'], ['#기타'], ['비고', 'area'], ['!종합보고서는 정기점검 보고서(작성·검토·시공사 발송)와 따로 관리됩니다. 제출일을 넣으면 「제출 완료」, 작성일만 넣으면 「작성 중」으로 맞춰집니다.']],
   자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
     ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청,회신대기,수신완료,취소'], ['검토', 'area'], ['비고', 'area']],
   메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,서류 발송,자료 요청,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
@@ -931,7 +960,7 @@ const FORMS = {
     ['#다음 일정'], ['예상점검', 'text'], ['예상시기', 'date'], ['다음연락', 'date'], ['#기타'], ['비고', 'area']],
 };
 const FLABEL2 = { 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
-const FLABEL = { 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+const FLABEL = { 차수: '차수 (재작성 요청이면 2, 3 …)', 작성일: '작성일', 제출처: '제출처 (발주처·구청 등)', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
 // ---- 현장 · 계약 고르기: 진행 중 / 완료로 나눠 보여 줌 (이름 옆 상태 표시 없음)
 function siteActive(L) { const a = {}, has = {}; L.contracts.forEach((c) => { has[c.현장id] = 1; if (c.상태 === '진행중') a[c.현장id] = 1; }); return (id) => !!a[id] || !has[id]; }
 function pickList(L, kind, st) {
@@ -1065,6 +1094,9 @@ PAGES.home = async (m) => {
       <table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th><th>비고</th></tr></thead><tbody>
       ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(w.항목)}${w.작성완료일 ? ' <span class="tag wd">보고서 작성 완료</span>' : ''}</div></td><td class="nw sub">${esc(w.점검일 || '—')}</td><td class="nw">${esc(w.기한 || '—')}</td><td>${dbar(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">제출 전 보고서가 없습니다</td></tr>'}
       </tbody></table></div></section>
+    ${r.final ? `<section class="panel"><div class="ph"><h2>종합보고서</h2><span class="sub">용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도</span><a href="#finals" data-go="finals">관리</a></div>
+      <div class="sumline flat"><button data-go="finals"><span>용역 완료</span><b>${r.final.완료용역}<small>건</small></b></button><button data-go="finals"><span>종합보고서 요청</span><b>${r.final.요청}<small>건</small></b></button><button data-go="finals" data-fst="미작성"><span>미작성</span><b class="${r.final.미작성 ? 'warn' : ''}">${r.final.미작성}</b></button><button data-go="finals" data-fst="작성 중"><span>작성 중</span><b>${r.final.작성중}</b></button><button data-go="finals" data-fst="제출 완료"><span>제출 완료</span><b>${r.final.제출완료}</b></button></div>
+      ${r.final.open.length ? `<div class="tbox"><table><thead><tr><th>현장 · 계약</th><th>차수</th><th>요청일</th><th>상태</th></tr></thead><tbody>${r.final.open.map((f) => `<tr class="click" data-final="${esc(f.id)}"><td><div class="t1">${esc(f.현장명)}${subN(f.시공사)}</div><div class="t2">${esc(f.연도 || '')} · ${esc(f.계약명)}</div></td><td class="nw">${esc(f.차수)}차</td><td class="nw sub">${esc(f.요청일)}</td><td>${finalTag(f.상태)}</td></tr>`).join('')}</tbody></table></div>` : ''}</section>` : ''}
     <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span><a href="#invoices" data-go="invoices">세금계산서</a></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
       ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}${subN(b.입금자 || b.발주처)}</div><div class="t2">${esc(b.품명)}</div></td><td class="nw sub">${esc(b.발행일)}</td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>
   </div><div class="col">
@@ -1104,7 +1136,8 @@ PAGES.todo = async (m) => {
   bindCommon(m);
 };
 function bindCommon(root) {
-  $$('[data-go]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go(b.dataset.go); }));
+  $$('[data-go]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go(b.dataset.go, b.dataset.fst ? { st: b.dataset.fst } : undefined); }));
+  $$('tr[data-final]', root).forEach((b) => (b.onclick = () => go('finals', { id: b.dataset.final })));
   $$('[data-site]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (b.dataset.site) go('sites', { id: b.dataset.site }); }));
   $$('[data-contract]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go('contracts', { id: b.dataset.contract }); }));
   $$('[data-partner]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (b.dataset.partner) go('partners', { id: b.dataset.partner }); }));
@@ -1160,7 +1193,7 @@ async function siteDetail(el, id, tab) {
   const body = {
     info: () => `<div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(money.계약금)}</b></div><div><span>수금 ${money.계약금 ? Math.round(money.수금 / money.계약금 * 100) : 0}%</span><b>${won(money.수금)}</b></div><div><span>입금 대기</span><b>${won(money.대기)}</b></div></div>
       <div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div></div>
-      <div class="sec"><h3>점검 회차별 진행</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
+      <div class="sec"><h3>점검 회차별 진행</h3><table class="mini stp"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
       <div class="sec"><h3>현장 정보</h3><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구 · 규모</dt><dd>${esc([s.관할구, s.규모].filter(Boolean).join(' · ') || '-')}</dd>
       <dt>계약일</dt><dd>${r.contracts.length > 1 ? r.contracts.map((c) => `${esc(c.연도 || '')} · ${esc(c.계약일 || '—')}`).join('<br>') : esc(c0.계약일 || '—')}</dd><dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
       ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3>${timeline([{ d: `${r.contacts[0].연락일} · ${r.contacts[0].방법 || ''} · ${r.contacts[0].담당자 || ''}`, h: esc(r.contacts[0].메모 || r.contacts[0].공정 || '') }])}</div>` : ''}`,
@@ -1197,6 +1230,11 @@ async function siteDetail(el, id, tab) {
   };
   $$('[data-wdone]', el).forEach((b) => (b.onclick = () => setW(b, b.dataset.wdone, today())));
   $$('[data-wundo]', el).forEach((b) => (b.onclick = () => setW(b, b.dataset.wundo, '')));
+  // 계약 탭: 종합보고서 요청이 있으면 상태 표시 (정기점검 보고서와 별도)
+  if ($$('[data-contract]', el).length) api('finals', {}, { cache: true }).then((f) => {
+    const last = {}; f.list.forEach((y) => { if (!last[y.계약id] || y.차수 > last[y.계약id].차수) last[y.계약id] = y; });
+    $$('.sec[data-contract]', el).forEach((d) => { const y = last[d.dataset.contract]; if (!y) return; const b = document.createElement('div'); b.className = 'sub'; b.style.marginTop = '6px'; b.innerHTML = `종합보고서 ${esc(y.차수)}차 ${finalTag(y.상태)} <a href="#finals" data-fgo="${esc(y.id)}">열기</a>`; d.appendChild(b); $('[data-fgo]', b).onclick = (e) => { e.preventDefault(); e.stopPropagation(); go('finals', { id: y.id }); }; });
+  }).catch(() => {});
   $$('[data-et]', el).forEach((b) => (b.onclick = () => openForm('연락', r.contacts.find((x) => x.id === b.dataset.et), reload)));
   $$('[data-doc]', el).forEach((b) => (b.onclick = () => go('statement', { doc: b.dataset.doc })));
   $$('[data-q]', el).forEach((a) => (a.onclick = (e) => { e.preventDefault(); showReq((r.requests || []).find((x) => x.id === a.dataset.q), reload); }));
@@ -1933,6 +1971,136 @@ PAGES.report = async (m) => {
 
 // ---------- ③ 택배발송: 보낼 것 · 보낸 것
 const trackNo = (s) => { const t = String(s || '').match(/\d[\d-]{7,}\d/); return t ? t[0] : ''; };
+// ===================== 종합보고서 관리 (용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도) =====================
+const finalTag = (st) => `<span class="tag ${st === '제출 완료' ? 'g' : st === '작성 중' ? 't' : 'w'}">${esc(st || '미작성')}</span>`;
+const fsize = (n) => (n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB');
+// 파일처럼 큰 내용은 주소에 실을 수 없어서 POST 로 보냄 (응답도 같은 형식)
+async function postApi(action, arg) {
+  let r;
+  try { r = await (await fetch(window.API_URL, { method: 'POST', body: JSON.stringify({ fn: 'api', args: [S.token, action, arg || {}] }) })).json(); }
+  catch (e) { throw new Error('파일을 서버로 보내지 못했습니다. 인터넷 연결을 확인하고 다시 시도하세요.'); }
+  S.cache = {}; // 파일 저장 뒤에는 조회 결과를 모두 새로 받음
+  if (!r || r.ok === false) throw new Error((r && r.msg) || '서버 오류');
+  return r;
+}
+const readB64 = (f) => new Promise((res, rej) => { const rd = new FileReader(); rd.onload = () => res(String(rd.result).split(',')[1] || ''); rd.onerror = () => rej(new Error('파일을 읽지 못했습니다')); rd.readAsDataURL(f); });
+async function finalDownload(id, fid) {
+  const r = await api('finalGet', { id, fid });
+  const bin = atob(r.data), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u8], { type: r.mime || 'application/octet-stream' })); a.download = r.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+PAGES.finals = async (m, p) => {
+  const r = await api('finals', {}, { cache: true });
+  const st = S.finalF = S.finalF || { st: '전체', q: '' };
+  if (p.st) { st.st = p.st; delete p.st; }
+  const K = r.kpi, ed = can(WR.종합) && !excelLockedFor('종합');
+  // 계약별 최신 차수 = 현재 상태
+  const last = {}; r.list.forEach((x) => { if (!last[x.계약id] || x.차수 > last[x.계약id].차수) last[x.계약id] = x; });
+  const cur = Object.values(last).sort((a, b) => ({ 미작성: 0, '작성 중': 1, '제출 완료': 2 }[a.상태] - { 미작성: 0, '작성 중': 1, '제출 완료': 2 }[b.상태]) || String(b.요청일).localeCompare(String(a.요청일)));
+  m.innerHTML = head('종합보고서 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${ed ? `<button class="btn pri" id="addF">${ic('plus', 15)} 요청 등록</button>` : ''}`) + `
+  <div class="note info">용역이 끝난 계약에 나중에 들어오는 <b>종합보고서</b> 요청을 기존 계약·현장에 붙여 관리합니다. 정기점검 보고서(작성·검토·시공사 발송)와는 따로 셉니다.</div>
+  <div class="sumline">
+    <div><span>용역 완료 계약</span><b>${K.완료용역}<small>건</small></b></div>
+    <div><span>종합보고서 요청</span><b>${K.요청}<small>건</small></b></div>
+    <button data-fs="미작성"><span>미작성</span><b class="${K.미작성 ? 'warn' : ''}">${K.미작성}<small>건</small></b></button>
+    <button data-fs="작성 중"><span>작성 중</span><b>${K.작성중}<small>건</small></b></button>
+    <button data-fs="제출 완료"><span>제출 완료</span><b>${K.제출완료}<small>건</small></b></button>
+  </div>
+  <div class="filters"><div class="seg">${['전체', '미작성', '작성 중', '제출 완료'].map((x) => `<button data-fs="${x}" class="${st.st === x ? 'on' : ''}">${x}</button>`).join('')}</div><input class="inp" type="search" id="fq" placeholder="현장·계약·시공사" value="${esc(st.q)}" style="width:220px"></div>
+  <section class="panel"><div class="tbox"><table class="mt"><thead><tr><th>현장 · 계약</th><th class="c">차수</th><th class="date">요청일</th><th class="date">작성일</th><th class="date">제출일</th><th class="c">파일</th><th class="c">상태</th></tr></thead><tbody id="fl"></tbody></table></div></section>`;
+  const draw = () => {
+    const q = norm(st.q), rows = cur.filter((x) => (st.st === '전체' || x.상태 === st.st) && (!q || norm(x.현장명 + x.계약명 + x.시공사 + x.발주처).includes(q)));
+    $('#fl').innerHTML = rows.map((x) => `<tr class="click" data-final="${esc(x.id)}"><td class="tc"><div class="t1">${esc(x.현장명)}${subN(x.시공사)}</div><div class="t2">${esc(x.연도 || '')} · ${esc(x.계약명)}${x.비고 ? ' · ' + esc(String(x.비고).slice(0, 40)) : ''}</div></td><td class="c">${esc(x.차수)}차${x.차수 > 1 ? ' <span class="sub">(재작성)</span>' : ''}</td><td class="date sub">${esc(x.요청일 || '—')}</td><td class="date">${esc(x.작성일 || '—')}</td><td class="date">${esc(x.제출일 || '—')}</td><td class="c">${(x.파일 || []).length || '<span class="muted">—</span>'}</td><td class="c">${finalTag(x.상태)}</td></tr>`).join('') || `<tr><td colspan="7" class="empty">${r.list.length ? '조건에 맞는 요청이 없습니다' : '아직 종합보고서 요청이 없습니다. 「요청 등록」에서 용역 완료 계약을 고르세요.'}</td></tr>`;
+    labelTables(m);
+    $$('[data-final]', $('#fl')).forEach((tr) => (tr.onclick = () => finalDetail(tr.dataset.final)));
+  };
+  draw();
+  $$('[data-fs]', m).forEach((b) => (b.onclick = () => { st.st = b.dataset.fs; $$('.seg [data-fs]', m).forEach((x) => x.classList.toggle('on', x.dataset.fs === st.st)); draw(); }));
+  $('#fq').oninput = (e) => { st.q = e.target.value; draw(); };
+  bindCommon(m);
+  if ($('#addF')) $('#addF').onclick = () => finalPick(r);
+  $('#xl').onclick = () => exportXlsx('종합보고서', [['종합보고서', [['현장', '계약', '연도', '시공사', '차수', '요청일', '요청자', '상태', '작성일', '제출일', '제출처', '파일 수', '비고']].concat(r.list.map((x) => [x.현장명, x.계약명, x.연도, x.시공사, x.차수, x.요청일, x.요청자, x.상태, x.작성일, x.제출일, x.제출처, (x.파일 || []).length, x.비고]))]]);
+  if (p.id) { const id = p.id; delete p.id; finalDetail(id); }
+};
+function excelLockedFor(t) { return excelLocked() && t !== '문서' && t !== '종합'; }
+// 요청 등록: 용역 완료 계약 목록에서 고름 (새 현장을 만들지 않음)
+function finalPick(r) {
+  const md = modal('종합보고서 요청 등록', `<p class="sub" style="margin:0 0 8px">용역이 완료된 계약을 고르세요. 기존 계약·현장·점검 이력에 그대로 연결됩니다.</p>
+    <input class="inp" type="search" id="pq" placeholder="현장·계약·시공사 검색" style="width:100%;margin-bottom:8px"><div class="plist" id="pl"></div>`, `<button class="btn" data-close>닫기</button>`, true);
+  const draw = () => {
+    const q = norm($('#pq', md).value);
+    $('#pl', md).innerHTML = r.done.filter((c) => !q || norm(c.현장명 + c.계약명 + c.시공사).includes(q)).slice(0, 120).map((c) => `<button class="pli" data-c="${esc(c.id)}"><span class="t1">${esc(c.현장명)}${subN(c.시공사)}</span><span class="t2">${esc(c.연도 || '')} · ${esc(c.계약명)} · 점검 ${c.점검완료}/${c.점검수} 완료${c.마지막점검 ? ' · 마지막 점검 ' + esc(c.마지막점검) : ''}${c.종합보고서구분 ? ' · 종합보고서 ' + esc(c.종합보고서구분) : ''}</span>${c.요청 ? finalTag(c.요청) : ''}</button>`).join('') || '<div class="empty">용역 완료 계약이 없습니다</div>';
+    $$('[data-c]', md).forEach((b) => (b.onclick = () => {
+      const c = r.done.find((x) => x.id === b.dataset.c), prev = r.list.filter((x) => x.계약id === c.id);
+      const n = prev.reduce((a, x) => Math.max(a, x.차수 || 0), 0);
+      const go2 = () => { md.remove(); openForm('종합', { 계약id: c.id, 현장id: c.현장id, 차수: n + 1, 요청일: today(), 상태: '미작성' }, () => { invalidate(); render(); }); };
+      if (prev.some((x) => x.상태 !== '제출 완료')) { toast('이 계약은 아직 끝나지 않은 종합보고서 요청이 있습니다. 목록에서 그 요청을 여세요.', true); return; }
+      go2();
+    }));
+  };
+  $('#pq', md).oninput = draw; draw();
+}
+async function finalDetail(id) {
+  const r = await api('finals', {}, { cache: true });
+  const x = r.list.find((y) => y.id === id); if (!x) return toast('요청을 찾지 못했습니다', true);
+  const rounds = r.list.filter((y) => y.계약id === x.계약id).sort((a, b) => a.차수 - b.차수);
+  const latest = rounds[rounds.length - 1], ed = can(WR.종합);
+  let items = [];
+  try { const sd = await api('site', { id: x.현장id }, { cache: true }); items = (sd.items || []).filter((i) => i.계약id === x.계약id).sort((a, b) => String(a.점검일 || a.예정일 || '9').localeCompare(String(b.점검일 || b.예정일 || '9'))); } catch (e) {}
+  const fileRows = (y) => (y.파일 || []).map((f) => `<li><span class="fn">${esc(f.n)}</span><span class="sub">${esc(f.구분 || '')} · ${fsize(f.s || 0)} · ${esc(f.d || '')}</span><button class="btn sm" data-dl="${esc(y.id)}|${esc(f.id)}">받기</button>${ed ? `<button class="btn sm ghost" data-fdel="${esc(y.id)}|${esc(f.id)}">삭제</button>` : ''}</li>`).join('') || '<li class="sub">첨부 없음</li>';
+  const md = modal(`종합보고서 · ${x.현장명}`, `
+    <div class="fhead"><div><b>${esc(x.계약명)}</b> <span class="sub">${esc(x.연도 || '')} · 계약 ${esc(x.계약상태 || '')}${x.계약일 ? ' · 계약일 ' + esc(x.계약일) : ''}</span></div>
+      <dl class="kv"><dt>시공사</dt><dd>${esc(x.시공사 || '—')}</dd><dt>발주처</dt><dd>${esc(x.발주처 || '—')}</dd><dt>계약금</dt><dd>${won(x.계약금)}원${x.종합보고서구분 ? ` · 종합보고서 ${esc(x.종합보고서구분)}${x.종합보고서금액 ? ' ' + won(x.종합보고서금액) + '원' : ''}` : ''}</dd><dt>점검</dt><dd>${x.점검완료}/${x.점검수}회 완료${x.첫점검 ? ` · ${esc(x.첫점검)} ~ ${esc(x.마지막점검)}` : ''}</dd></dl></div>
+    <h3 class="fh">차수별 이력 <span class="sub">요청 → 작성 → 제출</span></h3>
+    ${rounds.map((y) => `<div class="fround ${y.id === latest.id ? 'cur' : ''}"><div class="frh"><b>${esc(y.차수)}차</b> ${finalTag(y.상태)} <span class="sub">요청 ${esc(y.요청일 || '—')}${y.요청자 ? ' · ' + esc(y.요청자) : ''} · 작성 ${esc(y.작성일 || '—')} · 제출 ${esc(y.제출일 || '—')}${y.제출처 ? ' (' + esc(y.제출처) + ')' : ''}</span>${ed ? `<button class="btn sm ghost" data-fe="${esc(y.id)}">수정</button>` : ''}</div>
+      ${y.비고 ? `<div class="pre sub">${esc(y.비고)}</div>` : ''}<ul class="flist">${fileRows(y)}</ul></div>`).join('')}
+    ${ed ? `<div class="factions">
+      ${latest.상태 === '미작성' ? '<button class="btn" id="fStart">작성 시작</button>' : ''}
+      ${latest.상태 !== '제출 완료' ? '<button class="btn" id="fWrote">작성일 기록</button><button class="btn pri" id="fSub">제출 완료 처리</button>' : '<button class="btn" id="fRe">재작성·재제출 요청 등록</button>'}
+      <label class="btn">${'파일 첨부 (HWP·PDF)'}<input type="file" id="fUp" accept=".hwp,.hwpx,.pdf" multiple hidden></label>
+      <select class="inp" id="fKind" style="width:auto"><option>작성본</option><option>제출본</option><option>참고</option></select></div><div class="sub" id="fMsg" style="margin-top:6px"></div>` : ''}
+    <h3 class="fh">점검 이력 <span class="sub">이 계약의 정기점검 ${items.length}회 (자동 연결)</span></h3>
+    <div class="tbox"><table class="mini"><thead><tr><th>점검항목</th><th>점검일</th><th>보고서 발송</th><th>단계</th></tr></thead><tbody>${items.map((i) => `<tr><td>${esc(i.항목)}</td><td class="nw">${esc(i.점검일 || (i.예정일 ? i.예정일 + ' (예정)' : '—'))}</td><td class="nw">${esc(i.발송일 || '—')}</td><td>${stageTag(i.단계)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">점검 이력 없음</td></tr>'}</tbody></table></div>`,
+    `<button class="btn" data-site-go="${esc(x.현장id)}">현장 상세</button><button class="btn" data-close>닫기</button>`, true);
+  const after = () => { md.remove(); invalidate(); if (S.page === 'finals') { S.params = Object.assign({}, S.params, { id }); } render(); };
+  const save = async (patch, newRow) => {
+    try {
+      const out = await api('save', { t: '종합', row: newRow ? patch : Object.assign({ id: latest.id }, patch), ver: newRow ? undefined : latest.버전 });
+      if (out.ok === false) throw new Error(out.msg);
+      toast('저장했습니다'); after();
+    } catch (e) { toast(e.message, true); }
+  };
+  const dateAsk = (title, label, extra) => new Promise((res) => {
+    const d = modal(title, `<div class="fg"><label><span>${label}</span><input class="inp" type="date" id="dd" value="${today()}"></label>${extra || ''}</div>`, '<button class="btn" data-close>취소</button><button class="btn pri" id="ddok">저장</button>');
+    $('#ddok', d).onclick = () => { const v = $('#dd', d).value, e2 = $('#ddx', d); d.remove(); res(v ? { d: v, x: e2 ? e2.value : '' } : null); };
+    $$('[data-close]', d).forEach((b) => b.addEventListener('click', () => res(null)));
+  });
+  $('[data-site-go]', md).onclick = () => { md.remove(); go('sites', { id: x.현장id }); };
+  $$('[data-dl]', md).forEach((b) => (b.onclick = async () => { const [rid, fid] = b.dataset.dl.split('|'); b.disabled = true; b.textContent = '받는 중…'; try { await finalDownload(rid, fid); } catch (e) { toast(e.message, true); } b.disabled = false; b.textContent = '받기'; }));
+  if (!ed) return;
+  $$('[data-fe]', md).forEach((b) => (b.onclick = () => { const y = rounds.find((z) => z.id === b.dataset.fe); md.remove(); openForm('종합', Object.assign({}, y, { 파일: undefined }), () => { invalidate(); render(); }); }));
+  $$('[data-fdel]', md).forEach((b) => (b.onclick = async () => {
+    const [rid, fid] = b.dataset.fdel.split('|'), y = rounds.find((z) => z.id === rid), f = (y.파일 || []).find((z) => z.id === fid);
+    if (!(await ask({ title: '첨부 파일 삭제', msg: `「${f.n}」을(를) 지웁니다. 드라이브 휴지통으로 옮겨져 30일 안에는 되살릴 수 있습니다.`, ok: '삭제', danger: true }))) return;
+    try { await postApi('finalFile', { id: rid, op: 'del', fid }); toast('파일을 지웠습니다'); after(); } catch (e) { toast(e.message, true); }
+  }));
+  if ($('#fStart', md)) $('#fStart', md).onclick = () => save({ 상태: '작성 중' });
+  if ($('#fWrote', md)) $('#fWrote', md).onclick = async () => { const v = await dateAsk('작성일 기록', '종합보고서 작성일'); if (v) save({ 작성일: v.d, 상태: '작성 중' }); };
+  if ($('#fSub', md)) $('#fSub', md).onclick = async () => { const v = await dateAsk('제출 완료 처리', '제출일', `<label><span>제출처</span><input class="inp" id="ddx" value="${esc(latest.제출처 || x.발주처 || '')}"></label>`); if (v) save({ 제출일: v.d, 제출처: v.x, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
+  if ($('#fRe', md)) $('#fRe', md).onclick = () => { md.remove(); openForm('종합', { 계약id: x.계약id, 현장id: x.현장id, 차수: (latest.차수 || 1) + 1, 요청일: today(), 상태: '미작성', 비고: '추가 요청(재작성·재제출)' }, () => { invalidate(); render(); }); };
+  $('#fUp', md).onchange = async (e) => {
+    const fs = [...e.target.files]; if (!fs.length) return;
+    const msg = $('#fMsg', md), kind = $('#fKind', md).value;
+    for (const f of fs) {
+      if (!/\.(hwp|hwpx|pdf)$/i.test(f.name)) { toast(`${f.name}: HWP·HWPX·PDF 파일만 올릴 수 있습니다`, true); continue; }
+      if (f.size > 30 * 1048576) { toast(`${f.name}: 30MB 이하만 올릴 수 있습니다`, true); continue; }
+      msg.textContent = `「${f.name}」 올리는 중… (${fsize(f.size)})`;
+      try { await postApi('finalFile', { id: latest.id, op: 'add', name: f.name, kind, data: await readB64(f) }); }
+      catch (er) { msg.textContent = ''; toast(er.message, true); return; }
+    }
+    toast('파일을 첨부했습니다'); after();
+  };
+}
 PAGES.parcels = async (m) => {
   const r = await api('parcels', {}, { cache: true });
   const st = S.pcF = S.pcF || { q: '', y: '전체' };
@@ -2148,6 +2316,7 @@ Object.keys(LATER).forEach((k) => { PAGES[k] = async (m) => { const [t, why, lis
 
 // ===================== 로그인 =====================
 function loginView(msg) {
+  document.documentElement.classList.remove('appshell');
   $('#app').innerHTML = `<div class="login"><div class="brand" style="margin-bottom:18px"><i>U</i>UTO <span>업무관리</span></div><h1>로그인</h1><p>회사에 등록된 이메일로 한 번 인증하면 이 브라우저에서는 자동으로 로그인됩니다.</p>
   ${msg ? `<div class="note">${esc(msg)}</div>` : ''}
   <label for="em">이메일</label><input class="inp" id="em" type="email" autocomplete="email">
@@ -2167,12 +2336,12 @@ async function start() {
     const b = await bp;
     S.user = b.user; S.source = b.source; S.counts = b.counts;
     fromHash();
-  } catch (e) { if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
+  } catch (e) { if (S.token) { document.documentElement.classList.remove('appshell'); } if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15a';
+const APP_VERSION = '2026-11-15b';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

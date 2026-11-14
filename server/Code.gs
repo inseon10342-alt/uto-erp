@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -37,12 +37,14 @@ const SCHEMA = {
   검토: ['id', 'NO', '계약id', '항목', '회차', '요청일', '검토자', '제목', '상태', '회신일', '의견', '조치', '재발송일', '비고'],
   일지: ['id', '날짜', '현장', '구분', '내용', '상태', '후속', '비고', '작성자'],
   택배: ['id', '현장id', '발송일', '항목', '받는사람', '주소', '비고'],
+  // 종합보고서: 용역이 끝난 계약에 나중에 들어오는 종합보고서 요청 (웹 전용). 한 줄 = 요청 1회(차수), 재작성 요청은 다음 차수로 새 줄
+  종합: ['id', '계약id', '현장id', '차수', '요청일', '요청자', '상태', '작성일', '제출일', '제출처', '파일', '비고'],
 };
-const NUMCOLS = ['연도', 'No', '공급가', '부가세', '계약금', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '청구액', '수금액', '세액', '합계', '버전', '기존수금', '기존미입금'];
+const NUMCOLS = ['연도', 'No', '공급가', '부가세', '계약금', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '청구액', '수금액', '세액', '합계', '버전', '기존수금', '기존미입금', '차수'];
 const FROM_EXCEL = ['현장', '거래처', '계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '일지', '택배'];   // 가져오기가 채우는 표
 const ROLE_RANK = { 조회: 0, 일반: 1, 관리자: 2 };
-const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반' };
-const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배' };
+const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반' };
+const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배', 종합: '종합보고서' };
 
 // ===================== 진입 =====================
 function doGet(e) {
@@ -218,7 +220,7 @@ function api(token, action, arg) {
   }
 }
 // 저장 직후 화면이 다시 부를 조회를 같은 요청 안에서 미리 계산해 돌려줌 (왕복 한 번 절약). 조회 전용만 허용
-const AFTER_OK = ['dash', 'lookups', 'sites', 'site', 'contracts', 'contract', 'schedule', 'contacts', 'requests', 'money', 'reviews', 'journal', 'parcels', 'report', 'partners', 'partner'];
+const AFTER_OK = ['finals', 'dash', 'lookups', 'sites', 'site', 'contracts', 'contract', 'schedule', 'contacts', 'requests', 'money', 'reviews', 'journal', 'parcels', 'report', 'partners', 'partner'];
 function withAfter_(who, a, out) {
   if (!out || out.ok === false || !Array.isArray(a.after)) return out;
   const pre = [];
@@ -229,6 +231,58 @@ function withAfter_(who, a, out) {
   return Object.assign({}, out, { pre });
 }
 const WEB_ONLY = { 점검: ['작성완료일'] };
+// ---- 종합보고서 ----
+function finals_() {
+  const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처'), insp = live_('점검');
+  const pn = (id) => (Pn[id] || {}).거래처명 || '';
+  const byC = {}; insp.forEach((x) => { (byC[x.계약id] = byC[x.계약id] || []).push(x); });
+  const info = (c) => { const its = byC[c.id] || [], ds = its.map((x) => x.점검일).filter(Boolean).sort();
+    return { 계약명: c.계약명 || '', 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 연도: c.연도, 계약상태: c.상태 || '', 계약일: c.계약일 || '', 계약금: c.계약금 || 0,
+      시공사: pn(c.시공사id) || pn(c.발주처id), 발주처: pn(c.발주처id), 종합보고서구분: c.종합보고서구분 || '', 종합보고서금액: c.종합보고서금액 || 0, 점검수: its.length, 점검완료: its.filter((x) => stageOf_(x) === '완료').length, 첫점검: ds[0] || '', 마지막점검: ds[ds.length - 1] || '' }; };
+  const rows = live_('종합').map((r) => { const c = C[r.계약id] || {}; let files = []; try { files = JSON.parse(r.파일 || '[]'); } catch (e) {} return Object.assign(clean_(r), info(c), { 파일: files }); })
+    .sort((a, b) => String(b.요청일).localeCompare(String(a.요청일)) || (b.차수 - a.차수));
+  // 계약별 최신 차수만 「현재 상태」로 셈
+  const last = {}; rows.forEach((r) => { if (!last[r.계약id] || r.차수 > last[r.계약id].차수) last[r.계약id] = r; });
+  const cur = Object.values(last);
+  const done = live_('계약').filter((c) => c.상태 && c.상태 !== '진행중').map((c) => Object.assign({ id: c.id }, info(c), { 요청: last[c.id] ? last[c.id].상태 : '' }))
+    .sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || a.현장명.localeCompare(b.현장명));
+  return { list: rows, done, kpi: { 완료용역: done.length, 요청: cur.length, 미작성: cur.filter((r) => r.상태 === '미작성').length, 작성중: cur.filter((r) => r.상태 === '작성 중').length, 제출완료: cur.filter((r) => r.상태 === '제출 완료').length } };
+}
+function finalDir_() {
+  const id = P.getProperty('FINAL_DIR');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed || !f.isTrashed()) return f; } catch (e) {} }
+  const f = DriveApp.createFolder('업무관리 첨부 - 종합보고서');
+  P.setProperty('FINAL_DIR', f.getId()); return f;
+}
+function finalFile_(who, a) {
+  need_(who, '일반');
+  const r = live_('종합').find((x) => x.id === a.id); if (!r) throw new Error('종합보고서 요청을 찾지 못했습니다. 새로고침해 보세요.');
+  let files = []; try { files = JSON.parse(r.파일 || '[]'); } catch (e) {}
+  if (a.op === 'add') {
+    const name = String(a.name || '').replace(/[\\/:*?"<>|]/g, '_').slice(0, 120);
+    if (!/\.(hwp|hwpx|pdf)$/i.test(name)) throw new Error('HWP, HWPX, PDF 파일만 올릴 수 있습니다.');
+    const data = String(a.data || ''); if (!data) throw new Error('파일 내용이 비어 있습니다.');
+    if (data.length > 40 * 1024 * 1024) throw new Error('30MB 이하 파일만 올릴 수 있습니다.');
+    const mime = /\.pdf$/i.test(name) ? 'application/pdf' : 'application/x-hwp';
+    const bytes = Utilities.base64Decode(data), f = finalDir_().createFile(Utilities.newBlob(bytes, mime, name));
+    files.push({ id: f.getId(), n: name, s: bytes.length, d: today_(), 차수: r.차수, 구분: a.kind || '' , by: who.user.email });
+  } else if (a.op === 'del') {
+    const k = files.findIndex((x) => x.id === a.fid); if (k < 0) throw new Error('파일을 찾지 못했습니다.');
+    try { DriveApp.getFileById(a.fid).setTrashed(true); } catch (e) {} // 드라이브 휴지통으로 (30일 안에 복구 가능)
+    files.splice(k, 1);
+  } else throw new Error('알 수 없는 파일 요청');
+  const out = save_(who, '종합', { id: r.id, 파일: JSON.stringify(files) }, r.버전);
+  if (out && out.ok === false) return out;
+  return { files };
+}
+function finalGet_(who, a) {
+  need_(who, '조회');
+  const r = live_('종합').find((x) => x.id === a.id); if (!r) throw new Error('없음');
+  let files = []; try { files = JSON.parse(r.파일 || '[]'); } catch (e) {}
+  const f = files.find((x) => x.id === a.fid); if (!f) throw new Error('파일을 찾지 못했습니다.');
+  const b = DriveApp.getFileById(f.id).getBlob();
+  return { name: f.n, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
+}
 const ACTIONS = {
   boot: (who) => ({ user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
@@ -243,6 +297,9 @@ const ACTIONS = {
   contacts: () => cached_('contacts', () => ({ contacts: contactsList_() })),
   requests: () => cached_('requests', () => ({ requests: requestsList_(), mails: mailsList_() })),
   money: () => cached_('money', money_),
+  finals: () => cached_('finals', finals_),
+  finalFile: (who, a) => finalFile_(who, a),
+  finalGet: (who, a) => finalGet_(who, a),
   reviews: () => cached_('reviews', () => {
     const list = reviewsList_(), has = {}; list.forEach((r) => { has[r.계약id + '|' + key_(r.항목)] = 1; });
     const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처'), T = today_();
@@ -325,7 +382,7 @@ function norm_(h, v) {
 function clean_(r) { const o = {}; for (const k in r) if (k !== '_row') o[k] = r[k]; return o; }
 function byId_(t) { const m = {}; live_(t).forEach((r) => { m[r.id] = r; }); return m; }
 function newId_(t) {
-  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K' }[t] || 'X';
+  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K', 종합: 'F' }[t] || 'X';
   return pre + 'W' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
 }
 let SET_ = null; // 한 번 실행하는 동안 설정 시트를 한 번만 읽음
@@ -373,6 +430,14 @@ function save_(who, t, row, ver, isDelete) {
     const next = Object.assign({}, cur ? clean_(cur) : {});
     if (!isDelete) SCHEMA[t].forEach((c) => { if (c !== 'id' && c in row) next[c] = NUMCOLS.indexOf(c) >= 0 ? num_(row[c]) : String(row[c] == null ? '' : row[c]).trim(); });
     if (!cur) { next.id = newId_(t); if (t === '연락' || t === '일지') next.작성자 = who.user.email; }
+    if (t === '종합' && !isDelete) { // 상태 맞추기: 제출일이 있으면 제출 완료, 작성일만 있으면 최소 작성 중
+      if (next.제출일) next.상태 = '제출 완료'; else if (next.상태 === '제출 완료') next.상태 = next.작성일 ? '작성 중' : '미작성';
+      if (!next.상태) next.상태 = next.작성일 ? '작성 중' : '미작성';
+      if (next.작성일 && next.상태 === '미작성') next.상태 = '작성 중';
+      if (!next.현장id && next.계약id) next.현장id = (byId_('계약')[next.계약id] || {}).현장id || '';
+      if (!next.차수) next.차수 = 1;
+      if (!cur && !next.요청자) next.요청자 = '';
+    }
     const err = validate_(t, next, cur);
     if (err) return { ok: false, code: 'invalid', msg: err };
     if (t === '계약' && !isDelete) {
@@ -407,6 +472,8 @@ function validate_(t, r, cur) {
   if (t === '청구' && (!r.계약id || !(r.발행일 || r.입금일))) return '계약과 발행일(또는 입금일)을 입력하세요.';
   if (t === '연락' && (!r.현장id || !r.연락일)) return '현장과 연락일을 입력하세요.';
   if (t === '검토' && (!r.계약id || !r.항목 || !r.요청일)) return '계약, 점검항목, 검토요청일을 입력하세요.';
+  if (t === '종합' && (!r.계약id || !r.요청일)) return '대상 계약(현장)과 요청일을 입력하세요.';
+  if (t === '종합' && r.제출일 && r.작성일 && r.제출일 < r.작성일) return '제출일이 작성일보다 빠릅니다.';
   if (t === '일지' && (!r.날짜 || !r.내용)) return '날짜와 업무 내용을 입력하세요.';
   if (t === '택배' && (!r.현장id || !r.발송일)) return '현장과 발송일을 입력하세요.';
   return '';
@@ -584,6 +651,7 @@ function dash_() {
   return { today: T, week: { from: iso_(mon), to: iso_(sun), events: schedule_(iso_(mon), iso_(sun)) },
     kpi: { 진행현장: active.length, 완료현장: sites.length - active.length, 작성중: writing.filter((w) => !w.작성완료일).length, 작성완료: writing.filter((w) => w.작성완료일).length, 기한14: writing.filter((w) => w.남은날 != null && w.남은날 <= 14).length, 기한초과: writing.filter((w) => w.남은날 != null && w.남은날 < 0).length,
       입금대기: waitInv.reduce((s, b) => s + b.미입금, 0), 입금대기건: waitInv.length, 계약진행: m.contracts.filter((c) => c.상태 === '진행중').length, 계약완료: m.contracts.filter((c) => c.상태 !== '진행중').length },
+    final: (() => { try { const f = finals_(); return Object.assign({}, f.kpi, { open: f.list.filter((r) => r.상태 !== '제출 완료').slice(0, 8) }); } catch (e) { return null; } })(),
     writing: writing.slice(0, 12), waitInv: waitInv.sort((a, b) => b.경과 - a.경과).slice(0, 10), contacts: contactsList_().slice(0, 6), todo, builder,
     reviews: reviewsList_().filter((r) => r.대기), jobs: live_('일지').filter((j) => (j.상태 === '진행중' || j.상태 === '이월') && j.날짜 < T).sort((a, b) => String(b.날짜).localeCompare(String(a.날짜))).slice(0, 10).map(clean_),
     years: m.years, recent: recentChanges_(8) };
