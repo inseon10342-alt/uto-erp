@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15e'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -657,7 +657,7 @@ function dash_() {
   return { today: T, week: { from: iso_(mon), to: iso_(sun), events: schedule_(iso_(mon), iso_(sun)) },
     kpi: { 진행현장: active.length, 완료현장: sites.length - active.length, 작성중: writing.filter((w) => !w.작성완료일).length, 작성완료: writing.filter((w) => w.작성완료일).length, 기한14: writing.filter((w) => w.남은날 != null && w.남은날 <= 14).length, 기한초과: writing.filter((w) => w.남은날 != null && w.남은날 < 0).length,
       입금대기: waitInv.reduce((s, b) => s + b.미입금, 0), 입금대기건: waitInv.length, 계약진행: m.contracts.filter((c) => c.상태 === '진행중').length, 계약완료: m.contracts.filter((c) => c.상태 !== '진행중').length },
-    final: (() => { try { const f = finals_(); return Object.assign({}, f.kpi, { open: f.list.filter((r) => r.상태 !== '제출 완료').slice(0, 8) }); } catch (e) { return null; } })(),
+    final: (() => { try { const f = finals_(); return Object.assign({}, f.kpi, { open: f.list.filter((r) => r.상태 !== '제출 완료').slice(0, 40).map((r) => Object.assign({}, r, { 검토: undefined, 파일: undefined })) }); } catch (e) { return null; } })(),
     writing: writing.slice(0, 12), waitInv: waitInv.sort((a, b) => b.경과 - a.경과).slice(0, 10), contacts: contactsList_().slice(0, 6), todo, builder,
     reviews: reviewsList_().filter((r) => r.대기), jobs: live_('일지').filter((j) => (j.상태 === '진행중' || j.상태 === '이월') && j.날짜 < T).sort((a, b) => String(b.날짜).localeCompare(String(a.날짜))).slice(0, 10).map(clean_),
     years: m.years, recent: recentChanges_(8) };
