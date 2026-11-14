@@ -266,7 +266,7 @@ const ACTIONS = {
   setSourceFile: (who, a) => { need_(who, '관리자'); return setSourceFile_(who, a.id); },
   exportInfo: (who) => { need_(who, '관리자'); return exportInfo_(); },
   updateInfo: (who) => { need_(who, '관리자'); return updateInfo_(); },
-  updateNow: (who) => { need_(who, '관리자'); try { return Object.assign({ result: selfUpdate_(false) }, updateInfo_()); } catch (e) { updateError_(e); return { ok: false, msg: e.message }; } },
+  updateNow: (who) => { need_(who, '관리자'); return updateNow_(); },
   exportNow: (who) => {
     need_(who, '관리자');
     if ((setting_('원본') || '엑셀') !== '웹') return { ok: false, msg: '원본이 웹일 때만 엑셀에 저장합니다.' };
@@ -1469,65 +1469,16 @@ function splitParts_(memo) {
   const rest = String(memo).replace(m[0], '').replace(/^[\s·]+|[\s·]+$/g, '').replace(/\s*·\s*·\s*/g, ' · ');
   return [rest, parts.join(', ')];
 }
-// ===================== 서버 자동 업데이트 (GitHub uto-erp/server → 이 Apps Script) =====================
-// 5분마다 GitHub 의 server/VERSION 을 보고, 바뀌었으면 Code.gs · appsscript.json 을 받아 저장 → 새 버전 → 지금 웹 앱 배포를 그 버전으로 바꿈 (주소 그대로)
-const UPD = { RAW: 'https://raw.githubusercontent.com/inseon10342-alt/uto-erp/main/' };
-function updateTick() { try { selfUpdate_(false); } catch (e) { updateError_(e); } }
-function updateError_(e) {
-  const msg = fmtT_(new Date()) + ' · ' + e.message, prev = setting_('서버 업데이트 오류');
-  setSetting_('서버 업데이트 오류', msg);
-  if (!prev || prev.slice(19) !== msg.slice(19)) { try { MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(), subject: '[업무관리] 서버 자동 업데이트 실패', body: e.message + '\n\n지금 서버는 이전 버전 그대로 동작합니다.' }); } catch (x) {} }
+// ===================== 서버 자동 업데이트 =====================
+// Apps Script 에는 「불러오기 코드」만 있고, 이 파일(GitHub server/Code.gs)을 5분마다 받아 실행합니다. (불러오기/Code.gs 참고)
+function updateInfo_() {
+  const L = typeof loaderInfo_ === 'function' ? loaderInfo_() : { loader: false };
+  return { code: SERVER_VERSION, loader: !!L.loader, deployed: L.version ? L.version + (L.at ? ' · ' + fmtT_(new Date(L.at)) : '') : '', checked: L.checked ? fmtT_(new Date(L.checked)) : '', error: L.error || '', auto: !!L.auto };
 }
-function raw_(path) {
-  const r = UrlFetchApp.fetch(UPD.RAW + path + '?t=' + Date.now(), { muteHttpExceptions: true, headers: { 'Cache-Control': 'no-cache' } });
-  if (r.getResponseCode() !== 200) throw new Error('GitHub 에서 ' + path + ' 를 읽지 못했습니다 (' + r.getResponseCode() + ')');
-  return r.getContentText();
+function updateNow_() {
+  if (typeof loaderCheck_ !== 'function') return { ok: false, msg: '아직 불러오기 코드가 설치되지 않았습니다. Apps Script 에 불러오기 Code.gs 를 넣고 installLoader 를 실행하세요.' };
+  const r = loaderCheck_(false); return Object.assign({ result: { changed: r.changed, version: r.version, waiting: !!r.waiting } }, updateInfo_());
 }
-function selfUpdate_(force) {
-  const v = raw_('server/VERSION').trim();
-  if (!v) throw new Error('server/VERSION 이 비어 있습니다.');
-  if (!force && v === (P.getProperty('SERVER_VER') || SERVER_VERSION)) return { changed: false, version: v };
-  const lock = LockService.getScriptLock(); if (!lock.tryLock(5000)) return { changed: false, version: v, busy: true };
-  try {
-    const code = raw_('server/Code.gs'), man = raw_('server/appsscript.json');
-    if (code.indexOf('@uto-erp-server') < 0) throw new Error('받은 코드에 서버 표시(@uto-erp-server)가 없어 업데이트하지 않았습니다.');
-    if (code.indexOf("SERVER_VERSION = '" + v + "'") < 0) return { changed: false, version: v, waiting: true }; // GitHub 캐시가 아직 옛 코드 → 다음 차례에
-    JSON.parse(man);
-    const id = ScriptApp.getScriptId(), base = 'https://script.googleapis.com/v1/projects/' + id;
-    const call = (method, path, body) => {
-      const r = UrlFetchApp.fetch(base + path, { method, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, contentType: 'application/json', payload: body ? JSON.stringify(body) : null, muteHttpExceptions: true });
-      const t = r.getContentText();
-      if (r.getResponseCode() >= 300) throw new Error('Apps Script API ' + r.getResponseCode() + ': ' + t.slice(0, 400));
-      return t ? JSON.parse(t) : {};
-    };
-    call('put', '/content', { files: [{ name: 'appsscript', type: 'JSON', source: man }, { name: 'Code', type: 'SERVER_JS', source: code }] }); // 문법 오류가 있으면 여기서 거절되고 지금 코드는 그대로
-    const nv = call('post', '/versions', { description: 'GitHub ' + v });
-    const dep = deploymentId_(call);
-    call('put', '/deployments/' + dep, { deploymentConfig: { scriptId: id, versionNumber: nv.versionNumber, manifestFileName: 'appsscript', description: 'GitHub ' + v } });
-    P.setProperty('SERVER_VER', v);
-    setSetting_('서버 버전', v + ' · ' + fmtT_(new Date()) + ' · 배포 버전 ' + nv.versionNumber, 'GitHub 자동 업데이트');
-    setSetting_('서버 업데이트 오류', '');
-    bumpVer_();
-    return { changed: true, version: v, number: nv.versionNumber };
-  } finally { lock.releaseLock(); }
-}
-/** 지금 화면이 쓰는 웹 앱 배포 ID: 저장된 값 → 없으면 GitHub config.js 의 서버 주소에서 읽음 */
-function deploymentId_(call) {
-  const saved = P.getProperty('DEPLOY_ID'); if (saved) return saved;
-  let id = '';
-  try { const m = raw_('config.js').match(/\/macros\/s\/([^/'"]+)\/exec/); if (m) id = m[1]; } catch (e) {}
-  const list = (call('get', '/deployments').deployments || []).map((d) => d.deploymentId);
-  if (!id || list.indexOf(id) < 0) throw new Error('웹 앱 배포를 찾지 못했습니다. config.js 의 서버 주소가 이 프로젝트의 배포인지 확인하세요.');
-  P.setProperty('DEPLOY_ID', id); return id;
-}
-/** 처음 한 번: 편집기에서 이 함수를 실행해 권한을 허용하면, 그다음부터 자동으로 업데이트됩니다 */
-function installUpdater() {
-  ScriptApp.getProjectTriggers().forEach((t) => { if (t.getHandlerFunction() === 'updateTick') ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('updateTick').timeBased().everyMinutes(5).create();
-  const r = selfUpdate_(true);
-  Logger.log('서버 자동 업데이트 연결 완료 · GitHub 버전 ' + r.version + (r.changed ? ' · 배포 버전 ' + r.number + ' 으로 바꿈' : ''));
-}
-function updateInfo_() { return { code: SERVER_VERSION, deployed: setting_('서버 버전'), error: setting_('서버 업데이트 오류'), auto: ScriptApp.getProjectTriggers().some((t) => t.getHandlerFunction() === 'updateTick') }; }
 // ===================== 공통 도우미 =====================
 const NON_TARGET = ['초기점검', '종합보고서', '정밀안전점검', '공사재개전점검', '착수전점검'];
 function cleanHead_(h) { return String(h == null ? '' : h).replace(/\s+/g, ' ').replace(/▼/g, '').replace(/선택/g, '').replace(/\s*\((자동|직접.*?|진행 중)\)\s*/g, '').trim(); }
