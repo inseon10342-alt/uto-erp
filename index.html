@@ -554,7 +554,7 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
 .rnd{font-size:11px;padding:0 5px;border:1px solid var(--line);border-radius:2px;color:var(--sub2)}.rvc .mt{font-size:11.5px;color:var(--sub2)}.rvc .tag{margin-top:3px}.rvc .btn{margin-top:4px}
 .rvside{position:sticky;top:12px;max-height:calc(100vh - 90px);overflow:auto}
 .rvst{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub)}.rvst span{padding:2px 8px;border:1px solid var(--line2);border-radius:2px}.rvst span.on{font-weight:700;color:var(--ink)}.rvst span.on.t{background:var(--prog-l);border-color:var(--prog)}.rvst span.on.w{background:var(--warn-l);border-color:var(--warn)}.rvst span.on.g{background:var(--done-l);border-color:var(--done)}.rvst i{font-style:normal;color:#C2C7CC}
-.cpick{display:flex;flex-direction:column;gap:6px}.cpick .seg{align-self:flex-start}.seg button small{color:inherit;opacity:.7;font-size:11px;margin-left:2px}
+.cpick{display:flex;flex-direction:column;gap:6px}.jsseg{display:inline-flex;vertical-align:middle;margin-left:6px}.jsseg button{height:22px;padding:0 7px;font-size:11.5px}.cpick .seg{align-self:flex-start}.seg button small{color:inherit;opacity:.7;font-size:11px;margin-left:2px}
 .rvact{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
 .rvdot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;margin-right:3px;color:#fff;background:var(--prog)}.rvdot.g{background:var(--done)}.rvdot.w{background:var(--warn)}
 @media (max-width:1380px){.jwrap{grid-template-columns:236px minmax(0,1fr) 312px}.rvboard{grid-template-columns:repeat(2,minmax(0,1fr))}.pcrow{grid-template-columns:58px minmax(160px,1.3fr) minmax(150px,1fr) minmax(120px,1fr) auto}}
@@ -870,6 +870,25 @@ const FORMS = {
 };
 const FLABEL2 = { 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
 const FLABEL = { 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+// ---- 현장 · 계약 고르기: 진행 중 / 완료로 나눠 보여 줌 (이름 옆 상태 표시 없음)
+function siteActive(L) { const a = {}, has = {}; L.contracts.forEach((c) => { has[c.현장id] = 1; if (c.상태 === '진행중') a[c.현장id] = 1; }); return (id) => !!a[id] || !has[id]; }
+function pickList(L, kind, st) {
+  const on = st === '진행중';
+  if (kind === 'site') { const act = siteActive(L); return L.sites.filter((x) => act(x.id) === on).map((x) => ({ id: x.id, n: x.n })); }
+  return L.contracts.filter((c) => (c.상태 === '진행중') === on).sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || String(a.n).localeCompare(String(b.n), 'ko')).map((c) => ({ id: c.id, n: `${c.연도 || ''} · ${c.n}` }));
+}
+function cpick(L, kind, v, attrs, empty) {
+  const done = v ? (kind === 'site' ? !siteActive(L)(v) : (L.contracts.find((c) => c.id === v) || { 상태: '진행중' }).상태 !== '진행중') : false;
+  return `<div class="cpick" data-kind="${kind}"><div class="seg sm">${[['진행중', '진행 중'], ['완료', '완료']].map(([s2, n]) => `<button type="button" data-cs="${s2}" class="${(s2 === '완료') === done ? 'on' : ''}">${n} <small>${pickList(L, kind, s2).length}</small></button>`).join('')}</div><select class="inp" ${attrs} data-cst="${done ? '완료' : '진행중'}" data-v="${esc(v || '')}" data-empty="${esc(empty || '')}"></select></div>`;
+}
+function bindCpick(root, L) {
+  $$('.cpick select[data-cst]', root).forEach((sel) => {
+    const box = sel.closest('.cpick'), kind = box.dataset.kind, word = kind === 'site' ? '현장' : '계약';
+    const fill = (st) => { sel.dataset.cst = st; const list = pickList(L, kind, st), keep = sel.value || sel.dataset.v || ''; sel.innerHTML = `<option value="">${sel.dataset.empty ? esc(sel.dataset.empty) : `${st === '진행중' ? '진행 중인' : '완료된'} ${word} 선택 (${list.length})`}</option>` + list.map((o) => `<option value="${esc(o.id)}" ${o.id === keep ? 'selected' : ''}>${esc(o.n)}</option>`).join(''); };
+    fill(sel.dataset.cst);
+    $$('[data-cs]', box).forEach((b) => (b.onclick = () => { if (sel.disabled) return; $$('[data-cs]', box).forEach((x) => x.classList.toggle('on', x === b)); sel.value = ''; sel.dataset.v = ''; fill(b.dataset.cs); sel.dispatchEvent(new Event('change')); }));
+  });
+}
 async function openForm(t, row, onSaved) {
   const L = await lookups();
   row = row || {};
@@ -884,21 +903,15 @@ async function openForm(t, row, onSaved) {
     else if (type === 'date') input = `<input class="inp" type="date" name="${k}" value="${esc(v)}">`;
     else if (type === 'num' || type === 'money') input = `<input class="inp" inputmode="numeric" name="${k}" value="${v === '' ? '' : type === 'money' ? won(v) : v}" data-num="1">`;
     else if (type.startsWith('sel:')) input = `<select class="inp" name="${k}">${type.slice(4).split(',').map((o) => `<option ${o === v ? 'selected' : ''} value="${esc(o)}">${esc(o || '(없음)')}</option>`).join('')}</select>`;
-    else if (type === 'site') input = `<select class="inp" name="${k}"><option value="">현장 선택</option>${opt(L.sites, v)}</select>`;
+    else if (type === 'site') input = cpick(L, 'site', v, `name="${k}"`);
     else if (type === 'partner') input = `<select class="inp" name="${k}"><option value="">(없음)</option>${opt(L.partners, v)}</select>`;
-    else if (type === 'contract' && t === '검토') { const cur = L.contracts.find((c) => c.id === v), done = cur && cur.상태 !== '진행중'; input = `<div class="cpick"><div class="seg sm">${[['진행중', '진행 중'], ['완료', '완료']].map(([s2, n]) => `<button type="button" data-cs="${s2}" class="${(s2 === '완료') === !!done ? 'on' : ''}">${n} <small>${L.contracts.filter((c) => (c.상태 === '진행중') === (s2 === '진행중')).length}</small></button>`).join('')}</div><select class="inp" name="${k}" data-cst="${done ? '완료' : '진행중'}"></select></div>`; }
-    else if (type === 'contract') input = `<select class="inp" name="${k}"><option value="">계약 선택</option>${opt(L.contracts.map((c) => ({ id: c.id, n: `${c.연도} · ${c.n}${c.상태 !== '진행중' ? ' (' + c.상태 + ')' : ''}` })), v)}</select>`;
+    else if (type === 'contract') input = cpick(L, 'contract', v, `name="${k}"`);
     else input = `<input class="inp" name="${k}" value="${esc(v)}">`;
     return `<label class="${cls || ''}"><span>${lab}</span>${input}</label>`;
   };
   const m = modal(`${row.id ? '수정' : '새로 등록'} · ${{ 청구: '청구(계산서)', 연락: '연락기록', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배 발송' }[t] || t}`, `<p class="req"><b>*</b> 표시는 꼭 입력하는 항목입니다.</p><form class="fg" id="ff">${f.map(field).join('')}</form>`,
     `${row.id && t !== '계약' && t !== '청구' || row.id && can('관리자') ? `<button class="btn dan" id="fdel" type="button">삭제</button>` : ''}<span class="msg" id="fmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="fsave">저장</button>`, t === '계약');
-  // 검토 입력창의 계약 고르기: 진행 중 / 완료 목록을 나눠 보여 줌
-  $$('select[data-cst]', m).forEach((sel) => {
-    const fill = (st) => { sel.dataset.cst = st; const list = L.contracts.filter((c) => (c.상태 === '진행중') === (st === '진행중')).sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || String(a.n).localeCompare(String(b.n), 'ko')); const keep = sel.value || row[sel.name] || ''; sel.innerHTML = `<option value="">${st === '진행중' ? '진행 중인' : '완료된'} 계약 선택 (${list.length})</option>` + list.map((c) => `<option value="${esc(c.id)}" ${c.id === keep ? 'selected' : ''}>${esc(c.연도 || '')} · ${esc(c.n)}</option>`).join(''); };
-    fill(sel.dataset.cst);
-    $$('[data-cs]', sel.parentElement).forEach((b) => (b.onclick = () => { $$('[data-cs]', sel.parentElement).forEach((x) => x.classList.toggle('on', x === b)); sel.value = ''; fill(b.dataset.cs); }));
-  });
+  bindCpick(m, L);
   $$('[data-num]', m).forEach((i) => (i.onblur = () => { const n = String(i.value).replace(/[^\d.-]/g, ''); if (n !== '' && i.name !== '연도') i.value = won(n); }));
   $('#fsave', m).onclick = async () => {
     const data = {}; new FormData($('#ff', m)).forEach((v, k) => { data[k] = $(`[name="${k}"]`, m).dataset.num ? String(v).replace(/[^\d.-]/g, '') : v; });
@@ -1361,7 +1374,7 @@ PAGES.statement = async (m, p) => {
   <div class="stmt"><section class="panel">
     <div class="sec"><h3>거래처 · 현장</h3><div class="fg">
       <label><span>거래처 <b>*</b></span><select class="inp" id="pt" ${issued ? 'disabled' : ''}><option value="">거래처 선택</option>${L.partners.map((x) => `<option value="${x.id}" ${x.id === doc.거래처id ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select></label>
-      <label>계약(현장)<select class="inp" id="ct" ${issued ? 'disabled' : ''}><option value="">(선택 안 함)</option>${L.contracts.map((c) => `<option value="${c.id}" ${c.id === doc.계약id ? 'selected' : ''}>${c.연도} · ${esc(c.n)}</option>`).join('')}</select></label>
+      <label>계약(현장)${cpick(L, 'contract', doc.계약id, `id="ct" ${issued ? 'disabled' : ''}`, '(선택 안 함)')}</label>
       <label>발행일자<input class="inp" type="date" id="dt" value="${esc(doc.일자)}" ${issued ? 'disabled' : ''}></label>
       <label>현장명 (명세서 표시)<input class="inp" id="sn" value="${esc(doc.현장명 || '')}" ${issued ? 'disabled' : ''}></label></div></div>
     <div class="sec"><h3>품목 (최대 26줄)</h3><div class="tbox"><table class="items"><thead><tr><th>품명</th><th>단위</th><th>수량</th><th>단가</th><th>VAT</th><th class="num">공급가액</th><th class="num">세액</th><th></th></tr></thead><tbody id="lines">${doc.lines.map(lineRow).join('')}</tbody></table></div>
@@ -1376,6 +1389,7 @@ PAGES.statement = async (m, p) => {
     $$('[data-rm]').forEach((b) => (b.onclick = () => { doc.lines.splice(+b.dataset.rm, 1); if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); }));
     $$('#lines [data-f="단가"]').forEach((i) => (i.onblur = () => { if (i.value) i.value = won(i.value.replace(/[^\d]/g, '')); }));
   };
+  bindCpick(m, L);
   bindLines(); draw();
   if (!issued) {
     $('#addL').onclick = () => { if (doc.lines.length >= 26) return toast('최대 26줄입니다', 1); doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); };
@@ -1719,7 +1733,7 @@ PAGES.journal = async (m) => {
     <aside class="jright">
       <section class="panel jform"><div class="ph"><h2>${cur ? '기록 수정' : '업무 기록'}</h2>${cur ? '<button class="btn sm ghost" id="jnew">새로 쓰기</button>' : `<span class="sub">${esc(f.날짜)} (${WD[new Date(f.날짜 + 'T00:00:00').getDay()]})</span>`}</div>
         <form class="sec" id="jf" autocomplete="off">
-          <div class="r2"><label><span>날짜</span><input class="inp" type="date" name="날짜" value="${esc(f.날짜)}" required></label><label><span>현장</span><input class="inp" name="현장" list="jsites" value="${esc(f.현장 || '')}" placeholder="현장 선택 또는 입력"></label></div>
+          <div class="r2"><label><span>날짜</span><input class="inp" type="date" name="날짜" value="${esc(f.날짜)}" required></label><label><span>현장 <span class="seg sm jsseg">${[['진행중', '진행 중'], ['완료', '완료']].map(([k, n], i) => `<button type="button" data-js="${k}" class="${i ? '' : 'on'}">${n}</button>`).join('')}</span></span><input class="inp" name="현장" list="jsites" value="${esc(f.현장 || '')}" placeholder="현장 선택 또는 입력"></label></div>
           <datalist id="jsites">${L.contracts.filter((c) => c.상태 === '진행중').map((c) => `<option value="${esc(c.n)}">`).join('')}</datalist>
           <span class="lb">업무 구분</span><div class="kpick">${JOB_KINDS.map((k) => `<button type="button" data-pk="${esc(k)}" class="${f.구분 === k ? 'on' : ''}" style="--kc:${JOB_KC[k]}">${esc(k)}</button>`).join('')}</div>
           <label><span>업무 내용 <b>*</b></span><textarea class="inp" name="내용" rows="4" placeholder="무엇을 했는지 적으세요 (Ctrl+Enter 저장)">${esc(f.내용 || '')}</textarea></label>
@@ -1742,6 +1756,7 @@ PAGES.journal = async (m) => {
   if ($('#kclr')) $('#kclr').onclick = () => { st.kinds = []; render(); };
   $$('[data-stt]', m).forEach((b) => (b.onclick = () => { st.stt = st.stt === b.dataset.stt ? '' : b.dataset.stt; render(); }));
   $('#jq').oninput = (e) => { st.q = e.target.value; clearTimeout(st._t); st._t = setTimeout(() => { render().then(() => { const q = $('#jq'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }); }, 300); };
+  $$('[data-js]', m).forEach((b) => (b.onclick = () => { $$('[data-js]', m).forEach((x) => x.classList.toggle('on', x === b)); const on = b.dataset.js === '진행중', seen = {}; $('#jsites').innerHTML = L.contracts.filter((c) => (c.상태 === '진행중') === on).filter((c) => !seen[c.n] && (seen[c.n] = 1)).map((c) => `<option value="${esc(c.n)}">`).join(''); const i = $('#jf input[name=현장]'); i.focus(); }));
   $$('[data-pk]', m).forEach((b) => (b.onclick = () => { pick.구분 = pick.구분 === b.dataset.pk ? '' : b.dataset.pk; $$('[data-pk]', m).forEach((x) => x.classList.toggle('on', x.dataset.pk === pick.구분)); }));
   $$('[data-ps]', m).forEach((b) => (b.onclick = () => { pick.상태 = b.dataset.ps; $$('[data-ps]', m).forEach((x) => x.classList.toggle('on', x === b)); }));
   if ($('#jnew')) $('#jnew').onclick = () => { st.edit = null; render(); };
@@ -2049,7 +2064,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14k';
+const APP_VERSION = '2026-11-14l';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
