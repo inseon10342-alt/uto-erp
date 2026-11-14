@@ -485,15 +485,24 @@ function jsonp(fn, args, anon) {
   });
 }
 let runModeP = null;
+// 한 번 판별한 방식은 이 브라우저에 기억해 두고(인증 정보 아님) 다음부터는 판별 요청을 건너뜀
+RUN_ANON = pref.get('runAnon', null);
+let runModeSaved = RUN_ANON !== null;
 function runMode() {
   if (RUN_ANON !== null) return Promise.resolve(RUN_ANON);
-  return runModeP || (runModeP = jsonp('api', ['', 'ping', {}], true).then(() => (RUN_ANON = true), () => (RUN_ANON = false)));
+  return runModeP || (runModeP = jsonp('api', ['', 'ping', {}], true).then(() => (RUN_ANON = true), () => (RUN_ANON = false)).then((v) => { pref.set('runAnon', v); runModeP = null; return v; }));
 }
 async function run(fn, ...args) {
   if (!window.API_URL || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(window.API_URL)) throw new Error('config.js 에 서버 주소(API_URL)를 넣어 주세요.');
-  const anon = await runMode();
+  let anon = await runMode();
   try { return await jsonp(fn, args, anon); }
   catch (e) {
+    // 기억해 둔 방식이 이번에 안 되면 한 번만 다시 판별해서 재시도
+    if (runModeSaved && /연결하지 못했습니다/.test(e.message)) {
+      runModeSaved = false; RUN_ANON = null; pref.set('runAnon', null);
+      const a2 = await runMode();
+      if (a2 !== anon) { anon = a2; try { return await jsonp(fn, args, anon); } catch (e2) { e = e2; } }
+    }
     if (!anon) throw new Error(e.message + ' — 이 브라우저에 Google 계정이 여러 개 로그인돼 있으면 시크릿 창이나 다른 브라우저에서 열어 보세요.');
     throw e;
   }
@@ -1517,15 +1526,17 @@ function loginView(msg) {
 async function logoutLocal(msg) { Vault.del('tk'); S.token = null; invalidate(); loginView(msg); }
 async function start() {
   try {
-    const b = await api('boot');
+    // 첫 화면 자료를 로그인 확인과 동시에 받기 시작 (차례로 기다리지 않음)
+    const bp = api('boot');
+    if (S.token) prefetch();
+    const b = await bp;
     S.user = b.user; S.source = b.source; S.counts = b.counts;
-    prefetch();
     fromHash();
   } catch (e) { if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14b';
+const APP_VERSION = '2026-11-14c';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
