@@ -317,8 +317,8 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .items [data-f="단가"]{min-width:90px}.items select.inp{min-width:64px}.items [data-f="품명"]{min-width:120px}
 .items .s,.items .t{font-size:12.5px;color:var(--sub2)}
 .totbox{display:flex;justify-content:flex-end;gap:18px;flex-wrap:wrap;margin-top:8px;padding:7px 10px;background:#F8F9FA;border:1px solid var(--line2);font-size:12.5px;color:var(--sub2)}
-input[type=date].inp{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;display:block;text-align:left} /* 아이폰: 날짜 칸이 오른쪽으로 넘치지 않게 */
-input[type=date].inp::-webkit-date-and-time-value{text-align:left}
+input[type=date].inp{min-width:0;max-width:100%;box-sizing:border-box} /* 아이폰: 날짜 칸이 오른쪽으로 넘치지 않게 (기본 모양은 그대로 두어 글자가 세로 가운데에 오게) */
+input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
 .totbox b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;margin-left:6px}
 .paper{background:#E9ECEF;border:1px solid var(--line);padding:16px;overflow:auto}
 .xs-fit{margin:0 auto;overflow:hidden} /* 미리보기 축소: zoom 대신 transform (아이폰 사파리에서 zoom 이 표를 깨뜨림) */
@@ -947,7 +947,7 @@ const FORMS = {
   점검: [['#점검 대상'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['위치', 'text'], ['시기', 'text'],
     ['#일정'], ['예정일', 'date'], ['점검일', 'date'], ['작성완료일', 'date'], ['발송일', 'date'], ['#기타'], ['비고', 'area'], ['!보고서 상태는 따로 관리됩니다 — 작성 완료일: 보고서를 다 쓰고 저장한 날 (검토·발송 상태는 바뀌지 않음) · 검토: 보고서 검토 관리의 회신 결과 · 시공사 발송: 발송일. 보고서 기한(점검일 + 30일)은 자동 계산됩니다.']],
   청구: [['#세금계산서'], ['계약id', 'contract', 1, 'full'], ['발행일', 'date'], ['청구액', 'money'], ['품명', 'text', 0, 'full'], ['#입금'], ['입금일', 'date'], ['입금자', 'text'], ['#기타'], ['연결점검', 'text'], ['계약외', 'money'], ['할증', 'money'], ['비고', 'area'], ['분할입금', 'text', 0, 'full'], ['!수금액 · 공급가 · 부가세는 엑셀과 같이 청구액과 입금일로 자동 계산됩니다.']],
-  종합: [['#대상 (용역 완료 계약)'], ['계약id', 'contract', 1, 'full'], ['#요청'], ['차수', 'text'], ['요청일', 'date', 1], ['요청자', 'text'], ['#진행'], ['상태', 'sel:미작성,작성 중,제출 완료'], ['작성일', 'date'], ['제출일', 'date'], ['제출처', 'text'], ['#기타'], ['비고', 'area'], ['!종합보고서는 정기점검 보고서(작성·검토·시공사 발송)와 따로 관리됩니다. 제출일을 넣으면 「제출 완료」, 작성일만 넣으면 「작성 중」으로 맞춰집니다.']],
+  종합: [['#대상 (용역 완료 계약)'], ['계약id', 'contract', 1, 'full'], ['#요청'], ['요청일', 'date', 1], ['요청자', 'text'], ['#진행'], ['상태', 'sel:미작성,작성 중,제출 완료'], ['작성일', 'date'], ['제출일', 'date'], ['#기타'], ['비고', 'area'], ['!종합보고서는 계약마다 1회이며, 정기점검 보고서(작성·검토·시공사 발송)와 따로 관리됩니다. 제출처는 그 계약의 시공사로 자동 기록됩니다. 제출일을 넣으면 「제출 완료」, 작성일만 넣으면 「작성 중」으로 맞춰집니다.']],
   자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
     ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청,회신대기,수신완료,취소'], ['검토', 'area'], ['비고', 'area']],
   메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,서류 발송,자료 요청,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
@@ -960,7 +960,7 @@ const FORMS = {
     ['#다음 일정'], ['예상점검', 'text'], ['예상시기', 'date'], ['다음연락', 'date'], ['#기타'], ['비고', 'area']],
 };
 const FLABEL2 = { 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
-const FLABEL = { 차수: '차수 (재작성 요청이면 2, 3 …)', 작성일: '작성일', 제출처: '제출처 (발주처·구청 등)', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+const FLABEL = { 작성일: '작성일', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
 // ---- 현장 · 계약 고르기: 진행 중 / 완료로 나눠 보여 줌 (이름 옆 상태 표시 없음)
 function siteActive(L) { const a = {}, has = {}; L.contracts.forEach((c) => { has[c.현장id] = 1; if (c.상태 === '진행중') a[c.현장id] = 1; }); return (id) => !!a[id] || !has[id]; }
 function pickList(L, kind, st) {
@@ -1096,7 +1096,7 @@ PAGES.home = async (m) => {
       </tbody></table></div></section>
     ${r.final ? `<section class="panel"><div class="ph"><h2>종합보고서</h2><span class="sub">용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도</span><a href="#finals" data-go="finals">관리</a></div>
       <div class="sumline flat"><button data-go="finals"><span>용역 완료</span><b>${r.final.완료용역}<small>건</small></b></button><button data-go="finals"><span>종합보고서 요청</span><b>${r.final.요청}<small>건</small></b></button><button data-go="finals" data-fst="미작성"><span>미작성</span><b class="${r.final.미작성 ? 'warn' : ''}">${r.final.미작성}</b></button><button data-go="finals" data-fst="작성 중"><span>작성 중</span><b>${r.final.작성중}</b></button><button data-go="finals" data-fst="제출 완료"><span>제출 완료</span><b>${r.final.제출완료}</b></button></div>
-      ${r.final.open.length ? `<div class="tbox"><table><thead><tr><th>현장 · 계약</th><th>차수</th><th>요청일</th><th>상태</th></tr></thead><tbody>${r.final.open.map((f) => `<tr class="click" data-final="${esc(f.id)}"><td><div class="t1">${esc(f.현장명)}${subN(f.시공사)}</div><div class="t2">${esc(f.연도 || '')} · ${esc(f.계약명)}</div></td><td class="nw">${esc(f.차수)}차</td><td class="nw sub">${esc(f.요청일)}</td><td>${finalTag(f.상태)}</td></tr>`).join('')}</tbody></table></div>` : ''}</section>` : ''}
+      ${r.final.open.length ? `<div class="tbox"><table><thead><tr><th>현장 · 계약</th><th>요청일</th><th>상태</th></tr></thead><tbody>${r.final.open.map((f) => `<tr class="click" data-final="${esc(f.id)}"><td><div class="t1">${esc(f.현장명)}${subN(f.시공사)}</div><div class="t2">${esc(f.연도 || '')} · ${esc(f.계약명)}</div></td><td class="nw sub">${esc(f.요청일)}</td><td>${finalTag(f.상태)}</td></tr>`).join('')}</tbody></table></div>` : ''}</section>` : ''}
     <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span><a href="#invoices" data-go="invoices">세금계산서</a></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
       ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}${subN(b.입금자 || b.발주처)}</div><div class="t2">${esc(b.품명)}</div></td><td class="nw sub">${esc(b.발행일)}</td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>
   </div><div class="col">
@@ -1233,7 +1233,7 @@ async function siteDetail(el, id, tab) {
   // 계약 탭: 종합보고서 요청이 있으면 상태 표시 (정기점검 보고서와 별도)
   if ($$('[data-contract]', el).length) api('finals', {}, { cache: true }).then((f) => {
     const last = {}; f.list.forEach((y) => { if (!last[y.계약id] || y.차수 > last[y.계약id].차수) last[y.계약id] = y; });
-    $$('.sec[data-contract]', el).forEach((d) => { const y = last[d.dataset.contract]; if (!y) return; const b = document.createElement('div'); b.className = 'sub'; b.style.marginTop = '6px'; b.innerHTML = `종합보고서 ${esc(y.차수)}차 ${finalTag(y.상태)} <a href="#finals" data-fgo="${esc(y.id)}">열기</a>`; d.appendChild(b); $('[data-fgo]', b).onclick = (e) => { e.preventDefault(); e.stopPropagation(); go('finals', { id: y.id }); }; });
+    $$('.sec[data-contract]', el).forEach((d) => { const y = last[d.dataset.contract]; if (!y) return; const b = document.createElement('div'); b.className = 'sub'; b.style.marginTop = '6px'; b.innerHTML = `종합보고서 ${finalTag(y.상태)} <a href="#finals" data-fgo="${esc(y.id)}">열기</a>`; d.appendChild(b); $('[data-fgo]', b).onclick = (e) => { e.preventDefault(); e.stopPropagation(); go('finals', { id: y.id }); }; });
   }).catch(() => {});
   $$('[data-et]', el).forEach((b) => (b.onclick = () => openForm('연락', r.contacts.find((x) => x.id === b.dataset.et), reload)));
   $$('[data-doc]', el).forEach((b) => (b.onclick = () => go('statement', { doc: b.dataset.doc })));
@@ -2007,10 +2007,10 @@ PAGES.finals = async (m, p) => {
     <button data-fs="제출 완료"><span>제출 완료</span><b>${K.제출완료}<small>건</small></b></button>
   </div>
   <div class="filters"><div class="seg">${['전체', '미작성', '작성 중', '제출 완료'].map((x) => `<button data-fs="${x}" class="${st.st === x ? 'on' : ''}">${x}</button>`).join('')}</div><input class="inp" type="search" id="fq" placeholder="현장·계약·시공사" value="${esc(st.q)}" style="width:220px"></div>
-  <section class="panel"><div class="tbox"><table class="mt"><thead><tr><th>현장 · 계약</th><th class="c">차수</th><th class="date">요청일</th><th class="date">작성일</th><th class="date">제출일</th><th class="c">파일</th><th class="c">상태</th></tr></thead><tbody id="fl"></tbody></table></div></section>`;
+  <section class="panel"><div class="tbox"><table class="mt"><thead><tr><th>현장 · 계약</th><th class="date">요청일</th><th class="date">작성일</th><th class="date">제출일</th><th class="c">파일</th><th class="c">상태</th></tr></thead><tbody id="fl"></tbody></table></div></section>`;
   const draw = () => {
     const q = norm(st.q), rows = cur.filter((x) => (st.st === '전체' || x.상태 === st.st) && (!q || norm(x.현장명 + x.계약명 + x.시공사 + x.발주처).includes(q)));
-    $('#fl').innerHTML = rows.map((x) => `<tr class="click" data-final="${esc(x.id)}"><td class="tc"><div class="t1">${esc(x.현장명)}${subN(x.시공사)}</div><div class="t2">${esc(x.연도 || '')} · ${esc(x.계약명)}${x.비고 ? ' · ' + esc(String(x.비고).slice(0, 40)) : ''}</div></td><td class="c">${esc(x.차수)}차${x.차수 > 1 ? ' <span class="sub">(재작성)</span>' : ''}</td><td class="date sub">${esc(x.요청일 || '—')}</td><td class="date">${esc(x.작성일 || '—')}</td><td class="date">${esc(x.제출일 || '—')}</td><td class="c">${(x.파일 || []).length || '<span class="muted">—</span>'}</td><td class="c">${finalTag(x.상태)}</td></tr>`).join('') || `<tr><td colspan="7" class="empty">${r.list.length ? '조건에 맞는 요청이 없습니다' : '아직 종합보고서 요청이 없습니다. 「요청 등록」에서 용역 완료 계약을 고르세요.'}</td></tr>`;
+    $('#fl').innerHTML = rows.map((x) => `<tr class="click" data-final="${esc(x.id)}"><td class="tc"><div class="t1">${esc(x.현장명)}${subN(x.시공사)}</div><div class="t2">${esc(x.연도 || '')} · ${esc(x.계약명)}${x.비고 ? ' · ' + esc(String(x.비고).slice(0, 40)) : ''}</div></td><td class="date sub">${esc(x.요청일 || '—')}</td><td class="date">${esc(x.작성일 || '—')}</td><td class="date">${esc(x.제출일 || '—')}</td><td class="c">${(x.파일 || []).length || '<span class="muted">—</span>'}</td><td class="c">${finalTag(x.상태)}</td></tr>`).join('') || `<tr><td colspan="6" class="empty">${r.list.length ? '조건에 맞는 요청이 없습니다' : '아직 종합보고서 요청이 없습니다. 「요청 등록」에서 용역 완료 계약을 고르세요.'}</td></tr>`;
     labelTables(m);
     $$('[data-final]', $('#fl')).forEach((tr) => (tr.onclick = () => finalDetail(tr.dataset.final)));
   };
@@ -2019,7 +2019,7 @@ PAGES.finals = async (m, p) => {
   $('#fq').oninput = (e) => { st.q = e.target.value; draw(); };
   bindCommon(m);
   if ($('#addF')) $('#addF').onclick = () => finalPick(r);
-  $('#xl').onclick = () => exportXlsx('종합보고서', [['종합보고서', [['현장', '계약', '연도', '시공사', '차수', '요청일', '요청자', '상태', '작성일', '제출일', '제출처', '파일 수', '비고']].concat(r.list.map((x) => [x.현장명, x.계약명, x.연도, x.시공사, x.차수, x.요청일, x.요청자, x.상태, x.작성일, x.제출일, x.제출처, (x.파일 || []).length, x.비고]))]]);
+  $('#xl').onclick = () => exportXlsx('종합보고서', [['종합보고서', [['현장', '계약', '연도', '시공사', '요청일', '요청자', '상태', '작성일', '제출일', '제출처(시공사)', '파일 수', '비고']].concat(r.list.map((x) => [x.현장명, x.계약명, x.연도, x.시공사, x.요청일, x.요청자, x.상태, x.작성일, x.제출일, x.제출처, (x.파일 || []).length, x.비고]))]]);
   if (p.id) { const id = p.id; delete p.id; finalDetail(id); }
 };
 function excelLockedFor(t) { return excelLocked() && t !== '문서' && t !== '종합'; }
@@ -2032,10 +2032,8 @@ function finalPick(r) {
     $('#pl', md).innerHTML = r.done.filter((c) => !q || norm(c.현장명 + c.계약명 + c.시공사).includes(q)).slice(0, 120).map((c) => `<button class="pli" data-c="${esc(c.id)}"><span class="t1">${esc(c.현장명)}${subN(c.시공사)}</span><span class="t2">${esc(c.연도 || '')} · ${esc(c.계약명)} · 점검 ${c.점검완료}/${c.점검수} 완료${c.마지막점검 ? ' · 마지막 점검 ' + esc(c.마지막점검) : ''}${c.종합보고서구분 ? ' · 종합보고서 ' + esc(c.종합보고서구분) : ''}</span>${c.요청 ? finalTag(c.요청) : ''}</button>`).join('') || '<div class="empty">용역 완료 계약이 없습니다</div>';
     $$('[data-c]', md).forEach((b) => (b.onclick = () => {
       const c = r.done.find((x) => x.id === b.dataset.c), prev = r.list.filter((x) => x.계약id === c.id);
-      const n = prev.reduce((a, x) => Math.max(a, x.차수 || 0), 0);
-      const go2 = () => { md.remove(); openForm('종합', { 계약id: c.id, 현장id: c.현장id, 차수: n + 1, 요청일: today(), 상태: '미작성' }, () => { invalidate(); render(); }); };
-      if (prev.some((x) => x.상태 !== '제출 완료')) { toast('이 계약은 아직 끝나지 않은 종합보고서 요청이 있습니다. 목록에서 그 요청을 여세요.', true); return; }
-      go2();
+      if (prev.length) { md.remove(); finalDetail(prev[0].id); return; } // 종합보고서는 계약마다 1회 — 이미 있으면 그 건을 엶
+      md.remove(); openForm('종합', { 계약id: c.id, 현장id: c.현장id, 요청일: today(), 상태: '미작성' }, () => { invalidate(); render(); });
     }));
   };
   $('#pq', md).oninput = draw; draw();
@@ -2051,12 +2049,12 @@ async function finalDetail(id) {
   const md = modal(`종합보고서 · ${x.현장명}`, `
     <div class="fhead"><div><b>${esc(x.계약명)}</b> <span class="sub">${esc(x.연도 || '')} · 계약 ${esc(x.계약상태 || '')}${x.계약일 ? ' · 계약일 ' + esc(x.계약일) : ''}</span></div>
       <dl class="kv"><dt>시공사</dt><dd>${esc(x.시공사 || '—')}</dd><dt>발주처</dt><dd>${esc(x.발주처 || '—')}</dd><dt>계약금</dt><dd>${won(x.계약금)}원${x.종합보고서구분 ? ` · 종합보고서 ${esc(x.종합보고서구분)}${x.종합보고서금액 ? ' ' + won(x.종합보고서금액) + '원' : ''}` : ''}</dd><dt>점검</dt><dd>${x.점검완료}/${x.점검수}회 완료${x.첫점검 ? ` · ${esc(x.첫점검)} ~ ${esc(x.마지막점검)}` : ''}</dd></dl></div>
-    <h3 class="fh">차수별 이력 <span class="sub">요청 → 작성 → 제출</span></h3>
-    ${rounds.map((y) => `<div class="fround ${y.id === latest.id ? 'cur' : ''}"><div class="frh"><b>${esc(y.차수)}차</b> ${finalTag(y.상태)} <span class="sub">요청 ${esc(y.요청일 || '—')}${y.요청자 ? ' · ' + esc(y.요청자) : ''} · 작성 ${esc(y.작성일 || '—')} · 제출 ${esc(y.제출일 || '—')}${y.제출처 ? ' (' + esc(y.제출처) + ')' : ''}</span>${ed ? `<button class="btn sm ghost" data-fe="${esc(y.id)}">수정</button>` : ''}</div>
+    <h3 class="fh">종합보고서 <span class="sub">요청 → 작성 → 시공사 제출 (계약당 1회)</span></h3>
+    ${rounds.map((y) => `<div class="fround ${y.id === latest.id ? 'cur' : ''}"><div class="frh">${finalTag(y.상태)} <span class="sub">요청 ${esc(y.요청일 || '—')}${y.요청자 ? ' · ' + esc(y.요청자) : ''} · 작성 ${esc(y.작성일 || '—')} · 제출 ${esc(y.제출일 || '—')}${y.제출일 ? ' (' + esc(y.제출처 || x.시공사 || '시공사') + ')' : ''}</span>${ed ? `<button class="btn sm ghost" data-fe="${esc(y.id)}">수정</button>` : ''}</div>
       ${y.비고 ? `<div class="pre sub">${esc(y.비고)}</div>` : ''}<ul class="flist">${fileRows(y)}</ul></div>`).join('')}
     ${ed ? `<div class="factions">
       ${latest.상태 === '미작성' ? '<button class="btn" id="fStart">작성 시작</button>' : ''}
-      ${latest.상태 !== '제출 완료' ? '<button class="btn" id="fWrote">작성일 기록</button><button class="btn pri" id="fSub">제출 완료 처리</button>' : '<button class="btn" id="fRe">재작성·재제출 요청 등록</button>'}
+      ${latest.상태 !== '제출 완료' ? '<button class="btn" id="fWrote">작성일 기록</button><button class="btn pri" id="fSub">시공사 제출 완료</button>' : ''}
       <label class="btn">${'파일 첨부 (HWP·PDF)'}<input type="file" id="fUp" accept=".hwp,.hwpx,.pdf" multiple hidden></label>
       <select class="inp" id="fKind" style="width:auto"><option>작성본</option><option>제출본</option><option>참고</option></select></div><div class="sub" id="fMsg" style="margin-top:6px"></div>` : ''}
     <h3 class="fh">점검 이력 <span class="sub">이 계약의 정기점검 ${items.length}회 (자동 연결)</span></h3>
@@ -2086,8 +2084,7 @@ async function finalDetail(id) {
   }));
   if ($('#fStart', md)) $('#fStart', md).onclick = () => save({ 상태: '작성 중' });
   if ($('#fWrote', md)) $('#fWrote', md).onclick = async () => { const v = await dateAsk('작성일 기록', '종합보고서 작성일'); if (v) save({ 작성일: v.d, 상태: '작성 중' }); };
-  if ($('#fSub', md)) $('#fSub', md).onclick = async () => { const v = await dateAsk('제출 완료 처리', '제출일', `<label><span>제출처</span><input class="inp" id="ddx" value="${esc(latest.제출처 || x.발주처 || '')}"></label>`); if (v) save({ 제출일: v.d, 제출처: v.x, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
-  if ($('#fRe', md)) $('#fRe', md).onclick = () => { md.remove(); openForm('종합', { 계약id: x.계약id, 현장id: x.현장id, 차수: (latest.차수 || 1) + 1, 요청일: today(), 상태: '미작성', 비고: '추가 요청(재작성·재제출)' }, () => { invalidate(); render(); }); };
+  if ($('#fSub', md)) $('#fSub', md).onclick = async () => { const v = await dateAsk('시공사 제출 완료', '제출일', `<p class="sub" style="margin:4px 0 0">제출처: <b>${esc(x.시공사 || '시공사 정보 없음')}</b> (계약의 시공사)</p>`); if (v) save({ 제출일: v.d, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
   $('#fUp', md).onchange = async (e) => {
     const fs = [...e.target.files]; if (!fs.length) return;
     const msg = $('#fMsg', md), kind = $('#fKind', md).value;
@@ -2341,7 +2338,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15b';
+const APP_VERSION = '2026-11-15c';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -434,8 +434,11 @@ function save_(who, t, row, ver, isDelete) {
       if (next.제출일) next.상태 = '제출 완료'; else if (next.상태 === '제출 완료') next.상태 = next.작성일 ? '작성 중' : '미작성';
       if (!next.상태) next.상태 = next.작성일 ? '작성 중' : '미작성';
       if (next.작성일 && next.상태 === '미작성') next.상태 = '작성 중';
-      if (!next.현장id && next.계약id) next.현장id = (byId_('계약')[next.계약id] || {}).현장id || '';
-      if (!next.차수) next.차수 = 1;
+      const fc = byId_('계약')[next.계약id] || {}, fp = byId_('거래처');
+      if (next.계약id) next.현장id = fc.현장id || next.현장id || '';
+      next.차수 = 1; // 종합보고서는 계약마다 1회
+      next.제출처 = (fp[fc.시공사id] || fp[fc.발주처id] || {}).거래처명 || ''; // 제출처 = 그 계약의 시공사 (고정)
+      if (next.계약id && live_('종합').some((y) => y.계약id === next.계약id && y.id !== next.id)) return { ok: false, code: 'invalid', msg: '이 계약은 이미 종합보고서가 등록되어 있습니다. 목록에서 그 건을 여세요.' };
       if (!cur && !next.요청자) next.요청자 = '';
     }
     const err = validate_(t, next, cur);
