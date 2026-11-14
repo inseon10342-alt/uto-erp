@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>UTO 업무관리</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=1">
@@ -25,219 +25,293 @@
   --prog:#7896B2;--prog-t:#4E6D8A;--prog-l:#EBF0F6;
   --warn:#D2AD69;--warn-t:#7F6127;--warn-l:#FAF3E6;
   --bad:#C77B78;--bad-t:#984A47;--bad-l:#F8ECEB;
-  --r:8px;--r-sm:6px;--h:38px;--shadow:0 1px 2px rgba(48,56,65,.04);
+  --s0:#D5D9DD;--s1:#B7C8D8;--s2:#D2AD69;--s3:#A9BCAE;--s4:#7896B2;--s5:#6F927C;
+  --r:3px;--r-sm:3px;--h:32px;--row:36px;--shadow:none;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg2);color:var(--ink);font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+html,body{margin:0;background:var(--bg2);color:var(--ink);font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
 a{color:var(--pri);text-decoration:none}a:hover{text-decoration:underline}
 button,input,select,textarea{font:inherit;color:inherit}
 .hide{display:none!important}
 /* ── 상단 */
-.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;height:56px;padding:0 24px;background:var(--bg);border-bottom:1px solid var(--line)}
-.brand{font-weight:700;font-size:15px;color:var(--ink);white-space:nowrap;display:flex;align-items:center;gap:8px}
-.brand i{font-style:normal;width:26px;height:26px;border-radius:6px;background:var(--pri);color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:20px;height:48px;padding:0 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand i{font-style:normal;width:24px;height:24px;border-radius:5px;background:var(--pri);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 .brand span{color:var(--sub);font-weight:500}
 .cats{display:flex;flex:1;min-width:0;align-self:stretch;overflow-x:auto;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
-.cats button{position:relative;padding:0 14px;border:0;background:none;color:var(--sub2);cursor:pointer;white-space:nowrap;font-size:14px}
+.cats button{position:relative;padding:0 13px;border:0;background:none;color:var(--sub2);cursor:pointer;white-space:nowrap;font-size:13.5px}
 .cats button:hover{color:var(--ink)}
-.cats button.on{color:var(--pri);font-weight:600}
-.cats button.on::after{content:'';position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--pri);border-radius:2px}
-.tsearch{position:relative;display:flex;align-items:center;gap:8px;height:36px;width:280px;padding:0 12px;border-radius:var(--r-sm);background:var(--bg2);color:var(--sub);border:1px solid transparent}
-.tsearch:focus-within{background:#fff;border-color:var(--pri-m)}
-.tsearch input{background:none;border:0;flex:1;outline:none;min-width:0;font-size:13.5px}
-.sres{position:absolute;top:42px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 8px 24px rgba(48,56,65,.1);max-height:380px;overflow:auto;z-index:40;padding:4px}
-.sres button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:var(--r-sm);cursor:pointer}
+.cats button.on{color:var(--pri-d);font-weight:600}
+.cats button.on::after{content:'';position:absolute;left:13px;right:13px;bottom:-1px;height:2px;background:var(--pri)}
+.tsearch{position:relative;display:flex;align-items:center;gap:8px;height:30px;width:260px;padding:0 10px;border-radius:var(--r);background:var(--bg2);color:var(--sub);border:1px solid var(--line)}
+.tsearch:focus-within{background:#fff;border-color:var(--pri)}
+.tsearch input{background:none;border:0;flex:1;outline:none;min-width:0;font-size:13px}
+.sres{position:absolute;top:34px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 6px 16px rgba(48,56,65,.12);max-height:380px;overflow:auto;z-index:40;padding:2px}
+.sres button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:6px 8px;cursor:pointer}
 .sres button:hover{background:var(--bg2)}.sres small{color:var(--sub);margin-left:auto}
-.tbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--r-sm);border:0;background:none;color:var(--sub2);cursor:pointer;flex:none}
+.tbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--r);border:0;background:none;color:var(--sub2);cursor:pointer;flex:none}
 .tbtn:hover{background:var(--bg2);color:var(--ink)}
-.badge{position:absolute;top:4px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;line-height:16px;text-align:center;font-weight:700}
-.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub2);white-space:nowrap}
-.who b{width:28px;height:28px;border-radius:50%;background:var(--pri-l);color:var(--pri);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.badge{position:absolute;top:2px;right:1px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;line-height:16px;text-align:center;font-weight:700}
+.who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub2);white-space:nowrap}
+.who b{width:26px;height:26px;border-radius:50%;background:var(--pri-l);color:var(--pri);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
 .src{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--sub2);white-space:nowrap}
 .src::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warn)}
 .src.web::before{background:var(--done)}
 .busy{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pri),transparent);background-size:40% 100%;animation:bz 1s linear infinite;z-index:60}
 @keyframes bz{from{background-position:-40% 0}to{background-position:140% 0}}
 /* ── 본문 */
-.body{display:flex;align-items:stretch;min-height:calc(100vh - 56px)}
-.side{flex:0 0 220px;background:var(--bg);border-right:1px solid var(--line);padding:20px 12px}
-.side h3{margin:0 0 8px;padding:0 12px;font-size:12px;font-weight:600;color:var(--sub)}
-.side button{display:flex;justify-content:space-between;align-items:center;width:100%;height:38px;padding:0 12px;border:0;background:none;text-align:left;border-radius:var(--r-sm);cursor:pointer;color:var(--sub2);margin-bottom:2px}
+.body{display:flex;align-items:stretch;min-height:calc(100vh - 48px)}
+.side{flex:0 0 200px;background:var(--bg);border-right:1px solid var(--line);padding:12px 0}
+.side h3{margin:0 0 6px;padding:0 16px;font-size:11.5px;font-weight:600;color:var(--sub)}
+.side button{display:flex;justify-content:space-between;align-items:center;width:100%;height:34px;padding:0 16px;border:0;background:none;text-align:left;cursor:pointer;color:var(--sub2);border-left:3px solid transparent}
 .side button:hover{background:var(--bg2);color:var(--ink)}
-.side button.on{background:var(--pri-l);color:var(--pri-d);font-weight:600}
-.side button span{font-size:12px;color:var(--sub);font-weight:400}
-.side button.on span{color:var(--pri)}
+.side button.on{background:var(--pri-l);color:var(--pri-d);font-weight:600;border-left-color:var(--pri)}
+.side button span{font-size:11.5px;color:var(--sub);font-weight:400}
 .side .later{color:#AEB4BA}
-.main{flex:1;min-width:0;padding:24px 32px 56px;max-width:1600px}
-.crumb{font-size:12.5px;color:var(--sub)}
-.h1row{display:flex;align-items:center;gap:8px;margin:4px 0 20px;flex-wrap:wrap}
-.h1row h1{margin:0;font-size:22px;font-weight:700;flex:1;min-width:180px;letter-spacing:-.01em}
-/* ── 버튼·입력 */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:var(--h);padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--line);background:#fff;cursor:pointer;white-space:nowrap;font-size:13.5px;font-weight:500;color:var(--ink);transition:background .12s,border-color .12s}
-.btn:hover{background:var(--bg2);border-color:#D6DADF}
+.main{flex:1;min-width:0;padding:14px 20px 40px}
+.crumb{font-size:12px;color:var(--sub)}
+.h1row{display:flex;align-items:center;gap:6px;margin:2px 0 12px;flex-wrap:wrap;min-height:32px}
+.h1row h1{margin:0;font-size:18px;font-weight:700;flex:1;min-width:180px}
+/* ── 버튼·입력 (높이 32px 통일) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:var(--h);padding:0 12px;border-radius:var(--r);border:1px solid #D3D8DD;background:#fff;cursor:pointer;white-space:nowrap;font-size:13px;font-weight:500;color:var(--ink)}
+.btn:hover{background:var(--bg2)}
 .btn:disabled{opacity:.45;cursor:not-allowed;background:#fff}
-.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}.btn.pri:hover{background:var(--pri-d);border-color:var(--pri-d)}
-.btn.dan{color:var(--bad-t)}.btn.dan:hover{background:var(--bad-l);border-color:#EBCFCD}
-.btn.sm{height:32px;padding:0 11px;font-size:13px}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}.btn.pri:hover{background:var(--pri-d)}
+.btn.red{background:var(--bad-t);border-color:var(--bad-t);color:#fff}.btn.red:hover{background:#86403D}.btn.red:disabled{background:var(--bad-t)}
+.btn.dan{color:var(--bad-t)}.btn.dan:hover{background:var(--bad-l)}
+.btn.sm{height:28px;padding:0 10px;font-size:12.5px}
 .btn.ghost{border-color:transparent;background:none;color:var(--pri)}.btn.ghost:hover{background:var(--pri-l)}
-.inp{height:var(--h);border:1px solid #DCE0E4;border-radius:var(--r-sm);background:#fff;padding:0 11px;font-size:14px;width:100%;min-width:0;transition:border-color .12s,box-shadow .12s}
-.inp:hover{border-color:#C9CED4}
-select.inp{appearance:none;-webkit-appearance:none;padding-right:30px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23858D96' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center}
-textarea.inp{height:auto;min-height:84px;padding:9px 11px;resize:vertical}
-.inp:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(82,103,121,.14)}
+.inp{height:var(--h);border:1px solid #D3D8DD;border-radius:var(--r);background:#fff;padding:0 9px;font-size:13px;width:100%;min-width:0}
+.inp:hover{border-color:#BFC6CD}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:26px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23858D96' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center}
+textarea.inp{height:auto;min-height:64px;padding:6px 9px;resize:vertical}
+.inp:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 2px rgba(82,103,121,.16)}
 .inp:disabled,.inp[readonly]{background:var(--bg2);color:var(--sub2)}
-.btn:focus-visible,.chip:focus-visible,.seg button:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
-.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.btn:focus-visible,.chip:focus-visible,.seg button:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+/* 도구줄: 검색·필터 왼쪽, 건수 오른쪽 끝 */
+.filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .filters .inp{width:auto}
-.filters .grow{margin-left:auto}
-.seg{display:inline-flex;padding:3px;border-radius:var(--r-sm);background:#ECEEF0;gap:2px}
-.seg button{border:0;background:none;height:32px;padding:0 14px;font-size:13px;color:var(--sub2);cursor:pointer;border-radius:5px}
-.seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(48,56,65,.1)}
-/* ── 카드 */
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);min-width:0;box-shadow:var(--shadow)}
-.panel+.panel{margin-top:20px}
-.ph{display:flex;align-items:center;gap:10px;padding:16px 20px 12px;flex-wrap:wrap}
-.ph h2{margin:0;font-size:15px;font-weight:600;flex:1}
-.ph .sub{font-size:12.5px}
-.ph+.tbox,.ph+table{border-top:1px solid var(--line2)}
-.sub{color:var(--sub);font-size:12.5px}
-.t1{font-weight:600;color:var(--ink)}.t2{font-size:12.5px;color:var(--sub);margin-top:2px}
-/* ── 데이터 테이블 (격자 없이 행 구분만) */
+.filters .grow,.filters .cnt{margin-left:auto}
+.cnt{font-size:12px;color:var(--sub);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid #D3D8DD;border-radius:var(--r);overflow:hidden;background:#fff}
+.seg button{border:0;border-left:1px solid #D3D8DD;background:none;height:30px;padding:0 12px;font-size:12.5px;color:var(--sub2);cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--pri);color:#fff;font-weight:600}
+/* ── 영역 */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);min-width:0}
+.panel+.panel{margin-top:12px}.grid2>.panel+.panel,.grid3>.panel+.panel,.split>.panel+.panel{margin-top:0}
+.ph{display:flex;align-items:center;gap:8px;padding:9px 12px;flex-wrap:wrap;border-bottom:1px solid var(--line2);min-height:40px}
+.ph h2{margin:0;font-size:13.5px;font-weight:700;flex:1}
+.ph .sub{font-size:12px}
+.sub{color:var(--sub);font-size:12px}
+.t1{font-weight:600;color:var(--ink);word-break:keep-all}.t2{font-size:12px;color:var(--sub);margin-top:1px}
+/* ── 요약 줄 (카드 대신 한 줄) */
+.sumline{display:flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px}
+.sumline>*{flex:1 1 0;min-width:130px;padding:9px 14px;border-left:1px solid var(--line2);text-align:left;background:none;border-top:0;border-right:0;border-bottom:0;cursor:default}
+.sumline>*:first-child{border-left:0}
+.sumline button{cursor:pointer}.sumline button:hover{background:var(--bg2)}
+.sumline span{display:block;font-size:11.5px;color:var(--sub)}
+.sumline b{display:block;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;margin-top:1px}
+.sumline.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.sumline.g3>*{border-top:1px solid var(--line2)}.sumline.g3>*:nth-child(-n+3){border-top:0}.sumline.g3>*:nth-child(3n+1){border-left:0}
+.sumline small{font-size:11.5px;color:var(--sub);font-weight:400;margin-left:3px}
+.strip{display:flex;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px}
+.strip>button{flex:1 1 0;min-width:130px;padding:9px 14px;border:0;border-left:1px solid var(--line2);text-align:left;background:none;cursor:pointer}
+.strip>button:first-child{border-left:0}.strip>button:hover{background:var(--bg2)}
+.strip span{display:block;font-size:11.5px;color:var(--sub)}
+.strip b{display:block;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;margin-top:1px}
+.strip em{display:block;font-style:normal;font-size:11.5px;color:var(--sub);margin-top:1px}
+.strip small{font-size:11.5px;color:var(--sub);font-weight:400;margin-left:3px}
+/* ── 표 */
 .tbox{overflow-x:auto}
-table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
-th{text-align:left;font-weight:500;font-size:12px;color:var(--sub);background:var(--bg);padding:11px 16px;border-bottom:1px solid var(--line);white-space:nowrap}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--sub2);background:#F8F9FA;padding:0 10px;height:32px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;z-index:1}
 th.sort{cursor:pointer;user-select:none}th.sort:hover{color:var(--ink)}
-td{padding:14px 16px;border-bottom:1px solid var(--line2);vertical-align:middle}
+td{padding:6px 10px;height:var(--row);border-bottom:1px solid var(--line2);vertical-align:middle}
 tbody tr:last-child td{border-bottom:0}
-tr.click{cursor:pointer}tr.click:hover td{background:#FAFBFB}
+tr.click{cursor:pointer}tr.click:hover td{background:#F8FAFB}
 tr.sel td{background:var(--pri-l)}tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--pri)}
-tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);border-bottom:0}
-.mini{font-size:13px}.mini td,.mini th{padding:9px 0 9px 12px}.mini td:first-child,.mini th:first-child{padding-left:0}
+tfoot td{background:#F8F9FA;font-weight:700;border-top:1px solid var(--line);border-bottom:0}
+.mini{font-size:12.5px}.mini td,.mini th{padding:5px 8px 5px 0;height:auto;position:static}
 .mini th{background:none}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .nw{white-space:nowrap}
 .warn{color:var(--warn-t)}.bad{color:var(--bad-t)}.ok{color:var(--done-t)}.muted{color:#B5BBC1}
+.pager{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:6px 10px;border-top:1px solid var(--line);font-size:12px;color:var(--sub)}
 /* ── 상태 배지 */
-.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;height:22px;padding:0 8px;border-radius:11px;background:var(--bg2);color:var(--sub2);white-space:nowrap;line-height:1}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;height:20px;padding:0 7px;border-radius:2px;background:var(--bg2);color:var(--sub2);white-space:nowrap;line-height:1}
 .tag::before{content:'';width:6px;height:6px;border-radius:50%;background:#B5BBC1}
 .tag.t{background:var(--prog-l);color:var(--prog-t)}.tag.t::before{background:var(--prog)}
 .tag.g{background:var(--done-l);color:var(--done-t)}.tag.g::before{background:var(--done)}
 .tag.w{background:var(--warn-l);color:var(--warn-t)}.tag.w::before{background:var(--warn)}
 .tag.r{background:var(--bad-l);color:var(--bad-t)}.tag.r::before{background:var(--bad)}
 .tag.plain::before{display:none}
-.empty{padding:36px 16px;color:var(--sub);text-align:center}
-/* ── 요약 카드 */
-.strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:24px}
-.strip button{display:block;text-align:left;padding:16px 18px;border:1px solid var(--line);border-radius:var(--r);background:#fff;cursor:pointer;min-width:0;box-shadow:var(--shadow);transition:border-color .12s}
-.strip button:hover{border-color:var(--pri-m)}
-.strip span{display:block;font-size:12.5px;color:var(--sub)}
-.strip b{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
-.strip small{font-size:12.5px;color:var(--sub);font-weight:400;margin-left:2px}
-@media (min-width:1181px){.split:not(.nodetail) .opt,.split:not(.nodetail) tfoot{display:none}}
-.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:20px;align-items:start}
-.col{display:flex;flex-direction:column;gap:20px;min-width:0}.col>.panel+.panel{margin-top:0}
-/* ── 목록 + 상세 패널 */
-.split{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:20px;align-items:start}
+.empty{padding:24px 12px;color:var(--sub);text-align:center}
+/* ── 단계 표시 */
+.stg{display:inline-flex;gap:2px;vertical-align:middle;flex-wrap:wrap;max-width:200px}.stg.many i{width:6px}
+.stg i{width:9px;height:12px;border-radius:1px;background:var(--s0)}
+.stg i.s1{background:var(--s1)}.stg i.s2{background:var(--s2)}.stg i.s3{background:var(--s3)}.stg i.s4{background:var(--s4)}.stg i.s5{background:var(--s5)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--sub2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:1px;margin-right:4px;vertical-align:-1px;background:var(--s0)}
+.step{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;min-width:180px}
+.step.g3s{grid-template-columns:repeat(3,minmax(0,1fr));min-width:120px}
+.step span{height:18px;font-size:10.5px;line-height:18px;text-align:center;background:var(--bg2);color:#A5ACB3;white-space:nowrap;overflow:hidden}
+.step span.on{background:var(--pri-m);color:var(--pri-d);font-weight:600}
+.step span.cur{background:var(--pri);color:#fff;font-weight:600}
+.step.w span.cur{background:var(--warn);color:#fff}
+.step.g span.on,.step.g span.cur{background:var(--done);color:#fff}
+.dbar{display:flex;align-items:center;gap:6px;min-width:110px}
+.dbar .b{flex:1;height:6px;background:var(--line2);position:relative;overflow:hidden;border-radius:1px}
+.dbar .b i{position:absolute;left:0;top:0;bottom:0;background:var(--prog)}
+.dbar.w .b i{background:var(--warn)}.dbar.r .b i{background:var(--bad)}
+.hbar{display:flex;height:14px;background:var(--line2);overflow:hidden;border-radius:1px}
+.hbar i{height:100%}
+/* ── 차트 */
+.chart{padding:8px 12px 6px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:inherit;font-size:10.5px;fill:var(--sub)}
+/* ── 타임라인 */
+.tl{position:relative;margin:0;padding:0;list-style:none}
+.tl li{position:relative;padding:0 0 12px 18px}
+.tl li::before{content:'';position:absolute;left:4px;top:6px;bottom:-6px;width:1px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl li::after{content:'';position:absolute;left:0;top:4px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid var(--pri-m)}
+.tl li.g::after{border-color:var(--done)}.tl li.w::after{border-color:var(--warn)}.tl li.r::after{border-color:var(--bad)}.tl li.t::after{border-color:var(--prog)}
+.tl .d{font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.tl .x{font-size:12.5px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;align-items:start}
+.grid3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}.col>.panel+.panel{margin-top:0}
+/* ── 목록 + 상세 패널 (목록 표 위쪽 선에 맞춰 시작) */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:12px;align-items:start}
 .split.nodetail{grid-template-columns:minmax(0,1fr)}
-.detail{position:sticky;top:76px;max-height:calc(100vh - 96px);overflow:auto}
-.dhead{padding:20px 22px 16px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:#fff;z-index:2;border-radius:var(--r) var(--r) 0 0}
-.dhead h2{margin:4px 0 0;font-size:18px;font-weight:700;line-height:1.35;padding-right:36px}
-.dhead .x{position:absolute;top:14px;right:14px}
-.dhead .acts{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line2);padding:0 14px;overflow-x:auto;scrollbar-width:none;background:#fff}
-.tabs button{border:0;background:none;padding:12px 8px;font-size:13.5px;color:var(--sub);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
-.tabs button.on{color:var(--ink);font-weight:600;border-bottom-color:var(--pri)}
-.sec{padding:18px 22px;border-bottom:1px solid var(--line2)}.sec:last-child{border-bottom:0}
-.sec h3{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--sub2)}
-.kv{display:grid;grid-template-columns:112px minmax(0,1fr);gap:9px 14px;margin:0;font-size:13.5px}
+.detail{position:sticky;top:60px;max-height:calc(100vh - 72px);overflow-y:auto;scrollbar-width:thin}
+@media (min-width:1181px){.split:not(.nodetail) .opt,.split:not(.nodetail) tfoot{display:none}}
+.dhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:#fff;z-index:2}
+.dhead h2{margin:2px 0 0;font-size:15px;font-weight:700;line-height:1.4;padding-right:32px;word-break:keep-all}
+.dhead .x{position:absolute;top:8px;right:8px}
+.dhead .acts{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--line);padding:0 6px;overflow-x:auto;scrollbar-width:none;background:#fff;position:sticky;top:0}
+.tabs button{border:0;background:none;padding:8px 10px;font-size:12.5px;color:var(--sub);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button.on{color:var(--ink);font-weight:700;border-bottom-color:var(--pri)}
+.sec{padding:10px 14px;border-bottom:1px solid var(--line2)}.sec:last-child{border-bottom:0}
+.sec h3{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--sub2)}
+.kv{display:grid;grid-template-columns:100px minmax(0,1fr);gap:5px 10px;margin:0;font-size:12.5px}
 .kv dt{color:var(--sub)}.kv dd{margin:0;word-break:break-word}
-.money3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.money3 div{background:var(--bg2);border-radius:var(--r-sm);padding:10px 12px}.money3 span{display:block;font-size:12px;color:var(--sub)}.money3 b{font-size:15px;font-variant-numeric:tabular-nums}
-.li{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line2)}.li:first-child{border-top:0;padding-top:0}
+.money3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line2)}
+.money3 div{padding:7px 10px;border-left:1px solid var(--line2)}.money3 div:first-child{border-left:0}.money3 span{display:block;font-size:11.5px;color:var(--sub)}.money3 b{font-size:14px;font-variant-numeric:tabular-nums}
+.li{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line2)}.li:first-child{border-top:0;padding-top:0}
 .li .g{flex:1;min-width:0}
 .pre{white-space:pre-wrap}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:4px}
+.gallery div{aspect-ratio:1;background:repeating-linear-gradient(45deg,var(--bg2) 0 6px,#fff 6px 12px);border:1px solid var(--line2)}
 /* ── 피드형 목록 (연락기록) */
-.feed .it2{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:16px;padding:16px 20px;border-top:1px solid var(--line2)}
+.feed .it2{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:12px;padding:10px 12px;border-top:1px solid var(--line2)}
 .feed .it2:first-child{border-top:0}
-.feed .d{font-size:13px;color:var(--sub2);font-variant-numeric:tabular-nums}
-.feed .memo{margin-top:6px;white-space:pre-wrap;font-size:13.5px}
-.feed .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
-/* ── 주간 일정 / 달력 */
-.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:4px 16px 16px}
-.day{min-height:132px;padding:8px;border-radius:var(--r-sm);background:var(--bg2)}
-.day .dn{font-size:12px;color:var(--sub);margin-bottom:8px}.day.today{background:var(--pri-l)}.day.today .dn{color:var(--pri-d);font-weight:700}
-.ev{display:block;width:100%;text-align:left;font-size:12px;line-height:1.4;padding:6px 8px;margin-bottom:6px;border-radius:5px;background:#fff;border:0;border-left:3px solid var(--pri-m);cursor:pointer;color:var(--ink)}
+.feed .mhd{padding:6px 12px;background:#F8F9FA;font-size:12px;font-weight:700;color:var(--sub2);border-top:1px solid var(--line2)}.feed .mhd:first-child{border-top:0}.feed .mhd+.it2{border-top:0}
+.feed .d{font-size:12.5px;color:var(--sub2);font-variant-numeric:tabular-nums}
+.feed .memo{margin-top:4px;white-space:pre-wrap;font-size:12.5px}
+.feed .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
+/* ── 일정 */
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:8px}
+.day{min-height:110px;padding:6px;background:var(--bg2)}
+.day .dn{font-size:11.5px;color:var(--sub);margin-bottom:6px}.day.today{background:var(--pri-l)}.day.today .dn{color:var(--pri-d);font-weight:700}
+.ev{display:block;width:100%;text-align:left;font-size:11.5px;line-height:1.35;padding:4px 6px;margin-bottom:4px;background:#fff;border:0;border-left:3px solid var(--pri-m);cursor:pointer;color:var(--ink)}
 .week .evn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
-.week .ev em{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
-.todo-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:start;width:100%;padding:13px 20px;border:0;border-top:1px solid var(--line2);background:none;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
-.todo-row:first-child{border-top:0}.todo-row:hover{background:#FAFBFB}.todo-row .tag{justify-self:start;margin-top:1px}
-.ev em{display:block;font-style:normal;color:var(--sub);font-size:11.5px}
+.week .ev em{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:1px}
+.agenda .dgrp{display:grid;grid-template-columns:62px minmax(0,1fr);border-top:1px solid var(--line2)}
+.agenda .dgrp:first-child{border-top:0}
+.agenda .dl{padding:8px 0 8px 12px;font-size:12px;color:var(--sub2)}
+.agenda .dl b{display:block;font-size:15px;color:var(--ink)}
+.agenda .dgrp.today .dl b{color:var(--pri)}
+.agenda .its{padding:6px 12px 6px 0}
+.agenda .ai{display:flex;gap:8px;align-items:baseline;width:100%;border:0;background:none;text-align:left;padding:3px 0;cursor:pointer;font:inherit;color:var(--ink)}
+.agenda .ai:hover .an{text-decoration:underline}
+.agenda .ai .k{flex:none;width:52px;font-size:11px;font-weight:600}
+.agenda .ai .an{min-width:0;word-break:keep-all}
+.agenda .ai.done{color:#A9AFB5}
+.todo-row{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;align-items:start;width:100%;padding:8px 12px;border:0;border-top:1px solid var(--line2);background:none;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.todo-row:first-child{border-top:0}.todo-row:hover{background:#F8FAFB}.todo-row .tag{justify-self:start;margin-top:1px}
+.ev em{display:block;font-style:normal;color:var(--sub);font-size:11px}
 .ev.k-점검{border-left-color:var(--done)}.ev.k-예정{border-left-color:var(--prog)}.ev.k-기한{border-left-color:var(--warn)}.ev.k-연락{border-left-color:var(--acc)}
 .ev.done{color:#A9AFB5;border-left-color:#D5D9DD}
+.k-점검.kc{color:var(--done-t)}.k-예정.kc{color:var(--prog-t)}.k-기한.kc{color:var(--warn-t)}.k-연락.kc{color:var(--sub2)}
 .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.cal .wd{padding:10px 10px 8px;font-size:12px;color:var(--sub)}
-.cal .cd{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-height:108px;border:0;border-top:1px solid var(--line2);padding:6px;cursor:pointer;background:#fff;text-align:left;min-width:0}
-.cal .cd:hover{background:#FAFBFB}.cal .cd.out{color:#BCC1C6}.cal .cd.out .ev{opacity:.5}
+.cal .wd{padding:6px 8px;font-size:11.5px;color:var(--sub);background:#F8F9FA;border-bottom:1px solid var(--line)}
+.cal .cd{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-height:96px;border:0;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);padding:4px;cursor:pointer;background:#fff;text-align:left;min-width:0}
+.cal .cd:nth-child(7n){border-right:0}
+.cal .cd:hover{background:#F8FAFB}.cal .cd.out{color:#BCC1C6}.cal .cd.out .ev{opacity:.5}
 .cal .cd.sel{background:var(--pri-l)}
-.cal .n{font-size:12.5px;font-weight:600;align-self:flex-start;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:12px;margin-bottom:2px}
+.cal .n{font-size:12px;font-weight:600;align-self:flex-start;min-width:20px;height:20px;line-height:20px;text-align:center;border-radius:2px;margin-bottom:2px}
 .cal .cd.today .n{color:#fff;background:var(--pri)}
-.cal .ev{padding:2px 6px;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;background:var(--bg2);border-left-width:2px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:16px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer;color:var(--sub2)}
-.chip i{width:8px;height:8px;border-radius:50%;background:var(--pri-m)}
+.cal .ev{padding:1px 5px;margin:1px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;background:var(--bg2);border-left-width:2px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:var(--r);border:1px solid #D3D8DD;background:#fff;font-size:12.5px;cursor:pointer;color:var(--sub2)}
+.chip i{width:8px;height:8px;border-radius:1px;background:var(--pri-m)}
 .chip.on{border-color:var(--pri);color:var(--pri-d);background:var(--pri-l);font-weight:600}
-.bar{height:6px;background:var(--line2);border-radius:3px;overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:var(--acc);border-radius:3px}
-.prog{display:inline-block;width:56px;height:6px;background:var(--line2);border-radius:3px;vertical-align:middle;margin-right:8px;overflow:hidden}.prog i{display:block;height:100%;background:var(--acc);border-radius:3px}
-.note{display:block;padding:12px 16px;border-radius:var(--r);background:var(--warn-l);color:var(--warn-t);font-size:13px;margin-bottom:16px;border:1px solid #F0E3C8}
+.bar{height:6px;background:var(--line2);overflow:hidden;min-width:60px}.bar i{display:block;height:100%;background:var(--acc)}
+.prog{display:inline-block;width:56px;height:6px;background:var(--line2);vertical-align:middle;margin-right:6px;overflow:hidden}.prog i{display:block;height:100%;background:var(--acc)}
+.note{display:block;padding:8px 12px;border-radius:var(--r);background:var(--warn-l);color:var(--warn-t);font-size:12.5px;margin-bottom:10px;border:1px solid #F0E3C8}
 .note.info{background:var(--pri-l);color:var(--pri-d);border-color:#DCE4EA}
-.later-box{padding:40px 32px}.later-box h2{margin:0 0 8px;font-size:17px}.later-box p{color:var(--sub2)}.later-box ul{margin:12px 0 0;padding-left:18px;color:var(--sub2);line-height:1.9}
-/* ── 모달 (입력·수정) */
-.modal{position:fixed;inset:0;background:rgba(48,56,65,.36);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;z-index:50;overflow:auto}
-.mbox{background:#fff;border-radius:12px;width:100%;max-width:640px;box-shadow:0 20px 48px rgba(48,56,65,.18)}
-.mbox.wide{max-width:820px}
-.mh{display:flex;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--line2)}.mh h2{margin:0;font-size:17px;flex:1}
-.mb{padding:20px 22px;max-height:68vh;overflow:auto}
-.mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid var(--line2);align-items:center;background:var(--bg2);border-radius:0 0 12px 12px}
-.mf .msg{flex:1;color:var(--bad-t);font-size:13px}
+.later-box{padding:28px 24px}.later-box h2{margin:0 0 6px;font-size:15px}.later-box p{color:var(--sub2)}.later-box ul{margin:8px 0 0;padding-left:18px;color:var(--sub2);line-height:1.9}
+/* ── 창 (입력·수정·확인) */
+.modal{position:fixed;inset:0;background:rgba(48,56,65,.36);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:50;overflow:auto}
+.mbox{background:#fff;border-radius:4px;width:100%;max-width:640px;box-shadow:0 12px 32px rgba(48,56,65,.2)}
+.mbox.wide{max-width:900px}
+.mh{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}.mh h2{margin:0;font-size:15px;flex:1}
+.mb{padding:12px 16px;max-height:72vh;overflow:auto}
+.mf{display:flex;justify-content:flex-end;gap:6px;padding:10px 14px;border-top:1px solid var(--line);align-items:center;background:#F8F9FA;border-radius:0 0 4px 4px}
+.mf .msg{flex:1;color:var(--bad-t);font-size:12.5px}
 .mf .dan{margin-right:auto}
-.req{font-size:12px;color:var(--sub);margin:0 0 14px}.req b,.fg label b{color:var(--bad);font-weight:600}
-.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
-.fg label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--sub2);font-weight:500;min-width:0}
-.fg label>span{display:block}
+.req{font-size:11.5px;color:var(--sub);margin:0 0 8px}.req b,.fg label b{color:var(--bad);font-weight:700}
+/* 입력 폼: 항목명 왼쪽, 2열 */
+.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 20px}
+.fg label{display:grid;grid-template-columns:108px minmax(0,1fr);align-items:center;gap:8px;font-size:12.5px;color:var(--sub2);font-weight:500;min-width:0}
+.fg label>span{display:block;word-break:keep-all}
 .fg label.full{grid-column:1/-1}
-.fg h4{grid-column:1/-1;margin:10px 0 -2px;font-size:13px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
-.fg h4::after{content:'';flex:1;height:1px;background:var(--line2)}
+.fg label.full:has(textarea){align-items:start}.fg label.full:has(textarea)>span{padding-top:7px}
+.fg h4{grid-column:1/-1;margin:10px 0 2px;padding:5px 8px;font-size:12.5px;font-weight:700;color:var(--ink);background:#F8F9FA;border-left:3px solid var(--pri)}
 .fg h4:first-child{margin-top:0}
-#toasts{position:fixed;right:24px;bottom:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;z-index:70}
-.toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:var(--r);max-width:420px;font-size:13.5px;box-shadow:0 8px 24px rgba(48,56,65,.2)}
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;z-index:70}
+.toast{background:var(--ink);color:#fff;padding:9px 14px;border-radius:var(--r);max-width:420px;font-size:13px;box-shadow:0 6px 16px rgba(48,56,65,.2)}
 .toast.err{background:var(--bad-t)}
 /* ── 로그인 */
-.login{max-width:400px;margin:12vh auto 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:32px;box-shadow:var(--shadow)}
-.login h1{margin:0 0 6px;font-size:20px}.login p{color:var(--sub);margin:0 0 20px;font-size:13.5px}
-.login label{display:block;font-size:12.5px;color:var(--sub2);margin:14px 0 6px;font-weight:500}
-.login .btn{width:100%;height:44px;margin-top:14px}
-/* ── 거래명세서 */
-.stmt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
-.items{min-width:560px}.items th{background:none;padding:8px 6px}.items td{padding:5px 6px;border-bottom:0}.items .inp{height:34px;padding:0 8px;font-size:13px}
-.items [data-f="단가"]{min-width:96px}.items select.inp{min-width:72px}.items [data-f="품명"]{min-width:130px}
-.items .s,.items .t{font-size:13px;color:var(--sub2)}
-.totbox{display:flex;justify-content:flex-end;gap:20px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:var(--r-sm);background:var(--bg2);font-size:13px;color:var(--sub2)}
-.totbox b{color:var(--ink);font-size:15px;font-variant-numeric:tabular-nums;margin-left:6px}
-.paper{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:20px}
-.sheet{border:1px solid #CDD2D7;padding:22px;font-size:11.5px;color:#111;aspect-ratio:210/297;display:flex;flex-direction:column;gap:10px;background:#fff;box-shadow:0 2px 8px rgba(48,56,65,.08)}
-.sheet h3{margin:0;text-align:center;font-size:20px;letter-spacing:.6em;font-weight:700}
-.sheet .hdr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:10px}
-.box{border-collapse:collapse;width:100%}.box td{border:1px solid #888;padding:3px 6px;font-size:11px}.box td.k{background:#F1F2F3;width:66px;white-space:nowrap}
-.it{border-collapse:collapse;width:100%}.it th{position:static;border:1px solid #888;background:#F1F2F3;color:#111;font-weight:500;padding:3px 4px;font-size:11px}
-.it td{border:1px solid #AAA;padding:3px 5px;font-size:11px;height:16px}.it td.n{text-align:right;font-variant-numeric:tabular-nums}
-.sheet .foot{margin-top:auto;font-size:10.5px;border-top:1px solid #888;padding-top:6px;white-space:pre-wrap}
+.login{max-width:380px;margin:12vh auto 0;background:#fff;border:1px solid var(--line);border-radius:4px;padding:28px}
+.login h1{margin:0 0 6px;font-size:18px}.login p{color:var(--sub);margin:0 0 16px;font-size:13px}
+.login label{display:block;font-size:12.5px;color:var(--sub2);margin:12px 0 5px;font-weight:500}
+.login .btn{width:100%;height:40px;margin-top:12px}
+/* ── 거래명세서 (엑셀 「거래명세서」 시트 그대로) */
+.stmt{display:grid;grid-template-columns:minmax(0,1fr) 600px;gap:12px;align-items:start}
+.stmt .fg{grid-template-columns:minmax(0,1fr)}
+@media (min-width:1700px){.stmt{grid-template-columns:minmax(0,1fr) 760px}.paper .xs-wrap{zoom:1}}
+.items{min-width:520px}.items th{background:none;padding:0 4px;height:26px;position:static}.items td{padding:2px 4px;height:auto;border-bottom:0}.items .inp{height:28px;padding:0 6px;font-size:12.5px}
+.items [data-f="단가"]{min-width:90px}.items select.inp{min-width:64px}.items [data-f="품명"]{min-width:120px}
+.items .s,.items .t{font-size:12.5px;color:var(--sub2)}
+.totbox{display:flex;justify-content:flex-end;gap:18px;flex-wrap:wrap;margin-top:8px;padding:7px 10px;background:#F8F9FA;border:1px solid var(--line2);font-size:12.5px;color:var(--sub2)}
+.totbox b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;margin-left:6px}
+.paper{background:#E9ECEF;border:1px solid var(--line);padding:16px;overflow:auto}
+.xs-wrap{width:715px;margin:0 auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);padding:24px 0}
+.xs{border-collapse:collapse;table-layout:fixed;width:715px;font-family:'맑은 고딕','Malgun Gothic',Pretendard,sans-serif;color:#000;font-size:13.3px;margin:0 auto}
+.xs td{border:0;padding:0 3px;height:auto;vertical-align:middle;overflow:hidden;white-space:nowrap;position:static}
+.xs .c{text-align:center}.xs .r{text-align:right}.xs .l{text-align:left}.xs .b{font-weight:700}
+.xs .g{background:#F2F2F2}
+.xs .bt{border-top:1px solid #000}.xs .bb{border-bottom:1px solid #000}.xs .bl{border-left:1px solid #000}.xs .br{border-right:1px solid #000}
+.xs .BT{border-top:2px solid #000}.xs .BB{border-bottom:2px solid #000}.xs .BL{border-left:2px solid #000}.xs .BR{border-right:2px solid #000}
+.xs .hb{border-bottom:1px solid #9a9a9a}.xs .hl{border-left:1px solid #9a9a9a}.xs .hr{border-right:1px solid #9a9a9a}
+.xs .seal{position:relative;overflow:visible}
+.xs .seal img{position:absolute;left:39px;top:-22px;width:76px;height:74px;pointer-events:none}
+.xs .wrap{white-space:normal;line-height:1.2}
 @media print{
-  body *{visibility:hidden}.sheet,.sheet *{visibility:visible}
-  .sheet{position:absolute;left:0;top:0;width:190mm;border:0;padding:0;aspect-ratio:auto;min-height:270mm;box-shadow:none}
+  @page{size:A4 portrait;margin:12mm 10mm}
+  html,body{background:#fff!important}
+  .top,.side,.crumb,.h1row,.note,#toasts,.busy,.stmt>section:first-child{display:none!important}
+  .body,.main,.stmt,.paper{display:block!important;padding:0!important;margin:0!important;border:0!important;background:#fff!important;overflow:visible!important;min-height:0!important}
+  .xs-wrap{zoom:1!important;box-shadow:none!important;padding:0!important;width:auto!important}
+  .xs{zoom:.94;margin:0 auto!important}
 }
+
 /* ── 반응형 */
-@media (max-width:1280px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1280px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.stmt{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:1180px){
   .split{grid-template-columns:minmax(0,1fr)}
   .split:not(.nodetail)::before{content:'';position:fixed;inset:0;background:rgba(48,56,65,.3);z-index:44}
@@ -259,8 +333,7 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
   .side h3{display:none}
   .side button{width:auto;flex:none;height:36px;border-radius:18px;margin:0;background:var(--bg2);gap:6px}
   .side button.on{background:var(--pri);color:#fff}.side button.on span{color:#DCE4EA}
-  .main{padding:16px 14px 48px}
-  .week{grid-template-columns:minmax(0,1fr);gap:6px}.day{min-height:0}.day:not(.today):not(:has(.ev)){display:none}
+  .main{padding:14px 14px 48px}
 }
 @media (max-width:760px){
   :root{--h:44px}
@@ -269,8 +342,8 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
   .btn.sm{height:38px;padding:0 13px}
   .h1row h1{font-size:19px;flex-basis:100%}
   .h1row{gap:6px}
-  .strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .strip button{padding:12px 14px}.strip b{font-size:19px}
+  .strip,.strip.s4,.sumline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.strip>button,.sumline>*{border-top:1px solid var(--line2)}
+  .strip button{padding:12px 14px}.strip b{font-size:18px}.strip em{white-space:normal}
   .filters .inp,.filters input[type=search]{width:100%!important;flex:1 1 100%}
   .filters select.inp{flex:1 1 40%}
   .seg{width:100%;overflow-x:auto}.seg button{flex:1;height:36px}
@@ -285,6 +358,7 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
   .tbox table:not(.items) td:first-child,.cardify td:first-child{display:block;text-align:left;padding-bottom:6px}
   .tbox table:not(.items) td:first-child::before,.cardify td:first-child::before{display:none}
   .tbox table:not(.items) td[data-label=""]::before{display:none}
+  .tbox table:not(.items) td .cv{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap;min-width:0}
   .tbox table:not(.items) td:empty{display:none}
   tr.sel td:first-child{box-shadow:none}tr.sel{box-shadow:inset 3px 0 0 var(--pri)}
   tfoot tr{background:var(--bg2)}tfoot td{background:none}
@@ -307,6 +381,53 @@ tfoot td{background:var(--bg2);font-weight:600;border-top:1px solid var(--line);
   #toasts{left:12px;right:12px;bottom:12px;align-items:stretch}
 }
 @media (min-width:761px){.cal .cd .dot{display:none}}
+/* ── 휴대폰 전용 틀 */
+.mbar,.mnav{display:none}
+html{touch-action:manipulation}
+.mall{position:fixed;inset:0;z-index:55;background:var(--bg2);overflow-y:auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.mall-h{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 8px 0 16px;background:#fff;border-bottom:1px solid var(--line);font-size:17px;z-index:1}
+.mall-h .tbtn,.mbar .tbtn{width:44px;height:44px}
+.mall-s{display:flex;align-items:center;gap:8px;margin:12px 16px 0;height:44px;padding:0 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);color:var(--sub)}
+.mall-s input{flex:1;border:0;outline:none;font-size:16px;min-width:0;background:none}
+.mres{margin:0 16px}.mres:not(:empty){background:#fff;border:1px solid var(--line);border-top:0}
+.mres button{display:flex;gap:8px;align-items:center;width:100%;min-height:48px;padding:8px 12px;border:0;border-top:1px solid var(--line2);background:none;text-align:left;font-size:15px}
+.mres small{margin-left:auto;color:var(--sub);font-size:12px}
+.mall-b section{margin:16px 16px 0;background:#fff;border:1px solid var(--line);border-radius:var(--r)}
+.mall-b h3{margin:0;padding:10px 14px 6px;font-size:12.5px;color:var(--sub);font-weight:600}
+.mall-b button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:0 14px;border:0;border-top:1px solid var(--line2);background:none;font-size:15.5px;color:var(--ink);text-align:left}
+.mall-b button.on{color:var(--pri);font-weight:700}.mall-b button.later{color:#AEB4BA}
+.mall-b small{font-size:12.5px;color:var(--sub)}
+.mall-me{padding:4px 14px 12px;font-size:15px}
+.mall-b .danger-link{color:var(--bad-t);font-weight:600}
+@media (max-width:760px){
+  .top,.side,.crumb{display:none!important}
+  .mbar{display:flex;align-items:center;gap:2px;position:sticky;top:0;z-index:30;height:52px;padding:0 4px;padding-top:env(safe-area-inset-top);background:#fff;border-bottom:1px solid var(--line)}
+  .mbar h1{flex:1;margin:0 0 0 8px;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mbar .mback+h1{margin-left:0}
+  .mbar .badge{top:6px;right:6px}
+  .mnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .mnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:58px;border:0;background:none;color:var(--sub);font-size:11.5px}
+  .mnav button.on{color:var(--pri);font-weight:700}
+  .body{display:block;min-height:0}
+  .main{padding:12px 12px calc(84px + env(safe-area-inset-bottom))}
+  .h1row{margin:0 0 10px;min-height:0;justify-content:flex-end}
+  .h1row h1{display:none}
+  .h1row:not(:has(.btn,.seg,select,b,.tag,.sub)){display:none}
+  .grid2,.grid3{grid-template-columns:minmax(0,1fr)!important}
+  .week{grid-template-columns:minmax(0,1fr);gap:6px}.day{min-height:0}.day:not(.today):not(:has(.ev)){display:none}
+  .detail{inset:0!important;width:100%!important;z-index:46}
+  .detail .dhead{padding-top:calc(12px + env(safe-area-inset-top))}
+  .dhead .x{width:44px;height:44px;top:4px;right:4px}
+  .agenda .ai{min-height:40px;align-items:center}
+  .tabs button{padding:12px 12px;font-size:14px}
+  #toasts{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .stmt .paper{padding:8px}
+  .chart{overflow-x:auto}.chart svg.wide{min-width:640px}
+  .sumline.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.sumline.g3>*{border-left:1px solid var(--line2)!important;border-top:1px solid var(--line2)!important}.sumline.g3>*:nth-child(odd){border-left:0!important}.sumline.g3>*:nth-child(-n+2){border-top:0!important}
+  .sumline b{font-size:16px}
+  .step{min-width:0}.step span{font-size:10px}
+  .mini td.nw{white-space:normal}
+}
 .dot i{width:6px;height:6px;border-radius:50%;background:var(--pri-m);display:block}
 .dot i.k-점검,.chip i.k-점검{background:var(--done)}.chip i.k-예정{background:var(--prog)}.chip i.k-기한{background:var(--warn)}.chip i.k-연락{background:var(--acc)}
 .dot i.k-점검{background:var(--done)}.dot i.k-예정{background:var(--prog)}.dot i.k-기한{background:var(--warn)}.dot i.k-연락{background:var(--acc)}
@@ -362,24 +483,30 @@ const S = { token: null, user: null, source: '엑셀', counts: {}, cat: 'dash', 
 async function api(action, arg, opt) {
   opt = opt || {};
   const key = action + JSON.stringify(arg || {});
-  if (opt.cache && S.cache[key]) return S.cache[key];
-  S.busy++; busyBar();
-  try {
-    const r = await run('api', S.token, action, arg || {});
-    if (!r || !r.ok) {
-      if (r && r.code === 'auth') { await logoutLocal(r.msg); throw new Error(r.msg); }
-      const e = new Error((r && r.msg) || '처리하지 못했습니다'); e.r = r; throw e;
-    }
-    if (opt.cache) S.cache[key] = r;
-    return r;
-  } finally { S.busy--; busyBar(); }
+  // 조회 결과는 이 창의 메모리에만 3분 보관 (브라우저 저장소에는 남기지 않음). 저장·삭제하면 전부 비움
+  if (opt.cache) { const c = S.cache[key]; if (c && Date.now() - c.t < 180000) return c.p; }
+  if (!opt.quiet) { S.busy++; busyBar(); }
+  const p = (async () => {
+    try {
+      const r = await run('api', S.token, action, arg || {});
+      if (!r || !r.ok) {
+        if (r && r.code === 'auth') { await logoutLocal(r.msg); throw new Error(r.msg); }
+        const e = new Error((r && r.msg) || '처리하지 못했습니다'); e.r = r; throw e;
+      }
+      return r;
+    } finally { if (!opt.quiet) { S.busy--; busyBar(); } }
+  })();
+  if (opt.cache) { S.cache[key] = { t: Date.now(), p }; p.catch(() => { if (S.cache[key] && S.cache[key].p === p) delete S.cache[key]; }); }
+  return p;
 }
+// 로그인 직후 자주 여는 화면 자료를 미리 받아 둠
+function prefetch() { ['dash', 'sites', 'contracts', 'money', 'contacts', 'partners', 'lookups', 'requests'].forEach((a) => api(a, {}, { cache: true, quiet: true }).catch(() => {})); }
 function labelTables(root) {
   $$('table', root).forEach((t) => {
     if (t.matches('.box,.it,.items')) return;
     const hs = $$('thead tr:last-child th', t).map((h) => h.textContent.replace(/[▲▼]/g, '').trim());
     if (!hs.length) return;
-    $$('tbody tr, tfoot tr', t).forEach((tr) => { let i = 0; Array.from(tr.cells).forEach((td) => { if (!td.hasAttribute('data-label')) td.setAttribute('data-label', td.colSpan > 1 ? '' : hs[i] || ''); i += td.colSpan; }); });
+    $$('tbody tr, tfoot tr', t).forEach((tr) => { let i = 0; Array.from(tr.cells).forEach((td, k) => { if (!td.hasAttribute('data-label')) { td.setAttribute('data-label', td.colSpan > 1 ? '' : hs[i] || ''); if (k > 0 && td.childNodes.length > 1) { const w = document.createElement('span'); w.className = 'cv'; while (td.firstChild) w.appendChild(td.firstChild); td.appendChild(w); } } i += td.colSpan; }); });
   });
 }
 new MutationObserver(() => { cancelAnimationFrame(labelTables.f); labelTables.f = requestAnimationFrame(() => labelTables(document.body)); }).observe(document.body, { childList: true, subtree: true });
@@ -406,12 +533,40 @@ const WD = '일월화수목금토';
 function toast(m, err) { let box = document.getElementById('toasts'); if (!box) { box = document.createElement('div'); box.id = 'toasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); } const d = document.createElement('div'); d.className = 'toast' + (err ? ' err' : ''); d.textContent = m; box.appendChild(d); setTimeout(() => d.remove(), err ? 5000 : 2600); }
 function ic(n, s) {
   s = s || 16;
-  const P = { search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', bell: '<path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/>', down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', out: '<path d="M10 5H5v14h5M15 8l4 4-4 4M19 12H9"/>', print: '<path d="M7 9V4h10v5M7 17H5v-6h14v6h-2M7 14h10v6H7z"/>' };
+  const P = { search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', bell: '<path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/>', down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', out: '<path d="M10 5H5v14h5M15 8l4 4-4 4M19 12H9"/>', print: '<path d="M7 9V4h10v5M7 17H5v-6h14v6h-2M7 14h10v6H7z"/>', back: '<path d="M15 5l-7 7 7 7"/>', home: '<path d="M4 11l8-7 8 7v9H4z"/>', site: '<path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 10h16M9 3v4M15 3v4"/>', won: '<path d="M4 7l3 11 3-8h4l3 8 3-11M3 11h18M3 14h18"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>' };
   return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ''}</svg>`;
 }
 const stTag = (s) => `<span class="tag ${s === '진행중' ? 't' : s === '완료' ? 'g' : /취소/.test(s) ? 'r' : ''}">${esc(s === '진행중' ? '진행 중' : s || '-')}</span>`;
 const dlTag = (n) => (n == null ? '' : `<span class="tag ${n < 0 ? 'r' : n <= 14 ? 'w' : 'plain'}">${dl(n)}</span>`);
 const stageTag = (s) => `<span class="tag ${s === '보고서 작성중' ? 'w' : s === '완료' ? 'g' : /대기|예정/.test(s) ? 't' : ''}">${esc(s)}</span>`;
+// ===================== 시각화 도우미 (단계 표시 · 차트 · 타임라인) =====================
+const STG = ['점검 전', '점검 예정', '보고서 작성중', '청구 대기', '입금 대기', '완료'];
+function sIdx(s) { s = String(s || ''); const i = STG.indexOf(s); if (i >= 0) return i; if (/완료/.test(s)) return 5; if (/입금/.test(s)) return 4; if (/청구|발송/.test(s)) return 3; if (/작성|검토/.test(s)) return 2; if (/예정/.test(s)) return 1; return 0; }
+function stgDots(list) { return `<span class="stg ${(list || []).length > 16 ? 'many' : ''}">${(list || []).map(([n, s]) => `<i class="s${sIdx(s)}" title="${esc(n)}: ${esc(s)}"></i>`).join('')}</span>`; }
+const STG_LEGEND = `<span class="legend">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n}</span>`).join('')}</span>`;
+function stepper(stage) {
+  const i = sIdx(stage), L = ['점검', '보고서', '발송', '청구', '입금'];
+  const cur = i === 0 ? -1 : i === 1 ? 0 : i === 2 ? 1 : i === 3 ? 3 : i === 4 ? 4 : 99;
+  return `<span class="step ${i === 5 ? 'g' : i === 2 ? 'w' : ''}" title="${esc(stage)}">${L.map((n, k) => `<span class="${k < cur || i === 5 ? 'on' : k === cur ? 'cur' : ''}">${n}</span>`).join('')}</span>`;
+}
+function dbar(n, win) { if (n == null) return '<span class="muted">—</span>'; win = win || 30; const f = Math.max(0.04, Math.min(1, (win - n) / win)); return `<span class="dbar ${n < 0 ? 'r' : n <= 14 ? 'w' : ''}"><span class="b"><i style="width:${f * 100}%"></i></span>${dlTag(n)}</span>`; }
+function hbar(parts) { const tot = parts.reduce((a, p) => a + Math.max(0, p[1]), 0) || 1; return `<div class="hbar">${parts.map(([n, v, c]) => (v > 0 ? `<i style="width:${v / tot * 100}%;background:${c}" title="${esc(n)} ${won(v)}"></i>` : '')).join('')}</div>`; }
+function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; }
+function barChart(o) {
+  const W = o.w || 470, H = o.height || 170, L = 44, B = 20, T = 8, n = o.labels.length, ss = o.series;
+  const raw = Math.max(1, ...ss.flatMap((s) => s.values)), max = o.vals ? raw * 1.14 : niceMax(raw), gw = (W - L - 4) / n, bw = Math.min(o.vals ? 30 : 16, (gw - 6) / ss.length);
+  const y = (v) => T + (H - T - B) * (1 - v / max), fmt = o.fmt || ((v) => (v >= 1e8 ? (v / 1e8).toFixed(1).replace(/\.0$/, '') + '억' : Math.round(v / 1e4).toLocaleString('ko-KR') + '만'));
+  let g = '';
+  for (let k = 0; k <= (o.vals ? 0 : 4); k++) { const v = max * k / 4, yy = y(v); g += `<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="${k ? '#EEF0F2' : '#C9CED4'}"/><text x="${L - 6}" y="${yy + 3.5}" text-anchor="end">${k ? fmt(v) : '0'}</text>`; }
+  o.labels.forEach((lb, i) => {
+    const x0 = L + i * gw + (gw - bw * ss.length - 2 * (ss.length - 1)) / 2;
+    ss.forEach((s, j) => { const v = s.values[i] || 0, yy = y(v); g += `<rect x="${x0 + j * (bw + 2)}" y="${yy}" width="${bw}" height="${Math.max(0, H - B - yy)}" fill="${s.color}"><title>${esc(lb)} ${esc(s.name)} ${won(v)}원</title></rect>`; if (o.vals && v) g += `<text x="${x0 + j * (bw + 2) + bw / 2}" y="${yy - 3}" text-anchor="middle" style="font-size:9.5px;fill:#303841;font-weight:600">${o.valFmt ? o.valFmt(v) : (v / 1e8).toFixed(v >= 1e8 ? 1 : 2) + '억'}</text>`; });
+    g += `<text x="${L + i * gw + gw / 2}" y="${H - 6}" text-anchor="middle">${esc(lb)}</text>`;
+  });
+  return `<svg class="${W > 600 ? 'wide' : ''}" viewBox="0 0 ${W} ${H}" style="max-width:${W * 1.25}px" role="img" aria-label="${esc(o.title || '')}">${g}</svg><div class="legend" style="margin-top:4px">${ss.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}${o.unit ? `<span style="margin-left:auto">${esc(o.unit)}</span>` : ''}</div>`;
+}
+function timeline(items) { if (!items.length) return ''; return `<ul class="tl">${items.map((x) => `<li class="${x.c || ''}"><div class="d">${esc(x.d || '')}${x.tag ? ' ' + x.tag : ''}</div><div class="x">${x.h}</div></li>`).join('')}</ul>`; }
+function pager(total, page, per, id) { if (total <= per) return ''; const pages = Math.ceil(total / per); return `<div class="pager">${page * per + 1}–${Math.min(total, (page + 1) * per)} / ${total}건 <button class="btn sm" data-pg="${id}:${page - 1}" ${page ? '' : 'disabled'}>‹ 이전</button><button class="btn sm" data-pg="${id}:${page + 1}" ${page < pages - 1 ? '' : 'disabled'}>다음 ›</button></div>`; }
 function sortRows(rows, key, dir) { const m = dir === 'desc' ? -1 : 1; return rows.slice().sort((a, b) => { const x = a[key], y = b[key]; if (typeof x === 'number' || typeof y === 'number') return ((Number(x) || 0) - (Number(y) || 0)) * m; return String(x || '').localeCompare(String(y || ''), 'ko') * m; }); }
 
 // ===================== 엑셀 내보내기 (조회 화면 공통) =====================
@@ -431,7 +586,7 @@ async function exportXlsx(name, sheets) {
 // ===================== 메뉴 =====================
 const MENU = [
   { k: 'dash', n: '대시보드', items: [['home', '업무 현황'], ['todo', '내 할 일']] },
-  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
+  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['requests', '자료요청 · 메일', '자료요청'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
   { k: 'doc', n: '문서관리', items: [['cdoc', '계약서 작성', null, 1], ['estimate', '견적서 작성', null, 1], ['letter', '공문 작성', null, 1], ['statement', '거래명세서 작성'], ['reports', '보고서 관리', null, 1], ['docbox', '문서 보관함', '문서']] },
   { k: 'biz', n: '경영관리', items: [['sales', '매출 현황'], ['invoices', '세금계산서', '청구'], ['collect', '수금 현황'], ['unpaid', '미수금 관리'], ['yearly', '연도별 실적']] },
   { k: 'base', n: '기초정보', items: [['partners', '거래처 관리', '거래처'], ['people', '담당자 관리'], ['works', '공종 및 용역 분류'], ['templates', '문서 양식 관리', null, 1]] },
@@ -461,15 +616,21 @@ function shell() {
     <span class="who"><b>${esc(String(S.user.name).slice(0, 1))}</b><span>${esc(S.user.name)} · ${esc(S.user.role)}</span></span>
     <button class="tbtn" id="logout" aria-label="로그아웃" title="로그아웃">${ic('out', 17)}</button>
   </header>
+  <header class="mbar"><button class="tbtn mback ${MNAV_PAGES.includes(S.page) && !S.params.id ? 'hide' : ''}" id="mBack" aria-label="뒤로">${ic('back', 22)}</button><h1>${esc(pageName(S.page)[1])}</h1><button class="tbtn" id="mSearch" aria-label="검색">${ic('search', 20)}</button><button class="tbtn" id="mBell" aria-label="처리할 일">${ic('bell', 20)}${S.todoN ? `<span class="badge">${S.todoN}</span>` : ''}</button></header>
   <div class="body">
     <aside class="side" aria-label="상세 메뉴"><h3>${cat.n}</h3>${cat.items.map(([k, n, cnt, later]) => `<button class="${k === S.page ? 'on' : ''} ${later ? 'later' : ''}" data-page="${k}">${n}${cnt && S.counts[cnt] != null ? `<span>${S.counts[cnt]}</span>` : later ? '<span>2차</span>' : ''}</button>`).join('')}</aside>
     <main class="main" id="main"></main>
-  </div>`;
+  </div>
+  <nav class="mnav" aria-label="주요 메뉴">${MNAV.map(([k, n, icn, pages]) => `<button data-mnav="${k}" class="${(k === 'all' ? !MNAV.some((x) => x[3] && x[3].includes(S.page)) : pages.includes(S.page)) ? 'on' : ''}">${ic(icn, 22)}<span>${n}</span></button>`).join('')}</nav>`;
   $$('[data-cat]').forEach((b) => (b.onclick = () => { const c = MENU.find((x) => x.k === b.dataset.cat); go(c.items[0][0]); }));
   $$('[data-page]').forEach((b) => (b.onclick = () => go(b.dataset.page)));
-  $('#logout').onclick = async () => { if (!confirm('이 기기에서 로그아웃할까요? 다시 쓰려면 이메일 인증이 필요합니다.')) return; try { await api('logout'); } catch (e) {} await logoutLocal(); };
+  $('#logout').onclick = async () => { if (!(await ask({ title: '로그아웃', msg: '이 기기에서 로그아웃할까요?\n다시 쓰려면 이메일 인증이 필요합니다.', ok: '로그아웃' }))) return; try { await api('logout'); } catch (e) {} await logoutLocal(); };
   $('#bell').onclick = () => go('todo');
-  bindSearch();
+  $('#mBell').onclick = () => go('todo');
+  $('#mBack').onclick = () => { if (history.length > 1) history.back(); else go('home'); };
+  $('#mSearch').onclick = () => openAllMenu(true);
+  $$('[data-mnav]').forEach((b) => (b.onclick = () => { const k = b.dataset.mnav; if (k === 'all') openAllMenu(); else go(k); }));
+  bindSearch($('#gq'), $('#gres'));
   [$('.side .on'), $('.cats .on')].forEach((el) => { if (el && el.parentElement.scrollWidth > el.parentElement.clientWidth) el.parentElement.scrollLeft = el.offsetLeft - 16; });
   if (S.todoN) { $('#bellN').textContent = S.todoN; $('#bellN').classList.remove('hide'); }
 }
@@ -484,13 +645,32 @@ async function render() {
 function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row"><h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
 function lockNote(what) { return excelLocked() ? `<div class="note">지금은 <b>엑셀이 원본</b>이라 ${what || '이 화면'}의 등록·수정은 엑셀에서 하고 「시스템관리 › 시스템 설정 › 엑셀 가져오기」로 반영합니다. 전환 후에는 여기서 바로 고칩니다.</div>` : ''; }
 function editBtn(t, label, cls, attrs) { const ok = can(WR[t]) && !(excelLocked() && t !== '문서'); if (!ok && /data-e[ibt]=/.test(attrs || '')) return ''; return `<button class="btn ${cls || 'sm'}" ${attrs || ''} ${ok ? '' : `disabled title="${excelLocked() ? '엑셀이 원본인 동안은 엑셀에서 고칩니다' : '권한이 없습니다'}"`}>${label}</button>`; }
-const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반' };
+const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반' };
+
+// 휴대폰 하단 메뉴: 홈 · 현장 · 일정 · 수금 · 전체
+const MNAV = [['home', '홈', 'home', ['home', 'todo']], ['sites', '현장', 'site', ['sites', 'contracts', 'contacts', 'requests']], ['schedule', '일정', 'cal', ['schedule']], ['collect', '수금', 'won', ['collect', 'invoices', 'sales', 'unpaid', 'yearly']], ['all', '전체', 'menu', null]];
+const MNAV_PAGES = ['home', 'sites', 'schedule', 'collect'];
+function openAllMenu(focusSearch) {
+  const visibleCats = MENU.filter((c) => c.k !== 'sys' || can('관리자'));
+  const p = document.createElement('div');
+  p.className = 'mall'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', '전체 메뉴');
+  p.innerHTML = `<div class="mall-h"><b>전체 메뉴</b><button class="tbtn" data-x aria-label="닫기">${ic('x', 22)}</button></div>
+    <div class="mall-s">${ic('search', 18)}<input id="mq" type="search" placeholder="현장·계약·거래처 검색" autocomplete="off"></div><div id="mres" class="mres"></div>
+    <div class="mall-b">${visibleCats.map((c) => `<section><h3>${c.n}</h3>${c.items.map(([k, n, cnt, later]) => `<button data-page="${k}" class="${later ? 'later' : ''} ${k === S.page ? 'on' : ''}"><span>${n}</span>${later ? '<small>준비 중</small>' : cnt && S.counts[cnt] != null ? `<small>${S.counts[cnt]}</small>` : ''}</button>`).join('')}</section>`).join('')}
+    <section><h3>내 정보</h3><div class="mall-me"><b>${esc(S.user.name)}</b> · ${esc(S.user.role)}<div class="sub">${esc(S.user.email || '')}</div><div class="sub">데이터 원본: ${S.source === '웹' ? '웹' : '엑셀 (웹은 조회 전용)'}</div></div><button id="mOut" class="danger-link">로그아웃</button></section></div>`;
+  document.body.appendChild(p);
+  const close = () => p.remove();
+  $('[data-x]', p).onclick = close;
+  $$('[data-page]', p).forEach((b) => (b.onclick = () => { close(); go(b.dataset.page); }));
+  $('#mOut', p).onclick = async () => { close(); if (!(await ask({ title: '로그아웃', msg: '이 기기에서 로그아웃할까요?\n다시 쓰려면 이메일 인증이 필요합니다.', ok: '로그아웃' }))) return; try { await api('logout'); } catch (e) {} await logoutLocal(); };
+  bindSearch($('#mq', p), $('#mres', p), close, true);
+  if (focusSearch) setTimeout(() => $('#mq', p).focus(), 50);
+}
 
 // 통합 검색
 let LK = null;
-async function lookups(force) { if (!LK || force) LK = await api('lookups'); return LK; }
-function bindSearch() {
-  const inp = $('#gq'), box = $('#gres');
+async function lookups(force) { if (!LK || force) LK = await api('lookups', {}, { cache: true }); return LK; }
+function bindSearch(inp, box, onGo, inline) {
   let t;
   inp.oninput = () => { clearTimeout(t); t = setTimeout(async () => {
     const q = norm(inp.value); if (q.length < 1) { box.classList.add('hide'); return; }
@@ -501,9 +681,9 @@ function bindSearch() {
       L.partners.filter((p) => norm(p.n + p.biz).includes(q)).slice(0, 6).map((p) => ({ t: p.n, s: p.biz, k: '거래처', go: () => go('partners', { id: p.id }) })));
     box.innerHTML = hit.map((h, i) => `<button data-i="${i}"><span class="tag">${h.k}</span> ${esc(h.t)}<small>${esc(h.s || '')}</small></button>`).join('') || '<div class="empty">결과 없음</div>';
     box.classList.remove('hide');
-    $$('button', box).forEach((b) => (b.onmousedown = () => { hit[+b.dataset.i].go(); }));
+    $$('button', box).forEach((b) => (b[inline ? 'onclick' : 'onmousedown'] = () => { if (onGo) onGo(); hit[+b.dataset.i].go(); }));
   }, 200); };
-  inp.onblur = () => setTimeout(() => box.classList.add('hide'), 150);
+  if (!inline) inp.onblur = () => setTimeout(() => box.classList.add('hide'), 150);
 }
 
 // ===================== 공통: 상세 패널 / 폼 =====================
@@ -516,10 +696,14 @@ const FORMS = {
   점검: [['#점검 대상'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['단계', 'sel:점검 전,점검 예정,보고서 작성중,청구 대기,입금 대기,완료'], ['위치', 'text'], ['시기', 'text'],
     ['#일정'], ['예정일', 'date'], ['점검일', 'date'], ['기한', 'date'], ['발송일', 'date'], ['#기타'], ['내부검토', 'text'], ['비고', 'area']],
   청구: [['#세금계산서'], ['계약id', 'contract', 1, 'full'], ['발행일', 'date'], ['청구액', 'money'], ['품명', 'text', 0, 'full'], ['#입금'], ['입금일', 'date'], ['수금액', 'money'], ['입금자', 'text'], ['#기타'], ['연결점검', 'text'], ['비고', 'area']],
+  자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
+    ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청,회신대기,수신완료,취소'], ['검토', 'area'], ['비고', 'area']],
+  메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,서류 발송,자료 요청,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
+    ['#회신'], ['회신필요', 'sel:,예,아니오'], ['회신상태', 'sel:,회신대기,회신받음,회신불필요'], ['회신일', 'date'], ['회신첨부', 'text'], ['회신내용', 'area'], ['비고', 'area']],
   연락: [['#연락 내용'], ['현장id', 'site', 1, 'full'], ['연락일', 'date', 1], ['방법', 'sel:전화,문자,방문,메일,기타'], ['담당자', 'text'], ['공정', 'text'], ['메모', 'area'],
     ['#다음 일정'], ['예상점검', 'text'], ['예상시기', 'date'], ['다음연락', 'date'], ['#기타'], ['비고', 'area']],
 };
-const FLABEL = { 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+const FLABEL = { 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
 async function openForm(t, row, onSaved) {
   const L = await lookups();
   row = row || {};
@@ -559,7 +743,7 @@ async function openForm(t, row, onSaved) {
   };
   if ($('#fdel', m)) $('#fdel', m).onclick = async () => {
     const nm = row.현장명 || row.계약명 || row.거래처명 || row.항목 || row.연락일 || row.품명 || '';
-    if (prompt(`삭제하려면 아래 이름을 그대로 입력하세요.\n\n${nm}`) !== nm) { $('#fmsg', m).textContent = '이름이 맞지 않아 삭제하지 않았습니다.'; return; }
+    if (!(await ask({ title: '삭제', msg: `「${nm}」을(를) 삭제합니다.\n삭제한 내용은 변경 이력에 남아 복구할 수 있습니다.`, type: nm, ok: '삭제', danger: true }))) { return; }
     try { await api('del', { t, id: row.id, ver: row.버전 }); m.remove(); invalidate(); LK = null; toast('삭제했습니다 (변경이력에 남아 복구할 수 있습니다)'); onSaved && onSaved(null); } catch (e) { $('#fmsg', m).textContent = e.message; }
   };
 }
@@ -571,6 +755,20 @@ function modal(title, body, foot, wide) {
   m.addEventListener('mousedown', (e) => { if (e.target === m) m.remove(); });
   const first = $('input,select,textarea', m); if (first) setTimeout(() => first.focus(), 30);
   return m;
+}
+// 확인창 (브라우저 기본 창 대신 같은 디자인의 화면 안 창)
+function ask(o) {
+  return new Promise((res) => {
+    const m = modal(o.title || '확인', `<p style="margin:0;white-space:pre-wrap;line-height:1.6">${esc(o.msg || '')}</p>${o.type ? `<label style="display:block;margin-top:12px;font-size:12.5px;color:var(--sub2)">확인을 위해 <b>${esc(o.type)}</b> 을(를) 입력하세요<input class="inp" id="askT" autocomplete="off" style="margin-top:6px"></label>` : ''}`,
+      `<button class="btn" data-close>취소</button><button class="btn ${o.danger ? 'red' : 'pri'}" id="askOk" ${o.type ? 'disabled' : ''}>${esc(o.ok || '확인')}</button>`);
+    $('.mbox', m).style.maxWidth = '460px';
+    let fin = false; const end = (v) => { if (fin) return; fin = true; m.remove(); res(v); };
+    $$('[data-close]', m).forEach((b) => (b.onclick = () => end(false)));
+    m.addEventListener('mousedown', (e) => { if (e.target === m) end(false); });
+    m.addEventListener('keydown', (e) => { if (e.key === 'Escape') end(false); if (e.key === 'Enter' && !$('#askOk', m).disabled) end(true); });
+    if (o.type) { const t = $('#askT', m); t.oninput = () => { $('#askOk', m).disabled = t.value.trim() !== o.type; }; } else setTimeout(() => $('#askOk', m).focus(), 30);
+    $('#askOk', m).onclick = () => end(true);
+  });
 }
 function histBtn(t, id) { return `<button class="btn sm" data-hist="${esc(t)}|${esc(id)}">변경 이력</button>`; }
 function bindHist(root) {
@@ -587,52 +785,69 @@ const PAGES = {};
 const KCOL = { 점검: '점검', 예정: '점검 예정', 기한: '보고서 기한', 연락: '현장 연락' };
 
 PAGES.home = async (m) => {
-  const r = await api('dash'), k = r.kpi;
-  S.todoN = r.todo.length + r.writing.filter((w) => w.남은날 != null && w.남은날 <= 7).length;
+  const [r, mo, si, rq] = await Promise.all([api('dash', {}, { cache: true }), api('money', {}, { cache: true }), api('sites', {}, { cache: true }), api('requests', {}, { cache: true }).catch(() => ({ requests: [], mails: [] }))]);
+  r.rq = rq;
+  const k = r.kpi;
+  S.todoN = (todoTable(r).match(/class="todo-row"/g) || []).length;
   if (S.todoN) { $('#bellN').textContent = S.todoN; $('#bellN').classList.remove('hide'); }
+  // 최근 12개월 청구·수금
+  const now = new Date(r.today + 'T00:00:00'), months = [];
+  for (let i = 11; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`); }
+  const mv = (k2, f) => months.map((x) => ((mo.monthly[x] || {})[f] || 0));
+  const thisM = mo.monthly[months[11]] || { 청구: 0, 수금: 0, 건수: 0 };
+  // 진행 중 현장의 점검 단계 분포
+  const dist = [0, 0, 0, 0, 0, 0]; si.sites.filter((s) => s.진행).forEach((s) => (s.단계목록 || []).forEach(([, st]) => dist[sIdx(st)]++));
+  const distTot = dist.reduce((a, b) => a + b, 0);
+  // 이번 주 + 다음 7일 일정 (일정 있는 날과 오늘만)
   const days = []; for (let i = 0; i < 7; i++) { const d = new Date(r.week.from + 'T00:00:00'); d.setDate(d.getDate() + i); days.push(isoD(d)); }
-  const yrs = Object.entries(r.years).sort((a, b) => b[0] - a[0]), ymax = Math.max(1, ...yrs.map(([, v]) => v.공급가));
-  m.innerHTML = head('업무 현황', `<span class="sub">오늘 ${r.today}</span><button class="btn" id="rf">새로고침</button>`) + `
-  <div class="strip">
-    <button data-go="sites"><span>진행 중 현장</span><b>${k.진행현장}<small> 곳 · 완료 ${k.완료현장}</small></b></button>
-    <button data-go="schedule"><span>보고서 작성 중</span><b>${k.작성중}<small> 건</small></b></button>
-    <button data-go="todo"><span>제출 기한 14일 이내</span><b class="${k.기한14 ? 'warn' : ''}">${k.기한14}<small> 건${k.기한초과 ? ` · 초과 ${k.기한초과}` : ''}</small></b></button>
-    <button data-go="collect"><span>입금 대기</span><b title="${won(k.입금대기)}원">${man(k.입금대기)}<small> 원 · ${k.입금대기건}건</small></b></button>
-    <button data-go="contracts"><span>계약 진행 / 완료</span><b>${k.계약진행}<small> / ${k.계약완료}</small></b></button>
-    <button data-go="todo"><span>처리할 일</span><b class="${r.todo.length ? 'bad' : ''}">${r.todo.length}<small> 건</small></b></button>
+  const agenda = days.map((d) => ({ d, ev: r.week.events.filter((e) => e.d === d) })).filter((x) => x.ev.length || x.d === r.today);
+  m.innerHTML = head('업무 현황', `<span class="sub">기준일 ${r.today}</span><button class="btn" id="rf">새로고침</button>`) + `
+  <div class="sumline">
+    <button data-go="sites"><span>진행 중 현장</span><b>${k.진행현장}<small>곳 · 완료 ${k.완료현장}</small></b></button>
+    <button data-go="todo"><span>보고서 작성 중</span><b>${k.작성중}<small>건</small></b></button>
+    <button data-go="todo"><span>제출 기한 14일 이내</span><b class="${k.기한14 ? 'warn' : ''}">${k.기한14}<small>건${k.기한초과 ? ` · 초과 ${k.기한초과}` : ''}</small></b></button>
+    <button data-go="todo"><span>처리할 일</span><b class="${S.todoN ? 'bad' : ''}">${S.todoN}<small>건</small></b></button>
+    <button data-go="collect"><span>입금 대기</span><b>${won(k.입금대기)}<small>원 · ${k.입금대기건}건</small></b></button>
+    <button data-go="sales"><span>이번 달 청구</span><b>${won(thisM.청구)}<small>원 · ${thisM.건수}건</small></b></button>
   </div>
   <div class="grid2"><div class="col">
-    <section class="panel"><div class="ph"><h2>이번 주 일정</h2><span class="sub">${md(r.week.from)} – ${md(r.week.to)}</span><a href="#schedule" data-go="schedule">달력</a></div>
-      <div class="week">${days.map((d) => { const ev = r.week.events.filter((e) => e.d === d); return `<div class="day ${d === r.today ? 'today' : ''}"><div class="dn">${WD[new Date(d + 'T00:00:00').getDay()]} ${+d.slice(8)}${d === r.today ? ' · 오늘' : ''}</div>${ev.map((e) => `<button class="ev k-${e.k} ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}" title="${esc(e.현장)} · ${esc(KCOL[e.k])} ${esc(e.t || '')}"><span class="evn">${esc(e.현장)}</span><em>${e.k === '연락' ? '연락 · ' : e.k === '기한' ? '기한 · ' : ''}${esc(e.t || '')}</em></button>`).join('')}</div>`; }).join('')}</div></section>
+    <section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">기한 7일 이내 · 연락일 지남 · 자료·메일 회신 지연</span><a href="#todo" data-go="todo">전체 보기</a></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
     <section class="panel"><div class="ph"><h2>보고서 제출 기한</h2><span class="sub">작성 중 ${k.작성중}건 · 기한 가까운 순</span></div><div class="tbox">
-      <table><thead><tr><th>현장 · 점검항목</th><th>제출 기한</th><th>남은 날</th><th>비고</th></tr></thead><tbody>
-      ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}</div><div class="t2">${esc(w.항목)} · 점검 ${esc(md(w.점검일))}</div></td><td class="nw">${esc(w.기한 || '—')}</td><td class="nw">${dlTag(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">작성 중인 보고서가 없습니다</td></tr>'}
+      <table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th><th>비고</th></tr></thead><tbody>
+      ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}</div><div class="t2">${esc(w.항목)}</div></td><td class="nw sub">${esc(w.점검일 || '—')}</td><td class="nw">${esc(w.기한 || '—')}</td><td>${dbar(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">작성 중인 보고서가 없습니다</td></tr>'}
       </tbody></table></div></section>
-    <section class="panel"><div class="ph"><h2>최근 변경</h2><span class="sub">웹에서 등록·수정한 기록</span></div>
-      ${r.recent.length ? `<table class="mini"><tbody>${r.recent.map((x) => `<tr><td class="nw sub">${esc(x.시각)}</td><td>${esc(x.표)} ${esc(x.동작)}</td><td class="sub">${esc(x.사용자)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">아직 웹에서 바뀐 기록이 없습니다</div>'}</section>
+    <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span><a href="#invoices" data-go="invoices">세금계산서</a></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
+      ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}</div><div class="t2">${esc(b.품명)}</div></td><td class="nw sub">${esc(b.발행일)}</td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>
   </div><div class="col">
-    <section class="panel"><div class="ph"><h2>처리할 일</h2><a href="#todo" data-go="todo">전체</a></div>${todoTable(r).slice(0, 2400) || '<div class="empty">없음</div>'}</section>
-    <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">경과일 순</span></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th class="num">미입금</th><th class="num">경과</th></tr></thead><tbody>
-      ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}</div><div class="t2">${esc(b.품명)}</div></td><td class="num">${won(b.미입금)}</td><td class="num"><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="3" class="empty">없음</td></tr>'}</tbody></table></div></section>
-    <section class="panel"><div class="ph"><h2>최근 연락기록</h2><a href="#contacts" data-go="contacts">전체</a></div>
-      ${r.contacts.map((c) => `<div class="sec" style="cursor:pointer" data-site="${esc(c.현장id)}"><b style="font-weight:500">${esc(c.현장명)}</b><div class="sub">${esc(c.연락일)} · ${esc(c.방법)} ${esc(c.담당자)}</div><div style="font-size:12.5px">${esc(String(c.메모 || c.공정).slice(0, 80))}</div></div>`).join('') || '<div class="empty">없음</div>'}</section>
-    <section class="panel"><div class="ph"><h2>연도별 계약</h2><span class="sub">VAT 별도</span><a href="#yearly" data-go="yearly">실적</a></div><div style="padding:8px 14px">
-      ${yrs.map(([y, v]) => `<div style="display:grid;grid-template-columns:44px minmax(0,1fr) 150px;gap:10px;align-items:center;padding:4px 0;font-size:12.5px"><span>${y}</span><span class="bar"><i style="width:${v.공급가 / ymax * 100}%"></i></span><span class="num">${won(v.공급가)} · ${v.건수}건</span></div>`).join('')}</div></section>
+    <section class="panel"><div class="ph"><h2>이번 주 일정</h2><span class="sub">${md(r.week.from)} – ${md(r.week.to)}</span><a href="#schedule" data-go="schedule">달력</a></div>
+      <div class="agenda">${agenda.map((x) => `<div class="dgrp ${x.d === r.today ? 'today' : ''}"><div class="dl"><b>${+x.d.slice(8)}</b>${WD[new Date(x.d + 'T00:00:00').getDay()]}${x.d === r.today ? ' · 오늘' : ''}</div><div class="its">${x.ev.map((e) => `<button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}</span></span></button>`).join('') || '<div class="sub" style="padding:3px 0">일정 없음</div>'}</div></div>`).join('')}</div></section>
+    <section class="panel"><div class="ph"><h2>월별 청구 · 수금</h2><span class="sub">최근 12개월 · 계산서 발행월 기준 · VAT 포함</span><a href="#sales" data-go="sales">매출 현황</a></div><div class="tbox"><table><thead><tr><th>월</th><th class="num">건수</th><th class="num">청구</th><th class="num">그중 수금</th><th class="num">미입금</th></tr></thead><tbody>
+      ${months.slice().reverse().map((x) => { const v = mo.monthly[x] || { 청구: 0, 수금: 0, 건수: 0 }, left = v.청구 - v.수금; return `<tr><td class="nw">${x.slice(0, 4)}. ${+x.slice(5)}월</td><td class="num sub">${v.건수 || '—'}</td><td class="num">${v.청구 ? won(v.청구) : '<span class="muted">—</span>'}</td><td class="num">${v.수금 ? won(v.수금) : '<span class="muted">—</span>'}</td><td class="num ${left > 0 ? 'warn' : ''}">${left > 0 ? won(left) : '<span class="muted">—</span>'}</td></tr>`; }).join('')}</tbody>
+      <tfoot><tr><td>12개월</td><td class="num">${months.reduce((a2, x) => a2 + ((mo.monthly[x] || {}).건수 || 0), 0)}</td><td class="num">${won(mv(0, '청구').reduce((a2, b2) => a2 + b2, 0))}</td><td class="num">${won(mv(0, '수금').reduce((a2, b2) => a2 + b2, 0))}</td><td class="num">${won(mv(0, '청구').reduce((a2, b2) => a2 + b2, 0) - mv(0, '수금').reduce((a2, b2) => a2 + b2, 0))}</td></tr></tfoot></table></div></section>
+    <section class="panel"><div class="ph"><h2>진행 중 현장의 점검 단계</h2><span class="sub">${si.sites.filter((s) => s.진행).length}곳 · 점검 ${distTot}건</span></div><div class="sec">
+      ${hbar(dist.map((v, i) => [STG[i], v, `var(--s${i})`]))}
+      <div class="legend" style="margin-top:8px">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n} <b>${dist[i]}</b></span>`).join('')}</div></div></section>
+    <section class="panel"><div class="ph"><h2>최근 연락</h2><a href="#contacts" data-go="contacts">전체</a></div><div class="sec">
+      ${timeline(r.contacts.slice(0, 5).map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} ${c.담당자 || ''}`, h: `<a href="#" data-site="${esc(c.현장id)}">${esc(c.현장명)}</a><div class="sub">${esc(String(c.메모 || c.공정 || '').slice(0, 70))}</div>` }))) || '<div class="sub">없음</div>'}</div></section>
+    ${r.recent.length ? `<section class="panel"><div class="ph"><h2>최근 변경</h2><span class="sub">웹에서 등록·수정</span></div><div class="sec"><table class="mini"><tbody>${r.recent.map((x) => `<tr><td class="nw sub">${esc(x.시각)}</td><td>${esc(x.표)} ${esc(x.동작)}</td><td class="sub">${esc(x.사용자)}</td></tr>`).join('')}</tbody></table></div></section>` : ''}
   </div></div>`;
   bindCommon(m);
-  $('#rf').onclick = () => { invalidate(); render(); };
+  $('#rf').onclick = async () => { try { await api('refresh'); } catch (e) {} invalidate(); LK = null; render(); };
 };
 function todoTable(r) {
   const rows = [].concat(
     r.writing.filter((w) => w.남은날 != null && w.남은날 <= 7).map((w) => ({ k: w.남은날 < 0 ? ['r', '기한 초과'] : ['w', '기한 ' + dl(w.남은날)], 현장: w.현장, id: w.현장id, t: `${w.항목} · 보고서 제출 ${w.기한}` })),
-    r.todo.map((x) => ({ k: ['r', '연락 지남'], 현장: x.현장, id: x.현장id, t: x.t })));
+    r.todo.map((x) => ({ k: ['r', '연락 지남'], 현장: x.현장, id: x.현장id, t: x.t })),
+    ((r.rq || {}).requests || []).filter((q) => !q.받음 && ((q.기한남음 != null && q.기한남음 < 0) || q.경과 > 7)).map((q) => ({ k: [q.기한남음 != null && q.기한남음 < 0 ? 'r' : 'w', '자료 미수신'], 현장: q.현장명, id: q.현장id, t: `${q.요청일} 요청 · ${String(q.자료).replace(/\n/g, ' ').slice(0, 50)}` })),
+    ((r.rq || {}).mails || []).filter((x) => x.회신대기 && x.경과 > 7).map((x) => ({ k: ['w', '메일 회신 대기'], 현장: x.현장명, id: x.현장id, t: `${x.보낸날} · ${x.제목}` })));
   if (!rows.length) return '';
-  return `<div>${rows.map((x) => `<button class="todo-row" data-site="${esc(x.id)}"><span class="tag ${x.k[0]}">${x.k[1]}</span><span style="min-width:0"><span class="t1" style="font-weight:500;display:block">${esc(x.현장)}</span><span class="t2" style="display:block">${esc(x.t)}</span></span></button>`).join('')}</div>`;
+  return `<div>${rows.map((x) => `<button class="todo-row" data-site="${esc(x.id)}"><span class="tag ${x.k[0]}">${x.k[1]}</span><span style="min-width:0"><span class="t1" style="display:block">${esc(x.현장)}</span><span class="t2" style="display:block">${esc(x.t)}</span></span></button>`).join('')}</div>`;
 }
 PAGES.todo = async (m) => {
-  const r = await api('dash');
-  m.innerHTML = head('내 할 일') + `<section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">보고서 기한 7일 이내 · 다음 연락일이 지난 현장</span></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
-  <section class="panel"><div class="ph"><h2>작성 중인 보고서 전체</h2></div><div class="tbox"><table><thead><tr><th>현장</th><th>점검항목</th><th>점검일</th><th>제출 기한</th><th class="num">남은 날</th></tr></thead><tbody>${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td>${esc(w.현장)}</td><td>${esc(w.항목)}</td><td>${esc(w.점검일)}</td><td>${esc(w.기한)}</td><td class="num">${dl(w.남은날)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">없음</td></tr>'}</tbody></table></div></section>`;
+  const r = await api('dash', {}, { cache: true });
+  r.rq = await api('requests', {}, { cache: true }).catch(() => ({ requests: [], mails: [] }));
+  m.innerHTML = head('내 할 일') + `<section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">보고서 기한 7일 이내 · 다음 연락일이 지난 현장 · 7일 넘게 못 받은 자료·메일 회신</span></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
+  <section class="panel"><div class="ph"><h2>작성 중인 보고서 전체</h2><span class="sub">${r.writing.length}건</span></div><div class="tbox"><table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th></tr></thead><tbody>${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}</div><div class="t2">${esc(w.항목)}</div></td><td class="nw sub">${esc(w.점검일)}</td><td class="nw">${esc(w.기한)}</td><td>${dbar(w.남은날)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>`;
   bindCommon(m);
 };
 function bindCommon(root) {
@@ -646,27 +861,32 @@ function bindCommon(root) {
 // ---------- 현장 목록
 PAGES.sites = async (m, p) => {
   const r = await api('sites', {}, { cache: true });
-  const st = S.sitesF = S.sitesF || { s: '진행', gu: '', q: '', sort: '', dir: 'asc' };
+  const st = S.sitesF = S.sitesF || { s: '진행', gu: '', q: '', sort: '', dir: 'asc', pg: 0 };
   const gus = [...new Set(r.sites.map((s) => s.관할구).filter(Boolean))].sort();
+  const act = r.sites.filter((s) => s.진행);
   const draw = () => {
     let rows = r.sites.filter((s) => (st.s === '전체' || (st.s === '진행') === s.진행) && (!st.gu || s.관할구 === st.gu) && (!st.q || norm(s.현장명 + s.시공사 + s.발주처 + s.주소).includes(norm(st.q))));
     if (st.sort) rows = sortRows(rows, st.sort, st.dir);
-    $('#tb').innerHTML = rows.map((s) => `<tr class="click ${s.id === p.id ? 'sel' : ''}" data-id="${s.id}"><td style="min-width:240px"><div class="t1">${esc(s.현장명)}${s.계약수 > 1 ? ` <span class="tag plain">계약 ${s.계약수}</span>` : ''}</div><div class="t2">${esc([s.관할구, s.시공사].filter(Boolean).join(' · '))}</div></td>
-      <td class="nw"><span class="prog"><i style="width:${s.점검 ? s.완료 / s.점검 * 100 : 0}%"></i></span><span class="sub">${s.완료}/${s.점검}</span></td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="num">${pct(s.수금률)}</td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
+    S._siteRows = rows;
+    const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
+    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((s) => `<tr class="click ${s.id === p.id ? 'sel' : ''}" data-id="${s.id}"><td style="min-width:230px"><div class="t1">${esc(s.현장명)}${s.계약수 > 1 ? ` <span class="tag plain">계약 ${s.계약수}</span>` : ''}</div><div class="t2">${esc([s.관할구, s.시공사].filter(Boolean).join(' · '))}</div></td>
+      <td class="nw">${(() => { const c = [0, 0, 0, 0, 0, 0]; (s.단계목록 || []).forEach(([, x]) => c[sIdx(x)]++); return `<b>${s.완료}</b><span class="sub"> / ${s.점검} 완료</span>${c[2] ? ` <span class="tag w">작성 중 ${c[2]}</span>` : ''}${c[3] + c[4] ? ` <span class="tag t">청구·입금 대기 ${c[3] + c[4]}</span>` : ''}`; })()}</td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="nw"><span class="prog"><i style="width:${Math.min(100, s.수금률 * 100)}%"></i></span><span class="sub">${pct(s.수금률)}</span></td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
+    $('#pg').innerHTML = pager(rows.length, st.pg, per, 'site');
     $('#cnt').textContent = `${rows.length}곳`;
     $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('sites', { id: tr.dataset.id })));
-    S._siteRows = rows;
+    $$('[data-pg]', m).forEach((b) => (b.onclick = () => { st.pg = +b.dataset.pg.split(':')[1]; draw(); }));
   };
-  m.innerHTML = head('현장 목록', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('현장', ic('plus', 15) + ' 현장 등록', '', 'id="add"')}`) + `
+  m.innerHTML = head('현장 목록', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('현장', ic('plus', 15) + ' 현장 등록', 'pri', 'id="add"')}`) + `
+  <div class="sumline"><div><span>진행 중 현장</span><b>${act.length}<small>곳</small></b></div><div><span>보고서 작성 중</span><b>${act.reduce((a, s) => a + s.작성중, 0)}<small>건</small></b></div><div><span>제출 기한 14일 이내</span><b class="warn">${act.filter((s) => s.남은날 != null && s.남은날 <= 14).length}<small>곳</small></b></div><div><span>점검 진행</span><b>${act.reduce((a, s) => a + s.완료, 0)}<small>/ ${act.reduce((a, s) => a + s.점검, 0)}건 완료</small></b></div><div><span>입금 대기</span><b>${won(act.reduce((a, s) => a + s.대기, 0))}<small>원</small></b></div></div>
   <div class="filters"><div class="seg" role="group" aria-label="상태">${['진행', '완료', '전체'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x === '진행' ? '진행 중' : x}</button>`).join('')}</div>
     <select class="inp" id="gu"><option value="">관할구 전체</option>${gus.map((g) => `<option ${st.gu === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>
-    <input class="inp" id="q" type="search" placeholder="현장명·시공사·주소" value="${esc(st.q)}" style="width:220px"><span class="sub" id="cnt"></span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel tbox"><table><thead><tr>${[['현장', '현장명'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '수금률' ? 'num' : ''} ${k === '다음' || k === '최근연락' ? 'opt' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></section>
+    <input class="inp" id="q" type="search" placeholder="현장명·시공사·주소" value="${esc(st.q)}" style="width:220px"><span class="cnt" id="cnt"></span></div>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr>${[['현장', '현장명'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '다음' || k === '최근연락' ? 'opt' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
-  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
-  $('#gu').onchange = (e) => { st.gu = e.target.value; draw(); };
-  $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  $('#gu').onchange = (e) => { st.gu = e.target.value; st.pg = 0; draw(); };
+  $('#q').oninput = (e) => { st.q = e.target.value; st.pg = 0; draw(); };
   $$('[data-sort]', m).forEach((th) => (th.onclick = () => { const k = th.dataset.sort; st.dir = st.sort === k && st.dir === 'asc' ? 'desc' : 'asc'; st.sort = k; render(); }));
   $('#add').onclick = () => openForm('현장', {}, (row) => go('sites', { id: row.id }));
   $('#xl').onclick = () => exportXlsx('현장목록', [['현장', [['현장명', '관할구', '주소', '시공사', '발주처', '점검', '완료', '작성중', '다음 점검', '보고서 기한', '계약금', '수금', '입금 대기', '수금률', '최근 연락']].concat(S._siteRows.map((s) => [s.현장명, s.관할구, s.주소, s.시공사, s.발주처, s.점검, s.완료, s.작성중, s.다음, s.기한, s.계약금, s.수금, s.대기, Math.round(s.수금률 * 100) + '%', s.최근연락]))]]);
@@ -674,30 +894,36 @@ PAGES.sites = async (m, p) => {
 };
 async function siteDetail(el, id, tab) {
   el.innerHTML = '<div class="empty">불러오는 중…</div>';
-  const r = await api('site', { id });
+  const r = await api('site', { id }, { cache: true });
   if (!r.site) { el.innerHTML = '<div class="empty">현장을 찾지 못했습니다</div>'; return; }
   const s = r.site, c0 = r.contracts[0] || {};
   tab = tab || 'info';
-  const tabs = [['info', '기본정보'], ['contract', `계약 ${r.contracts.length}`], ['items', `점검 ${r.items.length}`], ['contact', `연락 ${r.contacts.length}`], ['money', '수금'], ['docs', `문서 ${r.docs.length}`]];
+  const tabs = [['info', '개요'], ['items', `점검 ${r.items.length}`], ['contact', `연락 ${r.contacts.length}`], ['req', `자료 ${(r.requests || []).length + (r.mails || []).length}`], ['money', '수금'], ['photo', '사진'], ['contract', `계약 ${r.contracts.length}`], ['docs', `문서 ${r.docs.length}`]];
   const money = r.contracts.reduce((a, c) => ({ 계약금: a.계약금 + c.계약금, 수금: a.수금 + c.수금, 대기: a.대기 + c.대기 }), { 계약금: 0, 수금: 0, 대기: 0 });
+  const left = Math.max(0, money.계약금 - money.수금 - money.대기);
+  const itemDate = (x) => x.점검일 || x.예정일 || '';
   const body = {
-    info: () => `<div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(money.계약금)}</b></div><div><span>수금 ${money.계약금 ? Math.round(money.수금 / money.계약금 * 100) : 0}%</span><b>${won(money.수금)}</b></div><div><span>입금 대기</span><b>${won(money.대기)}</b></div></div></div><div class="sec"><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구</dt><dd>${esc(s.관할구 || '-')}</dd><dt>규모</dt><dd>${esc(s.규모 || '-')}</dd>
-      <dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>
-      ${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
-      <div class="sec"><h3>다음 할 일</h3>${r.items.filter((x) => ['보고서 작성중', '점검 예정', '점검 전'].includes(x.단계)).slice(0, 5).map((x) => `<div class="li">${stageTag(x.단계)}<div class="g"><div class="t1" style="font-weight:500">${esc(x.항목)}</div><div class="t2">${x.남은날 != null ? '기한 ' + esc(x.기한) + ' · ' + dl(x.남은날) : esc(x.시기 || '')}</div></div></div>`).join('') || '<div class="sub">없음</div>'}</div>
-      ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3><b style="font-weight:500">${esc(r.contacts[0].연락일)} · ${esc(r.contacts[0].방법)} · ${esc(r.contacts[0].담당자)}</b><div class="pre" style="font-size:12.5px">${esc(r.contacts[0].메모 || r.contacts[0].공정)}</div></div>` : ''}`,
-    contract: () => r.contracts.map((c) => `<div class="sec" style="cursor:pointer" data-contract="${esc(c.id)}"><div style="display:flex;gap:8px;align-items:center">${stTag(c.상태)}<b style="font-weight:500;flex:1">${esc(c.계약명)}</b><span class="sub">${c.연도}</span></div>
-      <div class="sub">계약금 ${won(c.계약금)}원 · 수금 ${won(c.수금)} (${pct(c.수금률)}) · 점검 ${c.제출}/${c.점검}</div></div>`).join('') || '<div class="empty">계약 없음</div>',
-    items: () => `<div class="tbox"><table class="mini"><thead><tr><th>항목</th><th>점검일</th><th>기한</th><th>발송일</th><th>단계</th><th></th></tr></thead><tbody>${r.items.map((x) => `<tr><td>${esc(x.항목)}</td><td class="nw">${esc(md(x.점검일) || md(x.예정일) && md(x.예정일) + ' 예정' || '—')}</td><td class="nw ${x.남은날 != null && x.남은날 <= 14 ? 'warn' : ''}">${esc(md(x.기한) || '—')}</td><td class="nw">${esc(md(x.발송일) || '—')}</td><td>${stageTag(x.단계)}</td><td>${editBtn('점검', '수정', 'sm', `data-ei="${esc(x.id)}"`)}</td></tr>`).join('')}</tbody></table></div>
-      <div class="sec">${editBtn('점검', ic('plus', 14) + ' 점검 추가', 'sm', 'id="addI"')}</div>`,
-    contact: () => `<div class="sec">${editBtn('연락', ic('plus', 14) + ' 연락 기록 추가', 'sm', 'id="addT"')}</div>` + r.contacts.map((c) => `<div class="sec"><div style="display:flex;gap:8px"><b style="font-weight:500;flex:1">${esc(c.연락일)} · ${esc(c.방법)} · ${esc(c.담당자)}</b>${editBtn('연락', '수정', 'sm', `data-et="${esc(c.id)}"`)}</div>${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}<div class="pre" style="font-size:12.5px">${esc(c.메모)}</div>${c.다음연락 ? `<div class="sub">다음 연락 ${esc(c.다음연락)}</div>` : ''}</div>`).join(''),
-    money: () => `<div class="sec"><dl class="kv"><dt>계약금</dt><dd>${won(money.계약금)}원</dd><dt>수금</dt><dd>${won(money.수금)}원</dd><dt>입금 대기</dt><dd>${won(money.대기)}원</dd><dt>잔여</dt><dd>${won(money.계약금 - money.수금)}원</dd></dl></div>
-      <div class="tbox"><table class="mini"><thead><tr><th>발행일</th><th>품명</th><th class="num">청구</th><th>입금일</th><th class="num">수금</th></tr></thead><tbody>${r.invoices.map((b) => `<tr><td class="nw">${esc(b.발행일 || '—')}</td><td>${esc(b.품명)}</td><td class="num">${won(b.청구액)}</td><td class="nw ${b.입금일 ? '' : 'warn'}">${esc(b.입금일 || '대기')}</td><td class="num">${won(b.수금액)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">없음</td></tr>'}</tbody></table></div>
+    info: () => `<div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(money.계약금)}</b></div><div><span>수금 ${money.계약금 ? Math.round(money.수금 / money.계약금 * 100) : 0}%</span><b>${won(money.수금)}</b></div><div><span>입금 대기</span><b>${won(money.대기)}</b></div></div>
+      <div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div></div>
+      <div class="sec"><h3>점검 회차별 진행</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
+      <div class="sec"><h3>현장 정보</h3><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구 · 규모</dt><dd>${esc([s.관할구, s.규모].filter(Boolean).join(' · ') || '-')}</dd>
+      <dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
+      ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3>${timeline([{ d: `${r.contacts[0].연락일} · ${r.contacts[0].방법 || ''} · ${r.contacts[0].담당자 || ''}`, h: esc(r.contacts[0].메모 || r.contacts[0].공정 || '') }])}</div>` : ''}`,
+    items: () => `<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><span class="sub">날짜순 · 점검일(없으면 예정일)</span>${editBtn('점검', ic('plus', 14) + ' 점검 추가', 'sm', 'id="addI"')}</div><div class="sec">${timeline(r.items.slice().sort((a, b) => String(itemDate(a) || '9').localeCompare(String(itemDate(b) || '9'))).map((x) => { const i = sIdx(x.단계); return { c: i === 5 ? 'g' : i === 2 ? 'w' : i >= 3 ? 't' : '', d: itemDate(x) ? `${itemDate(x)}${x.점검일 ? '' : ' (예정)'}` : '날짜 미정', tag: stageTag(x.단계), h: `<b>${esc(x.항목)}</b>${x.기한 ? ` <span class="sub">· 보고서 기한 ${esc(x.기한)}</span>` : ''}${x.발송일 ? ` <span class="sub">· 발송 ${esc(x.발송일)}</span>` : ''}${x.시기 && !x.점검일 ? `<div class="sub">${esc(x.시기)}</div>` : ''} ${editBtn('점검', '수정', 'sm ghost', `data-ei="${esc(x.id)}"`)}` }; }))}</div>`,
+    contact: () => `<div class="sec" style="display:flex;justify-content:flex-end">${editBtn('연락', ic('plus', 14) + ' 연락 기록 추가', 'sm', 'id="addT"')}</div><div class="sec">${timeline(r.contacts.map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} · ${c.담당자 || ''}`, c: c.다음연락 && c.다음연락 <= today() ? 'w' : '', h: `${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}<div class="pre">${esc(c.메모)}</div>${c.다음연락 ? `<div class="sub">다음 연락 ${esc(c.다음연락)}</div>` : ''} ${editBtn('연락', '수정', 'sm ghost', `data-et="${esc(c.id)}"`)}` }))) || '<div class="sub">연락 기록 없음</div>'}</div>`,
+    req: () => `<div class="sec"><h3>자료요청 ${(r.requests || []).length}건</h3>${timeline((r.requests || []).map((q) => ({ c: q.받음 ? 'g' : q.기한남음 != null && q.기한남음 < 0 ? 'r' : 'w', d: `${q.요청일} · ${q.방법 || ''}`, tag: reqTag(q), h: `<a href="#" data-q="${esc(q.id)}">${esc(String(q.자료).replace(/\n/g, ' ').slice(0, 70))}</a>` }))) || '<div class="sub">없음</div>'}</div>
+      <div class="sec"><h3>보낸 메일 ${(r.mails || []).length}건</h3>${timeline((r.mails || []).map((x) => ({ c: x.회신대기 ? 'w' : 'g', d: x.보낸날, tag: mailTag(x), h: `<a href="#" data-mm="${esc(x.id)}">${esc(x.제목)}</a>` }))) || '<div class="sub">없음</div>'}</div>`,
+    money: () => `<div class="sec"><div class="money3"><div><span>계약금</span><b>${won(money.계약금)}</b></div><div><span>수금</span><b>${won(money.수금)}</b></div><div><span>남은 금액</span><b>${won(money.계약금 - money.수금)}</b></div></div><div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div>
+      <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금</span><span><i style="background:var(--prog)"></i>입금 대기</span><span><i style="background:var(--line)"></i>아직 청구 전</span></div></div>
+      <div class="sec"><h3>계산서 · 입금</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : 't', d: `${b.발행일 || '발행 없음'}`, tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span>` }))) || '<div class="sub">없음</div>'}</div>
       <div class="sec"><button class="btn sm" id="mkTS">거래명세서 만들기</button></div>`,
-    docs: () => r.docs.map((d) => `<div class="sec"><span class="tag">${esc(d.종류)}</span> <b style="font-weight:500">${esc(d.번호 || '(임시저장)')}</b> <span class="sub">${esc(d.일자)} · ${won(d.합계)}원 · ${esc(d.상태)}</span> <button class="btn sm" data-doc="${esc(d.id)}">열기</button></div>`).join('') || '<div class="empty">이 현장 문서가 없습니다</div>',
+    photo: () => `<div class="sec"><div class="note info" style="margin:0 0 8px">현장사진은 사진대지 웹앱 코드를 받은 뒤 이 자리에 회차별 갤러리로 연결합니다.</div><div class="gallery">${'<div></div>'.repeat(8)}</div></div>`,
+    contract: () => r.contracts.map((c) => `<div class="sec" style="cursor:pointer" data-contract="${esc(c.id)}"><div style="display:flex;gap:8px;align-items:center">${stTag(c.상태)}<b style="flex:1">${esc(c.계약명)}</b><span class="sub">${c.연도}</span></div>
+      <div class="dbar" style="margin-top:6px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="sub">수금 ${pct(c.수금률)} · ${won(c.수금)} / ${won(c.계약금)}원</span></div></div>`).join('') || '<div class="empty">계약 없음</div>',
+    docs: () => r.docs.map((d) => `<div class="sec li"><span class="tag plain">${esc(d.종류)}</span><div class="g"><b>${esc(d.번호 || '(임시저장)')}</b> <span class="sub">${esc(d.일자)} · ${won(d.합계)}원</span></div><button class="btn sm" data-doc="${esc(d.id)}">열기</button></div>`).join('') || '<div class="empty">이 현장 문서가 없습니다</div>',
   };
   el.innerHTML = `<div class="dhead"><div class="sub">${esc(c0.id ? c0.id.slice(1) : '')} · ${esc(s.관할구)} · ${r.contracts.some((c) => c.상태 === '진행중') ? '진행 중' : '완료'}</div><h2>${esc(s.현장명)}</h2>
-    <div class="acts">${editBtn('현장', '현장 수정', 'sm', 'id="editS"')}${editBtn('연락', '연락 기록 추가', 'sm', 'id="addT2"')}${histBtn('현장', s.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
+    <div class="acts">${editBtn('현장', '현장 수정', 'sm', 'id="editS"')}${editBtn('연락', '연락 기록', 'sm', 'id="addT2"')}<button class="btn sm" id="mkTS2">거래명세서</button>${histBtn('현장', s.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
     <div class="tabs" role="tablist">${tabs.map(([k, n]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${n}</button>`).join('')}</div><div id="tbody">${body[tab]()}</div>`;
   $$('[data-tab]', el).forEach((b) => (b.onclick = () => { S.params.tab = b.dataset.tab; siteDetail(el, id, b.dataset.tab); }));
   $('#closeD', el).onclick = () => go('sites');
@@ -709,52 +935,68 @@ async function siteDetail(el, id, tab) {
   $$('[data-ei]', el).forEach((b) => (b.onclick = () => openForm('점검', r.items.find((x) => x.id === b.dataset.ei), reload)));
   $$('[data-et]', el).forEach((b) => (b.onclick = () => openForm('연락', r.contacts.find((x) => x.id === b.dataset.et), reload)));
   $$('[data-doc]', el).forEach((b) => (b.onclick = () => go('statement', { doc: b.dataset.doc })));
-  if ($('#mkTS', el)) $('#mkTS', el).onclick = () => go('statement', { contract: (r.contracts.find((c) => c.상태 === '진행중') || r.contracts[0] || {}).id || '' });
+  $$('[data-q]', el).forEach((a) => (a.onclick = (e) => { e.preventDefault(); showReq((r.requests || []).find((x) => x.id === a.dataset.q), reload); }));
+  $$('[data-mm]', el).forEach((a) => (a.onclick = (e) => { e.preventDefault(); showMail((r.mails || []).find((x) => x.id === a.dataset.mm), reload); }));
+  const mk = () => go('statement', { contract: (r.contracts.find((c) => c.상태 === '진행중') || r.contracts[0] || {}).id || '' });
+  $('#mkTS2', el).onclick = mk; if ($('#mkTS', el)) $('#mkTS', el).onclick = mk;
   bindCommon(el);
 }
 
 // ---------- 계약·용역
 PAGES.contracts = async (m, p) => {
   const r = await api('contracts', {}, { cache: true });
-  const st = S.conF = S.conF || { y: '', s: '', q: '' };
+  const st = S.conF = S.conF || { y: '', s: '', q: '', pg: 0 };
   const years = [...new Set(r.contracts.map((c) => c.연도))].sort((a, b) => b - a);
+  const yAsc = years.slice().reverse();
   const draw = () => {
     const rows = r.contracts.filter((c) => (!st.y || String(c.연도) === st.y) && (!st.s || c.상태 === st.s) && (!st.q || norm(c.계약명 + c.발주처 + c.시공사 + c.id).includes(norm(st.q))));
     S._conRows = rows;
     const sum = rows.reduce((a, c) => [a[0] + c.공급가, a[1] + c.계약금, a[2] + c.수금, a[3] + c.대기], [0, 0, 0, 0]);
-    $('#tb').innerHTML = rows.map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:240px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw sub opt">${esc(c.계약일 || '—')}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="num">${won(c.수금)}<div class="t2">${pct(c.수금률)}</div></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
+    $('#sl').innerHTML = `<div><span>${st.y ? st.y + '년 ' : ''}${st.s || '전체'} 계약</span><b>${rows.length}<small>건</small></b></div><div><span>공급가 합계 (VAT 별도)</span><b>${won(sum[0])}</b></div><div><span>계약금 합계 (VAT 포함)</span><b>${won(sum[1])}</b></div><div><span>수금</span><b class="ok">${won(sum[2])}<small>${sum[1] ? Math.round(sum[2] / sum[1] * 100) : 0}%</small></b></div><div><span>입금 대기</span><b class="${sum[3] ? 'warn' : ''}">${won(sum[3])}</b></div><div><span>남은 금액</span><b>${won(sum[1] - sum[2])}</b></div>`;
+    const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
+    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw sub opt">${esc(c.계약일 || '—')}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
     $('#tf').innerHTML = `<tr><td colspan="2">${rows.length}건 합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td><td colspan="2"></td></tr>`;
+    $('#pg').innerHTML = pager(rows.length, st.pg, per, 'con');
+    $('#cnt').textContent = rows.length + '건';
     $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('contracts', { id: tr.dataset.id })));
+    $$('[data-pg]', m).forEach((b) => (b.onclick = () => { st.pg = +b.dataset.pg.split(':')[1]; draw(); }));
   };
-  m.innerHTML = head('계약·용역 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('계약', ic('plus', 15) + ' 계약 등록', '', 'id="add"')}`) + lockNote('계약') + `
+  const yv = (f) => yAsc.map((y) => r.contracts.filter((c) => c.연도 === y).reduce((a, c) => a + c[f], 0));
+  m.innerHTML = head('계약·용역 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('계약', ic('plus', 15) + ' 계약 등록', 'pri', 'id="add"')}`) + lockNote('계약') + `
+  <div class="grid2" style="grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);margin-bottom:12px"><div class="sumline g3" id="sl" style="margin:0;align-self:start"></div>
+  <section class="panel"><div class="ph"><h2>연도별 계약 규모</h2><span class="sub">계약금 · 수금</span></div><div class="chart">${barChart({ w: 380, height: 130, vals: true, fmt: () => '', labels: yAsc.map(String), series: [{ name: '계약금', color: '#526779', values: yv('계약금') }, { name: '수금', color: '#82968A', values: yv('수금') }] })}</div></section></div>
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${years.map((y) => `<option ${st.y === String(y) ? 'selected' : ''}>${y}</option>`).join('')}</select>
-  <select class="inp" id="s"><option value="">전체 상태</option>${['진행중', '완료', '종료', '취소'].map((x) => `<option ${st.s === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
-  <input class="inp" id="q" type="search" placeholder="계약명·발주처·번호" value="${esc(st.q)}" style="width:220px"><span class="sub">금액 단위: 원 · 공급가는 VAT 별도, 계약금은 VAT 포함</span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="opt">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th class="num">수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></section>
+  <div class="seg" role="group" aria-label="상태">${['', '진행중', '완료', '종료', '취소'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x ? (x === '진행중' ? '진행 중' : x) : '전체'}</button>`).join('')}</div>
+  <input class="inp" id="q" type="search" placeholder="계약명·발주처·번호" value="${esc(st.q)}" style="width:220px"><span class="sub">공급가 VAT 별도 · 계약금·수금 VAT 포함</span><span class="cnt" id="cnt"></span></div>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="opt">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
-  $('#y').onchange = (e) => { st.y = e.target.value; draw(); };
-  $('#s').onchange = (e) => { st.s = e.target.value; draw(); };
-  $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
+  $('#y').onchange = (e) => { st.y = e.target.value; st.pg = 0; draw(); };
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  $('#q').oninput = (e) => { st.q = e.target.value; st.pg = 0; draw(); };
   $('#add').onclick = () => openForm('계약', { 연도: new Date().getFullYear(), 상태: '진행중', VAT기준: '별도' }, (row) => go('contracts', { id: row.id }));
   $('#xl').onclick = () => exportXlsx('계약목록', [['계약', [['번호', '연도', '계약명', '발주처', '시공사', '계약일', '공급가', '부가세', '계약금', '수금', '입금 대기', '잔여', '점검', '제출', '상태']].concat(S._conRows.map((c) => [c.id.slice(1), c.연도, c.계약명, c.발주처, c.시공사, c.계약일, c.공급가, c.부가세, c.계약금, c.수금, c.대기, c.잔여, c.점검, c.제출, c.상태]))]]);
   if (p.id) contractDetail($('#det'), p.id);
 };
 async function contractDetail(el, id) {
   el.innerHTML = '<div class="empty">불러오는 중…</div>';
-  const r = await api('contract', { id }), c = r.contract;
+  const r = await api('contract', { id }, { cache: true }), c = r.contract;
   if (!c) { el.innerHTML = '<div class="empty">계약을 찾지 못했습니다</div>'; return; }
   const reload = () => { invalidate(); contractDetail(el, id); };
-  el.innerHTML = `<div class="dhead"><div class="sub">${esc(c.id.slice(1))} · ${c.연도}년 ${c.용역코드 ? '· 용역코드 ' + esc(c.용역코드) : ''}</div><h2>${esc(c.계약명)}</h2><div style="margin-top:6px">${stTag(c.상태)}</div>
+  const left = Math.max(0, c.계약금 - c.수금 - c.대기);
+  el.innerHTML = `<div class="dhead"><div class="sub">${esc(c.id.slice(1))} · ${c.연도}년${c.용역코드 ? ' · 용역코드 ' + esc(c.용역코드) : ''}</div><h2>${esc(c.계약명)}</h2><div style="margin-top:4px">${stTag(c.상태)}</div>
     <div class="acts">${editBtn('계약', '계약 수정', 'sm', 'id="editC"')}${editBtn('청구', '청구·입금 등록', 'sm', 'id="addB"')}<button class="btn sm" id="mkTS">거래명세서</button><button class="btn sm" data-site="${esc(c.현장id)}">현장 보기</button>${histBtn('계약', c.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
-    <div class="sec"><h3>금액</h3><div class="money3" style="margin-bottom:14px"><div><span>계약금 (VAT 포함)</span><b>${won(c.계약금)}</b></div><div><span>수금 ${pct(c.수금률)}</span><b>${won(c.수금)}</b></div><div><span>잔여금</span><b>${won(c.잔여)}</b></div></div><dl class="kv"><dt>공급가 (VAT 별도)</dt><dd>${won(c.공급가)}원</dd><dt>부가세</dt><dd>${won(c.부가세)}원</dd><dt>계약금 (VAT 포함)</dt><dd><b>${won(c.계약금)}원</b></dd>
-      <dt>수금</dt><dd>${won(c.수금)}원 (${pct(c.수금률)})${c.이월수금 ? ` <span class="sub">이월 ${won(c.이월수금)} 포함</span>` : ''}</dd><dt>입금 대기</dt><dd>${won(c.대기)}원</dd><dt>잔여금</dt><dd>${won(c.잔여)}원</dd>${c.미수금 ? `<dt>미수금</dt><dd class="bad">${won(c.미수금)}원</dd>` : ''}
+    <div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(c.계약금)}</b></div><div><span>수금 ${pct(c.수금률)}</span><b class="ok">${won(c.수금)}</b></div><div><span>남은 금액</span><b>${won(c.잔여)}</b></div></div>
+      <div style="margin-top:6px">${hbar([['수금', c.수금, 'var(--done)'], ['입금 대기', c.대기, 'var(--prog)'], ['청구 전', left, 'var(--line)']])}</div>
+      <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금 ${won(c.수금)}</span><span><i style="background:var(--prog)"></i>입금 대기 ${won(c.대기)}</span><span><i style="background:var(--line)"></i>청구 전 ${won(left)}</span></div></div>
+    <div class="sec"><h3>청구 · 입금 ${r.invoices.length}건</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : b.발행일 ? 't' : '', d: b.발행일 ? `${b.발행일} 발행` : '발행일 없음', tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span> ${editBtn('청구', '수정', 'sm ghost', `data-eb="${esc(b.id)}"`)}` }))) || '<div class="sub">아직 청구 없음</div>'}</div>
+    <div class="sec"><h3>점검 회차 ${r.items.length}건</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${esc(md(x.점검일) || '')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="sec"><h3>금액 상세</h3><dl class="kv"><dt>공급가 (VAT 별도)</dt><dd>${won(c.공급가)}원</dd><dt>부가세</dt><dd>${won(c.부가세)}원</dd><dt>계약금 (VAT 포함)</dt><dd><b>${won(c.계약금)}원</b></dd>
+      <dt>수금</dt><dd>${won(c.수금)}원${c.이월수금 ? ` <span class="sub">이월 ${won(c.이월수금)} 포함</span>` : ''}</dd>${c.미수금 ? `<dt>미수금</dt><dd class="bad">${won(c.미수금)}원</dd>` : ''}
       ${c.종합보고서구분 ? `<dt>종합보고서</dt><dd>${esc(c.종합보고서구분)} ${c.종합보고서금액 ? won(c.종합보고서금액) + '원' : ''}</dd>` : ''}<dt>VAT 기준</dt><dd>${esc(c.VAT기준 || '-')}</dd></dl></div>
     <div class="sec"><h3>당사자 · 기간</h3><dl class="kv"><dt>발주처(계약자)</dt><dd><a href="#" data-partner="${esc(c.발주처.id || '')}">${esc(c.발주처.거래처명 || '-')}</a> <span class="sub">${esc(c.발주처.사업자번호 || '')}</span></dd>
       ${c.실제입금처.id ? `<dt>실제 입금처</dt><dd><a href="#" data-partner="${esc(c.실제입금처.id)}">${esc(c.실제입금처.거래처명)}</a></dd>` : ''}<dt>시공사</dt><dd>${esc(c.시공사.거래처명 || c.발주처.거래처명 || '-')}</dd>
-      <dt>계약일</dt><dd>${esc(c.계약일 || '—')}</dd><dt>준공 예정</dt><dd>${esc(c.준공예정일 || '—')}</dd><dt>완료일</dt><dd>${esc(c.완료일 || '—')}</dd>${c.비고 ? `<dt>비고</dt><dd class="pre">${esc(c.비고)}</dd>` : ''}</dl></div>
-    <div class="sec"><h3>점검 ${r.items.length}건</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td>${esc(x.항목)}</td><td class="nw">${esc(x.점검일 || '—')}</td><td>${stageTag(x.단계)}</td></tr>`).join('')}</tbody></table></div>
-    <div class="sec"><h3>청구·입금 ${r.invoices.length}건</h3><table class="mini"><thead><tr><th>발행일</th><th>품명</th><th class="num">청구</th><th>입금일</th><th></th></tr></thead><tbody>${r.invoices.map((b) => `<tr><td class="nw">${esc(b.발행일 || '—')}</td><td>${esc(b.품명)}</td><td class="num">${won(b.청구액)}</td><td class="nw ${b.입금일 ? '' : 'warn'}">${esc(b.입금일 || '대기')}</td><td>${editBtn('청구', '수정', 'sm', `data-eb="${esc(b.id)}"`)}</td></tr>`).join('')}</tbody></table></div>`;
+      <dt>계약일</dt><dd>${esc(c.계약일 || '—')}</dd><dt>준공 예정</dt><dd>${esc(c.준공예정일 || '—')}</dd><dt>완료일</dt><dd>${esc(c.완료일 || '—')}</dd>${c.비고 ? `<dt>비고</dt><dd class="pre">${esc(c.비고)}</dd>` : ''}</dl></div>`;
   $('#closeD', el).onclick = () => go('contracts');
   $('#editC', el).onclick = () => openForm('계약', Object.assign({}, c, { 발주처id: c.발주처.id || '', 실제입금처id: c.실제입금처.id || '', 시공사id: c.시공사.id || '' }), () => { invalidate(); render(); });
   $('#addB', el).onclick = () => openForm('청구', { 계약id: id, 발행일: today() }, reload);
@@ -766,50 +1008,112 @@ async function contractDetail(el, id) {
 // ---------- 점검 일정
 PAGES.schedule = async (m, p) => {
   const now = new Date();
-  const st = S.calF = S.calF || { y: now.getFullYear(), mo: now.getMonth(), sel: today(), kinds: pref.get('calKinds', ['점검', '예정', '기한']) };
+  const st = S.calF = S.calF || { y: now.getFullYear(), mo: now.getMonth(), sel: today(), kinds: pref.get('calKinds', ['점검', '예정', '기한']), view: pref.get('calView', '달력') };
   const first = new Date(st.y, st.mo, 1), start = new Date(st.y, st.mo, 1 - first.getDay()), end = new Date(start.getTime() + 41 * 864e5);
   const r = await api('schedule', { from: isoD(start), to: isoD(end) }, { cache: true });
   const ev = r.events.filter((e) => st.kinds.includes(e.k));
-  const T = today();
+  const T = today(), ym = `${st.y}-${String(st.mo + 1).padStart(2, '0')}`;
   const cells = []; for (let i = 0; i < 42; i++) { const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i); cells.push(isoD(d)); }
   const dayList = ev.filter((e) => e.d === st.sel);
-  m.innerHTML = head('점검 일정', `<button class="btn" id="pm">‹</button><b style="min-width:100px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm">›</button><button class="btn" id="tm">오늘</button>`) + `
-  <div class="filters"><div class="chips" role="group" aria-label="표시 항목">${Object.entries(KCOL).map(([k, n]) => `<button class="chip ${st.kinds.includes(k) ? 'on' : ''}" data-k="${k}" aria-pressed="${st.kinds.includes(k)}"><i class="k-${k}"></i>${n} ${r.events.filter((e) => e.k === k && e.d.slice(0, 7) === `${st.y}-${String(st.mo + 1).padStart(2, '0')}`).length}</button>`).join('')}</div><span class="sub grow">흐린 항목은 완료·종료된 점검입니다</span></div>
-  <div class="grid2"><section class="panel"><div class="cal">${WD.split('').map((w) => `<div class="wd">${w}</div>`).join('')}${cells.map((d) => { const es = ev.filter((e) => e.d === d); return `<button class="cd ${d.slice(5, 7) !== String(st.mo + 1).padStart(2, '0') ? 'out' : ''} ${d === T ? 'today' : ''} ${d === st.sel ? 'sel' : ''}" data-d="${d}"><span class="n">${+d.slice(8)}</span>${es.slice(0, 4).map((e) => `<span class="ev k-${e.k} ${e.done ? 'done' : ''}">${esc(e.현장.split(' ')[0])} ${esc(e.t || '')}</span>`).join('')}${es.length > 4 ? `<span class="sub">+${es.length - 4}</span>` : ''}<span class="dot">${es.slice(0, 4).map((e) => `<i class="k-${e.k}"></i>`).join('')}</span></button>`; }).join('')}</div></section>
-  <section class="panel"><div class="ph"><h2>${st.sel} (${WD[new Date(st.sel + 'T00:00:00').getDay()]})</h2><span class="sub">${dayList.length}건</span></div>
-    ${dayList.map((e) => `<div class="sec" style="cursor:pointer" data-site="${esc(e.현장id)}"><span class="tag ${e.k === '기한' ? 'r' : e.k === '예정' ? 'w' : e.k === '연락' ? 't' : 'g'}">${KCOL[e.k]}</span> <b style="font-weight:500">${esc(e.현장)}</b><div class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</div></div>`).join('') || '<div class="empty">일정 없음</div>'}</section></div>`;
+  const monthEv = ev.filter((e) => e.d.slice(0, 7) === ym);
+  const cnt = (k) => r.events.filter((e) => e.k === k && e.d.slice(0, 7) === ym).length;
+  const aRow = (e) => `<button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</span></span></button>`;
+  const days = [...new Set(monthEv.map((e) => e.d))].sort();
+  m.innerHTML = head('점검 일정', `<div class="seg" role="group" aria-label="보기">${['달력', '목록'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전 달">‹</button><b style="min-width:96px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm" aria-label="다음 달">›</button><button class="btn" id="tm">오늘</button>`) + `
+  <div class="sumline"><div><span>이번 달 점검</span><b>${cnt('점검')}<small>건</small></b></div><div><span>점검 예정</span><b>${cnt('예정')}<small>건</small></b></div><div><span>보고서 기한</span><b class="${cnt('기한') ? 'warn' : ''}">${cnt('기한')}<small>건</small></b></div><div><span>다음 연락 예정</span><b>${cnt('연락')}<small>건</small></b></div></div>
+  <div class="filters"><div class="chips" role="group" aria-label="표시 항목">${Object.entries(KCOL).map(([k, n]) => `<button class="chip ${st.kinds.includes(k) ? 'on' : ''}" data-k="${k}" aria-pressed="${st.kinds.includes(k)}"><i class="k-${k}"></i>${n}</button>`).join('')}</div><span class="cnt">흐린 항목은 완료·종료된 점검</span></div>
+  ${st.view === '목록' ? `<section class="panel"><div class="ph"><h2>${st.mo + 1}월 일정</h2><span class="sub">${monthEv.length}건 · 날짜순</span></div><div class="agenda">${days.map((d) => `<div class="dgrp ${d === T ? 'today' : ''}"><div class="dl"><b>${+d.slice(8)}</b>${WD[new Date(d + 'T00:00:00').getDay()]}${d === T ? ' · 오늘' : ''}</div><div class="its">${monthEv.filter((e) => e.d === d).map(aRow).join('')}</div></div>`).join('') || '<div class="empty">일정 없음</div>'}</div></section>`
+  : `<div class="grid2"><section class="panel"><div class="cal">${WD.split('').map((w) => `<div class="wd">${w}</div>`).join('')}${cells.map((d) => { const es = ev.filter((e) => e.d === d); return `<button class="cd ${d.slice(5, 7) !== String(st.mo + 1).padStart(2, '0') ? 'out' : ''} ${d === T ? 'today' : ''} ${d === st.sel ? 'sel' : ''}" data-d="${d}"><span class="n">${+d.slice(8)}</span>${es.slice(0, 4).map((e) => `<span class="ev k-${e.k} ${e.done ? 'done' : ''}">${esc(e.현장.split(' ')[0])} ${esc(e.t || '')}</span>`).join('')}${es.length > 4 ? `<span class="sub">+${es.length - 4}</span>` : ''}<span class="dot">${es.slice(0, 4).map((e) => `<i class="k-${e.k}"></i>`).join('')}</span></button>`; }).join('')}</div></section>
+  <section class="panel"><div class="ph"><h2>${st.sel} (${WD[new Date(st.sel + 'T00:00:00').getDay()]})</h2><span class="sub">${dayList.length}건</span></div><div class="agenda"><div class="dgrp" style="grid-template-columns:0 1fr"><div></div><div class="its" style="padding-left:12px">${dayList.map(aRow).join('') || '<div class="empty">일정 없음</div>'}</div></div></div></section></div>`}`;
   const mv = (n) => { const d = new Date(st.y, st.mo + n, 1); st.y = d.getFullYear(); st.mo = d.getMonth(); render(); };
   $('#pm').onclick = () => mv(-1); $('#nm').onclick = () => mv(1);
   $('#tm').onclick = () => { st.y = now.getFullYear(); st.mo = now.getMonth(); st.sel = today(); render(); };
+  $$('[data-v]', m).forEach((b) => (b.onclick = () => { st.view = b.dataset.v; pref.set('calView', st.view); render(); }));
   $$('[data-d]', m).forEach((b) => (b.onclick = () => { st.sel = b.dataset.d; render(); }));
   $$('[data-k]', m).forEach((b) => (b.onclick = () => { const k = b.dataset.k, i = st.kinds.indexOf(k); if (i >= 0) { if (st.kinds.length > 1) st.kinds.splice(i, 1); } else st.kinds.push(k); pref.set('calKinds', st.kinds); render(); }));
   bindCommon(m);
 };
-
 // ---------- 연락기록
 PAGES.contacts = async (m) => {
   const r = await api('contacts', {}, { cache: true });
   const st = S.ctF = S.ctF || { q: '', due: false };
-  const T = today();
+  const T = today(), ym = T.slice(0, 7), wk = isoD(new Date(Date.now() - 6 * 864e5));
+  const last = {}; r.contacts.forEach((c) => { if (!last[c.현장id] || c.연락일 > last[c.현장id].연락일) last[c.현장id] = c; });
+  const dueN = Object.values(last).filter((c) => c.다음연락 && c.다음연락 <= T).length;
   const draw = () => {
-    const rows = r.contacts.filter((c) => (!st.q || norm(c.현장명 + c.담당자 + c.메모 + c.공정).includes(norm(st.q))) && (!st.due || (c.다음연락 && c.다음연락 <= T)));
+    const rows = r.contacts.filter((c) => (!st.q || norm(c.현장명 + c.담당자 + c.메모 + c.공정).includes(norm(st.q))) && (!st.due || (last[c.현장id] === c && c.다음연락 && c.다음연락 <= T)));
     S._ctRows = rows;
-    $('#tb').innerHTML = rows.map((c) => { const due = c.다음연락 && c.다음연락 <= T; return `<div class="it2"><div class="d">${esc(c.연락일)}</div><div style="min-width:0"><div class="t1"><a href="#" data-site="${esc(c.현장id)}">${esc(c.현장명)}</a></div>
-      <div class="meta"><span class="tag plain">${esc(c.방법 || '연락')}</span>${c.담당자 ? `<span class="sub">${esc(c.담당자)}</span>` : ''}${c.공정 ? `<span class="sub">· 공정 ${esc(c.공정)}</span>` : ''}</div>${c.메모 ? `<div class="memo">${esc(c.메모)}</div>` : ''}
+    let prevM = '';
+    $('#tb').innerHTML = rows.map((c) => { const due = c.다음연락 && c.다음연락 <= T, mo = String(c.연락일).slice(0, 7); const hd = mo !== prevM ? `<div class="mhd">${mo.slice(0, 4)}년 ${+mo.slice(5)}월</div>` : ''; prevM = mo;
+      return hd + `<div class="it2"><div class="d">${esc(md(c.연락일))}<div class="sub">${esc(c.방법 || '')}</div></div><div style="min-width:0"><div class="t1"><a href="#" data-site="${esc(c.현장id)}">${esc(c.현장명)}</a>${c.담당자 ? ` <span class="sub">· ${esc(c.담당자)}</span>` : ''}</div>
+      ${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}${c.메모 ? `<div class="memo">${esc(c.메모)}</div>` : ''}
       ${c.다음연락 || c.예상점검 ? `<div class="meta">${c.다음연락 ? `<span class="tag ${due ? 'w' : 't'}">다음 연락 ${esc(c.다음연락)}</span>` : ''}${c.예상점검 ? `<span class="sub">다음 점검 예상: ${esc(c.예상점검)} ${esc(c.예상시기 || '')}</span>` : ''}</div>` : ''}</div>
       <div>${editBtn('연락', '수정', 'sm', `data-et="${esc(c.id)}"`)}</div></div>`; }).join('') || '<div class="empty">없음</div>';
     $('#cnt').textContent = rows.length + '건';
     bindCommon($('#tb'));
     $$('[data-et]', m).forEach((b) => (b.onclick = () => openForm('연락', r.contacts.find((x) => x.id === b.dataset.et), () => { invalidate(); render(); })));
   };
-  m.innerHTML = head('현장 연락기록', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('연락', ic('plus', 15) + ' 연락 기록 추가', '', 'id="add"')}`) + lockNote('연락기록') + `
-  <div class="filters"><input class="inp" id="q" type="search" placeholder="현장·담당자·내용" value="${esc(st.q)}" style="width:240px"><label class="chip ${st.due ? 'on' : ''}" style="cursor:pointer"><input type="checkbox" id="due" ${st.due ? 'checked' : ''} style="margin:0;accent-color:var(--pri)"> 다음 연락일이 지난 것만</label><span class="sub" id="cnt"></span></div>
+  m.innerHTML = head('현장 연락기록', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('연락', ic('plus', 15) + ' 연락 기록 추가', 'pri', 'id="add"')}`) + lockNote('연락기록') + `
+  <div class="sumline"><div><span>전체 기록</span><b>${r.contacts.length}<small>건</small></b></div><div><span>이번 달</span><b>${r.contacts.filter((c) => String(c.연락일).slice(0, 7) === ym).length}<small>건</small></b></div><div><span>최근 7일</span><b>${r.contacts.filter((c) => c.연락일 >= wk).length}<small>건</small></b></div><div><span>다음 연락일 지난 현장</span><b class="${dueN ? 'bad' : ''}">${dueN}<small>곳</small></b></div></div>
+  <div class="filters"><input class="inp" id="q" type="search" placeholder="현장·담당자·내용" value="${esc(st.q)}" style="width:240px"><label class="chip ${st.due ? 'on' : ''}" style="cursor:pointer"><input type="checkbox" id="due" ${st.due ? 'checked' : ''} style="margin:0;accent-color:var(--pri)"> 다음 연락일이 지난 현장만</label><span class="cnt" id="cnt"></span></div>
   <section class="panel feed" id="tb"></section>`;
   draw();
   $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
   $('#due').onchange = (e) => { st.due = e.target.checked; draw(); };
   $('#add').onclick = () => openForm('연락', { 연락일: today(), 방법: '전화' }, () => { invalidate(); render(); });
   $('#xl').onclick = () => exportXlsx('연락기록', [['연락', [['연락일', '현장', '방법', '담당자', '현재 공정', '내용', '다음 점검 예상', '예상 시기', '다음 연락', '비고']].concat(S._ctRows.map((c) => [c.연락일, c.현장명, c.방법, c.담당자, c.공정, c.메모, c.예상점검, c.예상시기, c.다음연락, c.비고]))]]);
+};
+// ---------- 자료요청 · 메일
+function reqStep(q) { const st = q.받음 ? (q.검토 ? 3 : 2) : 1; return `<span class="step g3s ${q.받음 ? 'g' : ''}">${['요청', '수신', '검토'].map((n, k) => `<span class="${k < st - 1 || (q.받음 && k < st) ? 'on' : k === st - 1 ? 'cur' : ''}">${n}</span>`).join('')}</span>`; }
+function reqTag(q) { if (q.받음) return '<span class="tag g">수신 완료</span>'; if (q.기한남음 != null && q.기한남음 < 0) return `<span class="tag r">기한 지남 ${-q.기한남음}일</span>`; return `<span class="tag ${q.경과 > 7 ? 'w' : 't'}">미수신 ${q.경과 != null ? q.경과 + '일' : ''}</span>`; }
+function mailTag(x) { if (x.회신대기) return `<span class="tag ${x.경과 > 7 ? 'w' : 't'}">회신 대기${x.경과 != null ? ' ' + x.경과 + '일' : ''}</span>`; if (x.회신일 || /받음/.test(x.회신상태)) return '<span class="tag g">회신 받음</span>'; return `<span class="tag plain">${esc(x.회신상태 || '회신 불필요')}</span>`; }
+function showReq(q, reload) {
+  const m = modal('자료요청 상세', `<div style="margin-bottom:10px">${reqStep(q)} ${reqTag(q)}</div><dl class="kv"><dt>현장</dt><dd><a href="#" data-site="${esc(q.현장id)}">${esc(q.현장명)}</a></dd><dt>요청일 · 방법</dt><dd>${esc(q.요청일)} · ${esc(q.방법 || '-')}</dd><dt>현장 담당자</dt><dd>${esc(q.담당자 || '-')}</dd><dt>점검항목</dt><dd>${esc(q.항목 || '-')}${q.점검일 ? ` <span class="sub">(점검 ${esc(q.점검일)})</span>` : ''}</dd><dt>요청 구분</dt><dd>${esc(q.구분 || '-')}${q.원요청 ? ` · 원요청 NO ${esc(q.원요청)}` : ''}</dd>
+    <dt>요청 자료</dt><dd class="pre">${esc(q.자료 || '-')}</dd><dt>회신 기한</dt><dd>${esc(q.기한 || '-')}</dd><dt>수신일</dt><dd>${esc(q.수신일 || '아직 받지 못함')}${q.받음 && q.경과 != null ? ` <span class="sub">(요청 후 ${q.경과}일)</span>` : ''}</dd><dt>수신 자료 검토</dt><dd class="pre">${esc(q.검토 || '-')}</dd>${q.비고 ? `<dt>비고</dt><dd class="pre">${esc(q.비고)}</dd>` : ''}</dl>`,
+    `${editBtn('자료요청', '수정', '', 'id="qEdit"')}<button class="btn" data-close>닫기</button>`);
+  bindCommon(m); $$('[data-site]', m).forEach((a) => a.addEventListener('click', () => m.remove()));
+  if ($('#qEdit', m)) $('#qEdit', m).onclick = () => { m.remove(); openForm('자료요청', q, reload); };
+}
+function showMail(x, reload) {
+  const m = modal('메일 상세', `<h3 style="margin:0 0 6px;font-size:15px">${esc(x.제목)}</h3><div style="margin-bottom:10px">${mailTag(x)}</div><dl class="kv"><dt>현장</dt><dd><a href="#" data-site="${esc(x.현장id)}">${esc(x.현장명)}</a></dd><dt>구분 · 점검항목</dt><dd>${esc([x.구분, x.항목].filter(Boolean).join(' · ') || '-')}</dd><dt>받는 사람</dt><dd>${esc(x.받는사람 || '-')} <span class="sub">${esc(x.이메일 || '')}</span></dd><dt>보낸 날짜</dt><dd>${esc(x.보낸날)}</dd><dt>첨부</dt><dd>${esc(x.첨부 || '-')}</dd>${x.내용 ? `<dt>메일 내용</dt><dd class="pre">${esc(x.내용)}</dd>` : ''}</dl>
+    <div class="sec" style="padding:12px 0 0;margin-top:12px;border-top:1px solid var(--line2)"><h3>회신</h3><dl class="kv"><dt>회신 필요</dt><dd>${esc(x.회신필요 || '-')}</dd><dt>상태</dt><dd>${esc(x.회신상태 || '-')}</dd><dt>회신일</dt><dd>${esc(x.회신일 || '-')}</dd><dt>회신 내용</dt><dd class="pre">${esc(x.회신내용 || '-')}</dd><dt>회신 첨부</dt><dd>${esc(x.회신첨부 || '-')}</dd>${x.비고 ? `<dt>비고</dt><dd class="pre">${esc(x.비고)}</dd>` : ''}</dl></div>`,
+    `${editBtn('메일', '수정', '', 'id="mEdit"')}<button class="btn" data-close>닫기</button>`, true);
+  bindCommon(m); $$('[data-site]', m).forEach((a) => a.addEventListener('click', () => m.remove()));
+  if ($('#mEdit', m)) $('#mEdit', m).onclick = () => { m.remove(); openForm('메일', x, reload); };
+}
+PAGES.requests = async (m, p) => {
+  const r = await api('requests', {}, { cache: true });
+  const st = S.rqF = S.rqF || { tab: 'req', s: '미수신', q: '' };
+  const reload = () => { invalidate(); render(); };
+  const open = r.requests.filter((q) => !q.받음), late = open.filter((q) => q.기한남음 != null && q.기한남음 < 0);
+  const got = r.requests.filter((q) => q.받음 && q.경과 != null), avg = got.length ? Math.round(got.reduce((a, q) => a + q.경과, 0) / got.length * 10) / 10 : 0;
+  const mw = r.mails.filter((x) => x.회신대기);
+  const draw = () => {
+    const qq = norm(st.q);
+    if (st.tab === 'req') {
+      const rows = r.requests.filter((q) => (st.s === '전체' || (st.s === '미수신') === !q.받음) && (!qq || norm(q.현장명 + q.자료 + q.담당자 + q.검토).includes(qq)));
+      $('#cnt').textContent = rows.length + '건';
+      $('#tb').innerHTML = `<table><thead><tr><th>현장 · 요청 자료</th><th>요청일</th><th>진행</th><th>상태</th><th>수신일</th></tr></thead><tbody>${rows.map((q) => `<tr class="click" data-q="${esc(q.id)}"><td style="min-width:260px"><div class="t1">${esc(q.현장명)}</div><div class="t2">${esc(String(q.자료).replace(/\n/g, ' ').slice(0, 80))}</div></td><td class="nw"><span class="sub">${esc(q.요청일)}</span><div class="t2">${esc([q.방법, q.구분].filter(Boolean).join(' · '))}</div></td><td>${reqStep(q)}</td><td>${reqTag(q)}</td><td class="nw sub">${esc(q.수신일 || '—')}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">해당하는 자료요청이 없습니다</td></tr>'}</tbody></table>`;
+      $$('[data-q]', m).forEach((tr) => (tr.onclick = () => showReq(r.requests.find((x) => x.id === tr.dataset.q), reload)));
+    } else {
+      const rows = r.mails.filter((x) => (st.s !== '미수신' || x.회신대기) && (!qq || norm(x.현장명 + x.제목 + x.받는사람 + x.회신내용).includes(qq)));
+      $('#cnt').textContent = rows.length + '건';
+      $('#tb').innerHTML = `<table><thead><tr><th>제목 · 현장</th><th>보낸 날짜</th><th>받는 사람</th><th>회신</th></tr></thead><tbody>${rows.map((x) => `<tr class="click" data-mm="${esc(x.id)}"><td style="min-width:300px"><div class="t1" style="font-weight:500">${esc(x.제목)}</div><div class="t2">${esc(x.현장명)}${x.구분 ? ' · ' + esc(x.구분) : ''}${x.첨부 ? ' · 첨부 ' + esc(x.첨부) : ''}</div></td><td class="nw sub">${esc(x.보낸날)}</td><td>${esc(x.받는사람)}</td><td>${mailTag(x)}${x.회신내용 ? `<div class="t2">${esc(String(x.회신내용).slice(0, 40))}</div>` : ''}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">해당하는 메일이 없습니다</td></tr>'}</tbody></table>`;
+      $$('[data-mm]', m).forEach((tr) => (tr.onclick = () => showMail(r.mails.find((x) => x.id === tr.dataset.mm), reload)));
+    }
+  };
+  m.innerHTML = head('자료요청 · 메일', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn(st.tab === 'req' ? '자료요청' : '메일', ic('plus', 15) + (st.tab === 'req' ? ' 자료요청 등록' : ' 메일 기록'), 'pri', 'id="add"')}`) + lockNote('자료요청·메일') + `
+  <div class="sumline"><button data-t="req" data-s2="미수신"><span>받지 못한 자료</span><b class="${open.length ? 'warn' : ''}">${open.length}<small>건</small></b></button><button data-t="req" data-s2="미수신"><span>회신 기한 지남</span><b class="${late.length ? 'bad' : ''}">${late.length}<small>건</small></b></button><div><span>평균 수신 소요</span><b>${avg}<small>일</small></b></div><button data-t="mail" data-s2="미수신"><span>메일 회신 대기</span><b class="${mw.length ? 'warn' : ''}">${mw.length}<small>건</small></b></button><div><span>보낸 메일</span><b>${r.mails.length}<small>건</small></b></div></div>
+  <div class="filters"><div class="seg" role="tablist">${[['req', `자료요청 ${r.requests.length}`], ['mail', `보낸 메일 ${r.mails.length}`]].map(([k, n]) => `<button data-t="${k}" class="${st.tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+  <div class="seg">${(st.tab === 'req' ? ['미수신', '전체', '받음'] : ['미수신', '전체']).map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${st.tab === 'mail' && x === '미수신' ? '회신 대기' : x}</button>`).join('')}</div>
+  <input class="inp" id="q" type="search" placeholder="현장·자료·담당자" value="${esc(st.q)}" style="width:220px"><span class="cnt" id="cnt"></span></div>
+  <section class="panel"><div class="tbox" id="tb"></div></section>`;
+  draw();
+  $$('[data-t]', m).forEach((b) => (b.onclick = () => { st.tab = b.dataset.t; if (b.dataset.s2) st.s = b.dataset.s2; render(); }));
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
+  $('#add').onclick = () => openForm(st.tab === 'req' ? '자료요청' : '메일', st.tab === 'req' ? { 요청일: today(), 상태: '요청' } : { 보낸날: today() }, reload);
+  $('#xl').onclick = () => exportXlsx('자료요청_메일', [['자료요청', [['NO', '현장', '요청일', '방법', '담당자', '점검항목', '구분', '요청 자료', '회신 기한', '수신일', '상태', '검토']].concat(r.requests.map((q) => [q.NO, q.현장명, q.요청일, q.방법, q.담당자, q.항목, q.구분, q.자료, q.기한, q.수신일, q.상태, q.검토]))], ['메일', [['NO', '현장', '구분', '점검항목', '받는 사람', '이메일', '보낸 날짜', '제목', '첨부', '회신 필요', '회신 상태', '회신일', '회신 내용']].concat(r.mails.map((x) => [x.NO, x.현장명, x.구분, x.항목, x.받는사람, x.이메일, x.보낸날, x.제목, x.첨부, x.회신필요, x.회신상태, x.회신일, x.회신내용]))]]);
 };
 
 // ---------- 거래명세서 (엑셀과 같은 계산)
@@ -818,6 +1122,37 @@ function calcLines(lines) {
   const rnd = (x) => Math.sign(x) * Math.round(Math.abs(x));
   const out = lines.map((l) => { const q = Number(l.수량) || 0, p = Number(String(l.단가).replace(/,/g, '')) || 0; let s = 0, t = 0; if (l.품명 && q && p) { if (l.VAT === '포함') { s = rnd(q * p / 1.1); t = q * p - s; } else { s = q * p; t = rnd(s * 0.1); } } sup += s; tax += t; return Object.assign({}, l, { 공급가액: s, 세액: t }); });
   return { lines: out, 공급가: sup, 세액: tax, 합계: sup + tax };
+}
+// 엑셀 「거래명세서」 시트(A1:J40)를 같은 칸 배치·글자·테두리로 옮긴 양식
+function sheetHTML(doc, c, co, ptName) {
+  const W = [35, 89, 64, 64, 38, 38, 80, 102, 94, 111];
+  const acc = (v) => (v === '' || v == null ? '' : Number(v) ? won(v) : '-');
+  const td = (txt, cls, o) => `<td class="${cls || ''}"${o && o.cs ? ` colspan="${o.cs}"` : ''}${o && o.rs ? ` rowspan="${o.rs}"` : ''}${o && o.st ? ` style="${o.st}"` : ''}>${txt == null ? '' : txt}</td>`;
+  const f = (pt) => `font-size:${(pt * 4 / 3).toFixed(1)}px`;
+  const lines = c.lines.filter((l) => String(l.품명 || '').trim());
+  let rows = '';
+  for (let i = 0; i < 26; i++) {
+    const l = lines[i];
+    rows += `<tr style="height:24px">${td(l ? i + 1 : '', 'c b BL hb hr', { st: f(10) })}${td(l ? esc(`정기안전점검 (${l.품명})`) : '', 'l hb hr', { cs: 3, st: f(8) })}${td(l ? esc(l.단위 || '회') : '', 'c hb hr', { cs: 2, st: f(10) })}${td(l ? esc(l.수량) : '', 'c hb hr', { st: f(10) })}${td(l ? acc(l.단가) : '', 'r hb hr', { st: f(10) })}${td(l ? acc(l.공급가액) : '', 'r hb hr', { st: f(10) })}${td(l && l.세액 ? won(l.세액) : '', 'r BR hb', { st: f(10) })}</tr>`;
+  }
+  const co2 = co || {};
+  return `<table class="xs" aria-label="거래명세서"><colgroup>${W.map((w) => `<col style="width:${w}px">`).join('')}</colgroup><tbody>
+  <tr style="height:63px">${td('거 래 명 세 서', 'c b BT BL BR bb', { cs: 10, st: f(24) })}</tr>
+  <tr style="height:27px">${td('발행일자', 'c BL br', { cs: 2, st: f(10) })}${td(esc(doc.일자 || ''), 'c br', { cs: 3, st: f(10) })}${td('', '')}${td('공 급 자', 'c b bl BR bb', { cs: 4, st: f(10) })}</tr>
+  <tr style="height:27px">${td('거래처명', 'c b BL bt bb br', { cs: 2, rs: 2, st: f(11) })}${td(esc(ptName || ''), 'r b bt bb br wrap', { cs: 3, rs: 2, st: f(10) })}${td('', '')}${td('사업자번호', 'c b bl bb', { st: f(9) })}${td(esc(co2.사업자번호 || ''), 'c b bl BR bb', { cs: 3, st: f(10) })}</tr>
+  <tr style="height:27px">${td('', '')}${td('업체명', 'c b bl bb', { st: f(10) })}${td(esc(co2.상호 || '').replace(/\n/g, '<br>'), 'c bl bb wrap', { st: f(8) })}${td('대 표', 'c b bl bb', { st: f(10) })}${td(`${esc(co2.대표 || '')}&nbsp;&nbsp;(인)${co2.직인 ? `<img src="${co2.직인}" alt="직인">` : ''}`, 'c bl BR bb seal', { st: f(10) })}</tr>
+  <tr style="height:43px">${td('', 'BL', { cs: 5 })}${td('', '')}${td('주소', 'c b bl bb', { st: f(10) })}${td(esc(co2.주소 || '').replace(/\n/g, '<br>'), 'c bl BR bb wrap', { cs: 3, st: f(10) })}</tr>
+  <tr style="height:27px">${td('합계금액', 'c b g BL bt bb br', { cs: 2, rs: 2, st: f(12) })}${td('₩' + won(c.합계), 'c b g bt bb br', { cs: 3, rs: 2, st: f(12) })}${td('', '')}${td('업태', 'c b bl bb', { st: f(10) })}${td(esc(co2.업태 || ''), 'c bl bb', { st: f(10) })}${td('종목', 'c b bl bb', { st: f(10) })}${td(esc(co2.종목 || ''), 'c bl BR bb wrap', { st: f(8) })}</tr>
+  <tr style="height:27px">${td('', '')}${td('전화', 'c b bl bb', { st: f(10) })}${td(esc(co2.전화 || ''), 'c bl bb', { st: f(9) })}${td('팩스', 'c b bl bb', { st: f(10) })}${td(esc(co2.팩스 || ''), 'c bl BR bb', { st: f(9) })}</tr>
+  <tr style="height:40px">${td(doc.현장명 ? '현장명 :&nbsp; ' + esc(doc.현장명) : '', 'l b BL BR bt', { cs: 10, st: f(11) + ';padding-left:8px' })}</tr>
+  <tr style="height:38px">${td('No', 'c b BL bt bb br', { st: f(10) })}${td('품&nbsp;&nbsp;&nbsp;&nbsp;명', 'c b bt bb br', { cs: 3, st: f(10) })}${td('단위', 'c b bt bb br', { cs: 2, st: f(10) })}${td('수량', 'c b bt bb br', { st: f(10) })}${td('단가', 'c b bt bb br', { st: f(10) })}${td('공급가액', 'c b bt bb br', { st: f(10) })}${td('세액', 'c b bt bb BR', { st: f(10) })}</tr>
+  ${rows}
+  <tr style="height:36px">${td('합&nbsp;&nbsp;&nbsp;계', 'c b BL BT BB br', { cs: 4, st: f(10) })}${td('', 'BT BB br', { cs: 2 })}${td('', 'BT BB br')}${td(won(c.합계), 'r b BT BB br', { st: f(11) })}${td(won(c.공급가), 'r b BT BB br', { st: f(10) })}${td(won(c.세액), 'r b BT BB BR', { st: f(10) })}</tr>
+  <tr style="height:22px">${td('', '', { cs: 10 })}</tr>
+  <tr style="height:22px">${td('*기타 사항', 'c g BL BT BR', { cs: 2, st: f(10) })}${td('', '', { cs: 8 })}</tr>
+  <tr style="height:22px">${td(esc(doc.기타사항 || '').replace(/\n/g, '<br>'), 'l BL BR BT BB wrap', { cs: 10, rs: 2, st: f(10) + ';vertical-align:top;padding:2px 4px' })}</tr>
+  <tr style="height:22px"></tr>
+  </tbody></table>`;
 }
 PAGES.statement = async (m, p) => {
   const L = await lookups();
@@ -829,7 +1164,7 @@ PAGES.statement = async (m, p) => {
   }
   if (p.copy) { delete doc.id; delete doc.번호; doc.상태 = '새 문서'; doc.버전 = 0; doc.일자 = today(); }
   if (doc.계약id && !doc.거래처id) {
-    const r = await api('contract', { id: doc.계약id }); const c = r.contract;
+    const r = await api('contract', { id: doc.계약id }, { cache: true }); const c = r.contract;
     if (c) { doc.거래처id = c.실제입금처.id || c.발주처.id || ''; doc.현장id = c.현장id; doc.현장명 = c.현장명; const waiting = r.invoices.filter((b) => !b.입금일 && b.발행일).slice(-1)[0];
       if (waiting && !p.doc) { doc.일자 = waiting.발행일; doc.lines = String(waiting.품명).split(/\s*,\s*/).filter(Boolean).map((n, i, a) => ({ 품명: n, 단위: '회', 수량: 1, 단가: Math.round(waiting.청구액 / 1.1 / a.length), VAT: '별도' })); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원에서 불러옴 (단가는 확인 후 고치세요)`; } }
   }
@@ -838,14 +1173,8 @@ PAGES.statement = async (m, p) => {
   const draw = () => {
     const c = calcLines(doc.lines), pt = pOf(doc.거래처id);
     $('#tot').innerHTML = `<span>공급가액<b>${won(c.공급가)}</b></span><span>세액<b>${won(c.세액)}</b></span><span>합계<b>${won(c.합계)}</b> 원</span>`;
-    $('#sheet').innerHTML = `<h3>거래명세서</h3>
-      <div class="hdr"><table class="box"><tbody><tr><td class="k">발행일자</td><td>${esc(doc.일자)}</td></tr><tr><td class="k">거래처명</td><td>${esc(pt.n || '')} 귀하</td></tr><tr><td class="k">합계금액</td><td><b>₩${won(c.합계)}</b> (VAT 포함)</td></tr><tr><td class="k">현장명</td><td>${esc(doc.현장명 || '')}</td></tr>${doc.번호 ? `<tr><td class="k">문서번호</td><td>${esc(doc.번호)}</td></tr>` : ''}</tbody></table>
-      <table class="box"><tbody><tr><td class="k">사업자번호</td><td colspan="3">${esc(co.사업자번호)}</td></tr><tr><td class="k">업체명</td><td>${esc(co.상호)}</td><td class="k" style="width:34px">대표</td><td>${esc(co.대표)}</td></tr><tr><td class="k">주소</td><td colspan="3">${esc(co.주소)}</td></tr><tr><td class="k">업태</td><td>${esc(co.업태)}</td><td class="k" style="width:34px">종목</td><td>${esc(co.종목)}</td></tr><tr><td class="k">전화</td><td>${esc(co.전화)}</td><td class="k" style="width:34px">팩스</td><td>${esc(co.팩스)}</td></tr></tbody></table></div>
-      <table class="it"><thead><tr><th style="width:26px">No</th><th>품명</th><th style="width:34px">단위</th><th style="width:34px">수량</th><th>단가</th><th>공급가액</th><th>세액</th></tr></thead><tbody>
-      ${c.lines.filter((l) => l.품명).map((l, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${esc(l.품명)}</td><td style="text-align:center">${esc(l.단위)}</td><td class="n">${esc(l.수량)}</td><td class="n">${won(l.단가)}</td><td class="n">${won(l.공급가액)}</td><td class="n">${won(l.세액)}</td></tr>`).join('')}
-      ${'<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'.repeat(Math.max(0, 8 - c.lines.filter((l) => l.품명).length))}
-      <tr><th colspan="5">합 계</th><td class="n"><b>${won(c.공급가)}</b></td><td class="n"><b>${won(c.세액)}</b></td></tr></tbody></table>
-      <div class="foot">* 기타 사항\n${esc(doc.기타사항)}</div>`;
+    $('#sheet').innerHTML = sheetHTML(doc, c, co, pt.n);
+    const pw = $('#sheet').parentElement.clientWidth - 32; $('#sheet').style.zoom = pw > 0 ? Math.min(1, pw / 715) : 1;
     $$('#lines tr').forEach((tr, i) => { const l = c.lines[i]; if (l) { $('.s', tr).textContent = won(l.공급가액); $('.t', tr).textContent = won(l.세액); } });
   };
   const lineRow = (l, i) => `<tr data-i="${i}"><td><input class="inp" data-f="품명" value="${esc(l.품명)}" aria-label="품명 ${i + 1}" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단위" value="${esc(l.단위)}" style="width:44px" aria-label="단위" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="수량" value="${esc(l.수량)}" style="width:48px" inputmode="numeric" aria-label="수량" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단가" value="${l.단가 === '' ? '' : won(l.단가)}" inputmode="numeric" aria-label="단가" ${issued ? 'disabled' : ''}></td><td><select class="inp" data-f="VAT" aria-label="VAT" ${issued ? 'disabled' : ''}><option ${l.VAT !== '포함' ? 'selected' : ''}>별도</option><option ${l.VAT === '포함' ? 'selected' : ''}>포함</option></select></td><td class="num s"></td><td class="num t"></td><td>${issued ? '' : `<button class="tbtn" style="color:#6A6D66" data-rm="${i}" aria-label="줄 삭제">${ic('x', 14)}</button>`}</td></tr>`;
@@ -862,9 +1191,9 @@ PAGES.statement = async (m, p) => {
       ${issued ? '' : '<button class="btn sm" id="addL" style="margin-top:6px">줄 추가</button>'}
       <div id="tot" class="totbox"></div>
       <p class="sub" style="margin:6px 0 0">VAT 별도: 공급가액 = 수량×단가, 세액 = 공급가액×0.1 반올림 · VAT 포함: 공급가액 = 수량×단가÷1.1 반올림, 세액 = 나머지 (엑셀 거래명세서와 같은 계산)</p></div>
-    <div class="sec"><h3>기타 사항</h3><textarea class="inp" id="etc" ${issued ? 'disabled' : ''}>${esc(doc.기타사항)}</textarea><p class="sub" style="margin:4px 0 0">회사 정보·기본 문구는 「시스템 설정」에서 바꿉니다.</p></div>
+    <div class="sec"><h3>기타 사항</h3><textarea class="inp" id="etc" ${issued ? 'disabled' : ''}>${esc(doc.기타사항)}</textarea><p class="sub" style="margin:4px 0 0">공급자 칸·기본 문구·직인은 통합관리 엑셀 「거래명세서」 시트에서 가져오며, 직인은 「시스템 설정」에서 등록합니다.</p></div>
     <div class="sec" id="smsg" style="color:var(--bad)"></div>
-  </section><section class="paper"><div class="sheet" id="sheet"></div></section></div>`;
+  </section><section class="paper"><div class="xs-wrap" id="sheet"></div></section></div>`;
   const bindLines = () => {
     $$('#lines tr').forEach((tr) => { const i = +tr.dataset.i; $$('[data-f]', tr).forEach((inp) => (inp.oninput = inp.onchange = () => { let v = inp.value; if (inp.dataset.f === '단가') v = v.replace(/[^\d]/g, ''); doc.lines[i][inp.dataset.f] = v; draw(); })); });
     $$('[data-rm]').forEach((b) => (b.onclick = () => { doc.lines.splice(+b.dataset.rm, 1); if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); }));
@@ -879,7 +1208,7 @@ PAGES.statement = async (m, p) => {
     $('#sn').oninput = (e) => { doc.현장명 = e.target.value; draw(); };
     $('#etc').oninput = (e) => { doc.기타사항 = e.target.value; draw(); };
     const save = async (issue) => {
-      if (issue && !confirm('발행하면 문서번호가 붙고 더 이상 고칠 수 없습니다. 발행할까요?')) return;
+      if (issue && !(await ask({ title: '거래명세서 발행', msg: '발행하면 문서번호가 붙고 더 이상 고칠 수 없습니다.\n고칠 때는 「복사해서 새로 작성」을 씁니다.', ok: '발행' }))) return;
       try {
         const r = await api('saveDoc', { doc: Object.assign({}, doc, { lines: doc.lines.map((l) => Object.assign({}, l, { 단가: String(l.단가).replace(/,/g, '') })) }), ver: doc.버전, issue });
         invalidate(); toast(issue ? `발행했습니다: ${r.doc.번호}` : '임시저장했습니다'); go('statement', { doc: r.doc.id });
@@ -891,25 +1220,36 @@ PAGES.statement = async (m, p) => {
 };
 PAGES.docbox = async (m) => {
   const r = await api('docs', {}, { cache: true });
-  m.innerHTML = head('문서 보관함', '<button class="btn pri" data-go="statement">거래명세서 작성</button>') + `<section class="panel tbox"><table><thead><tr><th>종류</th><th>번호</th><th>일자</th><th>거래처 · 현장</th><th class="num">합계</th><th>상태</th><th>작성</th></tr></thead><tbody>
-  ${r.docs.map((d) => { let b = {}; try { b = JSON.parse(d.내용 || '{}'); } catch (e) {} return `<tr class="click" data-doc="${esc(d.id)}"><td>${esc(d.종류)}</td><td class="nw">${esc(d.번호 || '(임시저장)')}</td><td class="nw">${esc(d.일자)}</td><td>${esc(b.현장명 || '')}</td><td class="num">${won(d.합계)}</td><td>${d.상태 === '발행' ? '<span class="tag g">발행</span>' : '<span class="tag">임시저장</span>'}</td><td class="sub">${esc(d.작성자)}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">아직 문서가 없습니다</td></tr>'}</tbody></table></section>`;
+  const st = S.dbF = S.dbF || { k: '', s: '' };
+  const kinds = [...new Set(r.docs.map((d) => d.종류))];
+  const rows = r.docs.filter((d) => (!st.k || d.종류 === st.k) && (!st.s || (st.s === '발행' ? d.상태 === '발행' : d.상태 !== '발행')));
+  const yr = today().slice(0, 4);
+  m.innerHTML = head('문서 보관함', '<button class="btn pri" data-go="statement">거래명세서 작성</button>') + `
+  <div class="sumline"><div><span>전체 문서</span><b>${r.docs.length}<small>건</small></b></div><div><span>발행</span><b>${r.docs.filter((d) => d.상태 === '발행').length}<small>건</small></b></div><div><span>임시저장</span><b class="${r.docs.some((d) => d.상태 !== '발행') ? 'warn' : ''}">${r.docs.filter((d) => d.상태 !== '발행').length}<small>건</small></b></div><div><span>${yr}년 발행 합계</span><b>${won(r.docs.filter((d) => d.상태 === '발행' && String(d.일자).slice(0, 4) === yr).reduce((a, d) => a + (Number(d.합계) || 0), 0))}<small>원</small></b></div></div>
+  <div class="filters"><div class="seg">${['', ...kinds].map((k) => `<button data-k="${esc(k)}" class="${st.k === k ? 'on' : ''}">${esc(k || '전체 종류')}</button>`).join('')}</div><div class="seg">${['', '발행', '임시저장'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x || '전체 상태'}</button>`).join('')}</div><span class="cnt">${rows.length}건</span></div>
+  <section class="panel"><div class="tbox"><table><thead><tr><th>문서번호 · 현장</th><th>종류</th><th>일자</th><th class="num">공급가</th><th class="num">세액</th><th class="num">합계</th><th>상태</th><th>작성</th></tr></thead><tbody>
+  ${rows.map((d) => { let b = {}; try { b = JSON.parse(d.내용 || '{}'); } catch (e) {} return `<tr class="click" data-doc="${esc(d.id)}"><td><div class="t1">${esc(d.번호 || '(임시저장)')}</div><div class="t2">${esc(b.현장명 || '')}</div></td><td>${esc(d.종류)}</td><td class="nw sub">${esc(d.일자)}</td><td class="num">${won(d.공급가)}</td><td class="num">${won(d.세액)}</td><td class="num"><b>${won(d.합계)}</b></td><td>${d.상태 === '발행' ? '<span class="tag g">발행</span>' : '<span class="tag w">임시저장</span>'}</td><td class="sub">${esc(String(d.작성자 || '').split('@')[0])}</td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">아직 문서가 없습니다</td></tr>'}</tbody></table></div></section>`;
   bindCommon(m);
+  $$('[data-k]', m).forEach((b) => (b.onclick = () => { st.k = b.dataset.k; render(); }));
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; render(); }));
   $$('[data-doc]', m).forEach((tr) => (tr.onclick = () => go('statement', { doc: tr.dataset.doc })));
 };
-
 // ---------- 경영관리
 PAGES.sales = async (m) => {
   const r = await api('money', {}, { cache: true });
   const ys = [...new Set(Object.keys(r.monthly).map((k) => k.slice(0, 4)))].sort().reverse();
   const st = S.salesY = S.salesY || ys[0] || String(new Date().getFullYear());
   const months = Array.from({ length: 12 }, (_, i) => `${st}-${String(i + 1).padStart(2, '0')}`);
-  const tot = months.reduce((a, k) => { const v = r.monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; return [a[0] + v.청구, a[1] + v.수금, a[2] + v.건수]; }, [0, 0, 0]);
-  const max = Math.max(1, ...months.map((k) => (r.monthly[k] || {}).청구 || 0));
+  const V = (k) => r.monthly[k] || { 청구: 0, 수금: 0, 건수: 0 };
+  const tot = months.reduce((a, k) => { const v = V(k); return [a[0] + v.청구, a[1] + v.수금, a[2] + v.건수]; }, [0, 0, 0]);
+  const prevY = String(+st - 1), prevTot = Array.from({ length: 12 }, (_, i) => `${prevY}-${String(i + 1).padStart(2, '0')}`).reduce((a, k) => a + V(k).청구, 0);
+  const best = months.reduce((b, k) => (V(k).청구 > V(b).청구 ? k : b), months[0]);
   m.innerHTML = head('매출 현황', `<select class="inp" id="y" style="width:auto">${ys.map((y) => `<option ${y === st ? 'selected' : ''}>${y}</option>`).join('')}</select>`) + `
-  <div class="note info">매출은 세금계산서 발행 기준(청구액, VAT 포함)입니다. 수금은 그 달에 발행한 계산서 중 입금된 금액입니다.</div>
-  <section class="panel tbox"><table><thead><tr><th>월</th><th class="num">발행 건수</th><th class="num">청구액 (VAT 포함)</th><th style="width:30%"></th><th class="num">그중 수금</th><th class="num">미입금</th></tr></thead><tbody>
-  ${months.map((k) => { const v = r.monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; return `<tr><td>${+k.slice(5)}월</td><td class="num">${v.건수 || '—'}</td><td class="num">${v.청구 ? won(v.청구) : '—'}</td><td><span class="bar"><i style="width:${v.청구 / max * 100}%"></i></span></td><td class="num">${v.수금 ? won(v.수금) : '—'}</td><td class="num ${v.청구 - v.수금 > 0 ? 'warn' : ''}">${v.청구 - v.수금 > 0 ? won(v.청구 - v.수금) : '—'}</td></tr>`; }).join('')}
-  </tbody><tfoot><tr><td>${st}년</td><td class="num">${tot[2]}</td><td class="num">${won(tot[0])}</td><td></td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[0] - tot[1])}</td></tr></tfoot></table></section>`;
+  <div class="sumline"><div><span>${st}년 청구 (VAT 포함)</span><b>${won(tot[0])}<small>원 · ${tot[2]}건</small></b></div><div><span>그중 수금</span><b class="ok">${won(tot[1])}<small>${tot[0] ? Math.round(tot[1] / tot[0] * 100) : 0}%</small></b></div><div><span>미입금</span><b class="${tot[0] - tot[1] ? 'warn' : ''}">${won(tot[0] - tot[1])}</b></div><div><span>${prevY}년 청구</span><b>${won(prevTot)}${prevTot ? `<small>${tot[0] >= prevTot ? '+' : ''}${Math.round((tot[0] - prevTot) / prevTot * 100)}%</small>` : ''}</b></div><div><span>가장 많은 달</span><b>${+best.slice(5)}월<small>${won(V(best).청구)}원</small></b></div></div>
+  <section class="panel"><div class="ph"><h2>월별 청구</h2><span class="sub">세금계산서 발행 기준 · 막대 위 숫자 단위 만원</span></div><div class="chart">${barChart({ w: 900, height: 170, vals: true, fmt: () => '', valFmt: (v) => Math.round(v / 1e4).toLocaleString('ko-KR'), labels: months.map((k) => +k.slice(5) + '월'), series: [{ name: '청구', color: '#526779', values: months.map((k) => V(k).청구) }, { name: '그중 수금', color: '#82968A', values: months.map((k) => V(k).수금) }] })}</div></section>
+  <section class="panel"><div class="tbox"><table><thead><tr><th>월</th><th class="num">발행 건수</th><th class="num">청구액 (VAT 포함)</th><th class="num">그중 수금</th><th class="num">미입금</th><th class="num">수금률</th></tr></thead><tbody>
+  ${months.map((k) => { const v = V(k); return `<tr><td>${+k.slice(5)}월</td><td class="num sub">${v.건수 || '—'}</td><td class="num">${v.청구 ? won(v.청구) : '<span class="muted">—</span>'}</td><td class="num">${v.수금 ? won(v.수금) : '<span class="muted">—</span>'}</td><td class="num ${v.청구 - v.수금 > 0 ? 'warn' : ''}">${v.청구 - v.수금 > 0 ? won(v.청구 - v.수금) : '<span class="muted">—</span>'}</td><td class="num sub">${v.청구 ? Math.round(v.수금 / v.청구 * 100) + '%' : ''}</td></tr>`; }).join('')}
+  </tbody><tfoot><tr><td>${st}년</td><td class="num">${tot[2]}</td><td class="num">${won(tot[0])}</td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[0] - tot[1])}</td><td class="num">${tot[0] ? Math.round(tot[1] / tot[0] * 100) + '%' : ''}</td></tr></tfoot></table></div></section>`;
   $('#y').onchange = (e) => { S.salesY = e.target.value; render(); };
 };
 PAGES.invoices = async (m) => {
@@ -925,7 +1265,7 @@ PAGES.invoices = async (m) => {
     bindCommon($('#tb'));
     $$('[data-eb]', m).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), () => { invalidate(); render(); })));
   };
-  m.innerHTML = head('세금계산서', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('청구', ic('plus', 15) + ' 계산서 등록', '', 'id="add"')}`) + lockNote('계산서') + `
+  m.innerHTML = head('세금계산서', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('청구', ic('plus', 15) + ' 계산서 등록', 'pri', 'id="add"')}`) + lockNote('계산서') + `<div class="sumline">${(() => { const w = r.invoices.filter((b) => b.미입금 > 0), g = (f) => w.filter(f).reduce((a, b) => a + b.미입금, 0), n = (f) => w.filter(f).length; return `<div><span>입금 대기 합계</span><b class="warn">${won(g(() => 1))}<small>원 · ${w.length}건</small></b></div><div><span>발행 14일 이내</span><b>${won(g((b) => b.경과 <= 14))}<small>${n((b) => b.경과 <= 14)}건</small></b></div><div><span>15~30일</span><b class="warn">${won(g((b) => b.경과 > 14 && b.경과 <= 30))}<small>${n((b) => b.경과 > 14 && b.경과 <= 30)}건</small></b></div><div><span>30일 넘음</span><b class="bad">${won(g((b) => b.경과 > 30))}<small>${n((b) => b.경과 > 30)}건</small></b></div><div><span>올해 발행</span><b>${won(r.invoices.filter((b) => String(b.발행일).slice(0, 4) === today().slice(0, 4)).reduce((a, b) => a + b.청구액, 0))}<small>원</small></b></div>`; })()}</div>
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${ys.map((y) => `<option ${st.y === y ? 'selected' : ''}>${y}</option>`).join('')}</select>
   <div class="seg">${['', '입금 대기', '입금 완료', '발행 없음'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x || '전체'}</button>`).join('')}</div>
   <input class="inp" id="q" type="search" placeholder="현장·품명·발주처" value="${esc(st.q)}" style="width:220px"><span class="sub">금액은 VAT 포함</span></div>
@@ -942,13 +1282,17 @@ PAGES.collect = async (m) => {
   const act = r.contracts.filter((c) => c.상태 === '진행중');
   const sum = act.reduce((a, c) => [a[0] + c.계약금, a[1] + c.수금, a[2] + c.대기, a[3] + c.잔여], [0, 0, 0, 0]);
   const wait = r.invoices.filter((b) => b.미입금 > 0).sort((a, b) => b.경과 - a.경과);
+  const waitSum = wait.reduce((a, b) => a + b.미입금, 0);
+  const before = Math.max(0, sum[0] - sum[1] - sum[2]);
   m.innerHTML = head('수금 현황', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>`) + `
-  <div class="strip" style="grid-template-columns:repeat(4,minmax(0,1fr))"><button><span>계약금 합계 (진행 중 ${act.length}건)</span><b>${won(sum[0])}</b></button><button><span>수금 합계</span><b>${won(sum[1])}<small> ${sum[0] ? Math.round(sum[1] / sum[0] * 1000) / 10 : 0}%</small></b></button><button><span>청구 후 입금 대기 (전체)</span><b class="warn">${won(wait.reduce((a, b) => a + b.미입금, 0))}<small> ${wait.length}건</small></b></button><button><span>잔여금 (계약금 − 수금)</span><b>${won(sum[3])}</b></button></div>
-  <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span></div><div class="tbox"><table><thead><tr><th>발행일</th><th>현장</th><th>품명</th><th>입금자(발주처)</th><th class="num">미입금</th><th class="num">경과</th></tr></thead><tbody>
-  ${wait.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td class="nw">${esc(b.발행일)}</td><td>${esc(b.현장명)}</td><td>${esc(b.품명)}</td><td>${esc(b.입금자 || b.발주처)}</td><td class="num">${won(b.미입금)}</td><td class="num ${b.경과 > 30 ? 'bad' : b.경과 > 14 ? 'warn' : ''}">${b.경과}일</td></tr>`).join('') || '<tr><td colspan="6" class="empty">없음</td></tr>'}</tbody></table></div></section>
-  <section class="panel"><div class="ph"><h2>용역별 수금</h2><span class="sub">진행 중 ${act.length}건 · VAT 포함</span></div><div class="tbox"><table><thead><tr><th>현장</th><th>발주처</th><th class="num">계약금</th><th class="num">수금</th><th class="num">입금 대기</th><th class="num">잔여금</th><th class="num">수금률</th></tr></thead><tbody>
-  ${sortRows(act, '계약금', 'desc').map((c) => `<tr class="click" data-contract="${esc(c.id)}"><td>${esc(c.계약명)}</td><td>${esc(c.발주처)}</td><td class="num">${won(c.계약금)}</td><td class="num">${won(c.수금)}</td><td class="num">${c.대기 ? won(c.대기) : '—'}</td><td class="num">${won(c.잔여)}</td><td class="num">${pct(c.수금률)}</td></tr>`).join('')}</tbody>
-  <tfoot><tr><td colspan="2">합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td><td></td></tr></tfoot></table></div></section>`;
+  <div class="sumline"><button data-go="contracts"><span>진행 중 계약금 합계</span><b>${won(sum[0])}<small>원 · ${act.length}건</small></b></button><div><span>수금</span><b class="ok">${won(sum[1])}<small>${sum[0] ? Math.round(sum[1] / sum[0] * 1000) / 10 : 0}%</small></b></div><button data-go="invoices"><span>청구 후 입금 대기 (전체)</span><b class="warn">${won(waitSum)}<small>원 · ${wait.length}건</small></b></button><div><span>아직 청구 전</span><b>${won(before)}</b></div></div>
+  <section class="panel"><div class="ph"><h2>진행 중 계약금 구성</h2><span class="sub">VAT 포함</span></div><div class="sec">${hbar([['수금', sum[1], 'var(--done)'], ['입금 대기', sum[2], 'var(--prog)'], ['청구 전', before, 'var(--line)']])}
+    <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금 <b>${won(sum[1])}</b></span><span><i style="background:var(--prog)"></i>입금 대기 <b>${won(sum[2])}</b></span><span><i style="background:var(--line)"></i>청구 전 <b>${won(before)}</b></span></div></div></section>
+  <div class="grid2" style="margin-top:12px"><section class="panel"><div class="ph"><h2>용역별 수금</h2><span class="sub">진행 중 ${act.length}건 · 계약금 큰 순</span></div><div class="tbox"><table><thead><tr><th>현장 · 발주처</th><th class="num">계약금</th><th>수금</th><th class="num">입금 대기</th><th class="num">남은 금액</th></tr></thead><tbody>
+  ${sortRows(act, '계약금', 'desc').map((c) => `<tr class="click" data-contract="${esc(c.id)}"><td><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.발주처)}</div></td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:140px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:64px">${won(c.수금)}</span></span></td><td class="num">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="num">${won(c.잔여)}</td></tr>`).join('')}</tbody>
+  <tfoot><tr><td>합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td></tr></tfoot></table></div></section>
+  <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순</span></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
+  ${wait.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}</div><div class="t2">${esc(b.발행일)} · ${esc(b.품명)}</div></td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="3" class="empty">없음</td></tr>'}</tbody></table></div></section></div>`;
   bindCommon(m);
   $('#xl').onclick = () => exportXlsx('수금현황', [['용역별', [['현장', '발주처', '계약금', '수금', '입금 대기', '잔여금', '수금률']].concat(act.map((c) => [c.계약명, c.발주처, c.계약금, c.수금, c.대기, c.잔여, Math.round(c.수금률 * 100) + '%']))], ['입금 대기', [['발행일', '현장', '품명', '입금자', '미입금', '경과일']].concat(wait.map((b) => [b.발행일, b.현장명, b.품명, b.입금자, b.미입금, b.경과]))]]);
 };
@@ -956,7 +1300,7 @@ PAGES.unpaid = async (m) => {
   const r = await api('money', {}, { cache: true });
   const done = r.contracts.filter((c) => c.상태 !== '진행중' && c.잔여 > 0);
   const old = r.invoices.filter((b) => b.미입금 > 0 && b.경과 > 30);
-  m.innerHTML = head('미수금 관리') + `<div class="note info">진행 중 계약의 잔여금은 아직 청구 전인 금액이 대부분이라 여기서는 <b>① 끝난 계약에 남은 금액</b>과 <b>② 발행 후 30일이 지난 미입금 계산서</b>만 봅니다. 엑셀 용역대장의 「미수금」 칸에 적은 금액도 함께 표시합니다.</div>
+  m.innerHTML = head('미수금 관리') + `<div class="sumline"><div><span>끝난 계약에 남은 금액</span><b class="bad">${won(done.reduce((a, c) => a + c.잔여, 0))}<small>원 · ${done.length}건</small></b></div><div><span>30일 넘은 미입금 계산서</span><b class="bad">${won(old.reduce((a, b) => a + b.미입금, 0))}<small>원 · ${old.length}건</small></b></div><div><span>가장 오래된 미입금</span><b>${old.length ? Math.max(...old.map((b) => b.경과)) + '<small>일</small>' : '—'}</b></div></div><div class="note info">진행 중 계약의 잔여금은 아직 청구 전인 금액이 대부분이라 여기서는 <b>① 끝난 계약에 남은 금액</b>과 <b>② 발행 후 30일이 지난 미입금 계산서</b>만 봅니다. 엑셀 용역대장의 「미수금」 칸에 적은 금액도 함께 표시합니다.</div>
   <section class="panel"><div class="ph"><h2>① 끝난 계약에 남은 금액</h2><span class="sub">${done.length}건 · ${won(done.reduce((a, c) => a + c.잔여, 0))}원</span></div><div class="tbox"><table><thead><tr><th>번호</th><th>계약명</th><th>발주처</th><th class="num">계약금</th><th class="num">수금</th><th class="num">남은 금액</th><th>상태</th></tr></thead><tbody>
   ${done.map((c) => `<tr class="click" data-contract="${esc(c.id)}"><td class="sub">${esc(c.id.slice(1))}</td><td>${esc(c.계약명)}</td><td>${esc(c.발주처)}</td><td class="num">${won(c.계약금)}</td><td class="num">${won(c.수금)}</td><td class="num bad">${won(c.잔여)}</td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">없음</td></tr>'}</tbody></table></div></section>
   <section class="panel"><div class="ph"><h2>② 발행 후 30일이 지난 미입금 계산서</h2><span class="sub">${old.length}건</span></div><div class="tbox"><table><thead><tr><th>발행일</th><th>현장</th><th>품명</th><th class="num">미입금</th><th class="num">경과</th></tr></thead><tbody>
@@ -965,17 +1309,20 @@ PAGES.unpaid = async (m) => {
 };
 PAGES.yearly = async (m) => {
   const r = await api('money', {}, { cache: true });
-  const ys = Object.entries(r.years).sort((a, b) => b[0] - a[0]), max = Math.max(1, ...ys.map(([, v]) => v.공급가));
+  const ys = Object.entries(r.years).sort((a, b) => b[0] - a[0]), asc = ys.slice().reverse();
   const payers = {}; r.contracts.forEach((c) => { const k = c.발주처 || '(미입력)'; const p = payers[k] = payers[k] || { n: 0, amt: 0 }; p.n++; p.amt += c.공급가; });
-  const top = Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).slice(0, 10);
+  const top = Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).slice(0, 10), tmax = Math.max(1, ...top.map(([, v]) => v.amt));
+  const tot = ys.reduce((a, [, v]) => [a[0] + v.건수, a[1] + v.공급가, a[2] + v.계약금, a[3] + v.수금], [0, 0, 0, 0]);
   m.innerHTML = head('연도별 실적', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>`) + `
-  <section class="panel tbox"><table><thead><tr><th>연도</th><th class="num">계약 건수</th><th class="num">진행 / 완료</th><th class="num">계약금액 (VAT 별도)</th><th style="width:28%"></th><th class="num">VAT 포함</th><th class="num">수금</th></tr></thead><tbody>
-  ${ys.map(([y, v]) => `<tr><td>${y}</td><td class="num">${v.건수}</td><td class="num">${v.진행} / ${v.완료}</td><td class="num">${won(v.공급가)}</td><td><span class="bar"><i style="width:${v.공급가 / max * 100}%"></i></span></td><td class="num">${won(v.계약금)}</td><td class="num">${won(v.수금)}</td></tr>`).join('')}</tbody>
-  <tfoot><tr><td>합계</td><td class="num">${ys.reduce((a, [, v]) => a + v.건수, 0)}</td><td></td><td class="num">${won(ys.reduce((a, [, v]) => a + v.공급가, 0))}</td><td></td><td class="num">${won(ys.reduce((a, [, v]) => a + v.계약금, 0))}</td><td class="num">${won(ys.reduce((a, [, v]) => a + v.수금, 0))}</td></tr></tfoot></table></section>
-  <section class="panel"><div class="ph"><h2>발주처(계약자)별 실적</h2><span class="sub">상위 10 · 전체 기간 · VAT 별도</span></div><div class="tbox"><table><thead><tr><th>발주처</th><th class="num">건수</th><th class="num">계약금액</th></tr></thead><tbody>${top.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v.n}</td><td class="num">${won(v.amt)}</td></tr>`).join('')}</tbody></table></div></section>`;
+  <div class="sumline"><div><span>전체 계약</span><b>${tot[0]}<small>건 · ${ys.length}개 연도</small></b></div><div><span>계약금액 합계 (VAT 별도)</span><b>${won(tot[1])}</b></div><div><span>VAT 포함</span><b>${won(tot[2])}</b></div><div><span>수금 합계</span><b class="ok">${won(tot[3])}</b></div><div><span>발주처</span><b>${Object.keys(payers).length}<small>곳</small></b></div></div>
+  <div class="grid2"><section class="panel"><div class="ph"><h2>연도별 계약금액</h2><span class="sub">VAT 별도 · 막대 위 단위 억</span></div><div class="chart">${barChart({ w: 560, height: 190, vals: true, fmt: () => '', labels: asc.map(([y]) => y), series: [{ name: '계약금액 (VAT 별도)', color: '#526779', values: asc.map(([, v]) => v.공급가) }, { name: '수금', color: '#82968A', values: asc.map(([, v]) => v.수금) }] })}</div>
+    <div class="tbox"><table><thead><tr><th>연도</th><th class="num">계약 건수</th><th class="num">진행 / 완료</th><th class="num">계약금액 (VAT 별도)</th><th class="num">VAT 포함</th><th class="num">수금</th></tr></thead><tbody>
+    ${ys.map(([y, v]) => `<tr><td>${y}</td><td class="num">${v.건수}</td><td class="num sub">${v.진행} / ${v.완료}</td><td class="num"><b>${won(v.공급가)}</b></td><td class="num">${won(v.계약금)}</td><td class="num">${won(v.수금)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td>합계</td><td class="num">${tot[0]}</td><td></td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[2])}</td><td class="num">${won(tot[3])}</td></tr></tfoot></table></div></section>
+  <section class="panel"><div class="ph"><h2>발주처(계약자)별 실적</h2><span class="sub">상위 10 · 전체 기간 · VAT 별도</span></div><div class="sec">
+    ${top.map(([k, v], i) => `<div style="display:grid;grid-template-columns:18px minmax(0,1fr) 112px;gap:8px;align-items:center;padding:5px 0;border-top:${i ? '1px solid var(--line2)' : '0'}"><span class="sub">${i + 1}</span><div style="min-width:0"><div class="t1" style="font-weight:500">${esc(k)} <span class="sub">${v.n}건</span></div><div class="bar" style="margin-top:3px"><i style="width:${v.amt / tmax * 100}%;background:var(--pri)"></i></div></div><span class="num"><b>${won(v.amt)}</b></span></div>`).join('')}</div></section></div>`;
   $('#xl').onclick = () => exportXlsx('연도별실적', [['연도별', [['연도', '건수', '진행', '완료', '계약금액(VAT 별도)', 'VAT 포함', '수금']].concat(ys.map(([y, v]) => [y, v.건수, v.진행, v.완료, v.공급가, v.계약금, v.수금]))], ['발주처별', [['발주처', '건수', '계약금액(VAT 별도)']].concat(Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).map(([k, v]) => [k, v.n, v.amt]))]]);
 };
-
 // ---------- 기초정보
 PAGES.partners = async (m, p) => {
   const r = await api('partners', {}, { cache: true });
@@ -988,7 +1335,7 @@ PAGES.partners = async (m, p) => {
     $('#cnt').textContent = rows.length + '곳';
     $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('partners', { id: tr.dataset.id })));
   };
-  m.innerHTML = head('거래처 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('거래처', ic('plus', 15) + ' 거래처 등록', '', 'id="add"')}`) + lockNote('거래처') + `
+  m.innerHTML = head('거래처 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('거래처', ic('plus', 15) + ' 거래처 등록', 'pri', 'id="add"')}`) + lockNote('거래처') + `<div class="sumline"><div><span>전체 거래처</span><b>${r.partners.length}<small>곳</small></b></div><div><span>진행 중 계약이 있는 곳</span><b>${r.partners.filter((x) => x.진행).length}<small>곳</small></b></div><div><span>입금 대기가 있는 곳</span><b class="warn">${r.partners.filter((x) => x.대기).length}<small>곳</small></b></div><div><span>사업자번호 없음</span><b>${r.partners.filter((x) => !x.사업자번호).length}<small>곳</small></b></div></div>
   <div class="filters"><select class="inp" id="k"><option value="">전체 구분</option>${kinds.map((k) => `<option ${st.k === k ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select><input class="inp" id="q" type="search" placeholder="거래처명·사업자번호·대표자" value="${esc(st.q)}" style="width:240px"><span class="sub" id="cnt"></span></div>
   <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel tbox"><table><thead><tr><th>거래처</th><th class="opt">구분</th><th class="num">계약</th><th class="num">계약금 합계</th><th class="num">입금 대기</th></tr></thead><tbody id="tb"></tbody></table></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
@@ -999,7 +1346,7 @@ PAGES.partners = async (m, p) => {
   $('#xl').onclick = () => exportXlsx('거래처', [['거래처', [['거래처명', '사업자번호', '대표자', '구분', '주소', '업태', '종목', '전화', '이메일', '계약 수', '계약금 합계']].concat(S._ptRows.map((x) => [x.거래처명, x.사업자번호, x.대표자, x.구분, x.주소, x.업태, x.종목, x.전화, x.이메일, x.계약수, x.계약금]))]]);
   if (p.id) {
     const el = $('#det'); el.innerHTML = '<div class="empty">불러오는 중…</div>';
-    const d = await api('partner', { id: p.id }), x = d.partner;
+    const d = await api('partner', { id: p.id }, { cache: true }), x = d.partner;
     if (!x) { el.innerHTML = '<div class="empty">거래처를 찾지 못했습니다</div>'; return; }
     el.innerHTML = `<div class="dhead"><div class="sub">${esc(x.구분)}</div><h2>${esc(x.거래처명)}</h2><div class="acts">${editBtn('거래처', '수정', 'sm', 'id="editP"')}${histBtn('거래처', x.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
       <div class="sec"><dl class="kv"><dt>사업자번호</dt><dd>${esc(x.사업자번호 || '-')}</dd><dt>대표자</dt><dd>${esc(x.대표자 || '-')}</dd><dt>주소</dt><dd>${esc(x.주소 || '-')}</dd><dt>업태 · 종목</dt><dd>${esc([x.업태, x.종목].filter(Boolean).join(' · ') || '-')}</dd><dt>전화</dt><dd>${esc(x.전화 || '-')}</dd><dt>이메일</dt><dd>${esc(x.이메일 || '-')}</dd>${x.비고 ? `<dt>비고</dt><dd class="pre">${esc(x.비고)}</dd>` : ''}</dl></div>
@@ -1024,16 +1371,16 @@ PAGES.people = async (m) => {
 PAGES.works = async (m) => {
   const r = await api('contracts', {}, { cache: true });
   const W = {};
-  r.contracts.forEach((c) => c.공종.forEach((w) => { const x = W[w] = W[w] || { n: 0, act: 0 }; x.n++; if (c.상태 === '진행중') x.act++; }));
-  const rows = Object.entries(W).sort((a, b) => b[1].n - a[1].n);
+  r.contracts.forEach((c) => c.공종.forEach((w) => { const x = W[w] = W[w] || { n: 0, act: 0, amt: 0 }; x.n++; x.amt += c.공급가; if (c.상태 === '진행중') x.act++; }));
+  const rows = Object.entries(W).sort((a, b) => b[1].n - a[1].n), max = Math.max(1, ...rows.map(([, v]) => v.n));
   m.innerHTML = head('공종 및 용역 분류') + `<div class="note info">점검항목 이름(예: 지보공1차 → 지보공)에서 공종을 뽑아 계약별로 셉니다. 초기점검·종합보고서 같은 항목은 공종에서 뺍니다.</div>
-  <section class="panel tbox"><table><thead><tr><th>공종</th><th class="num">계약 수</th><th class="num">그중 진행 중</th></tr></thead><tbody>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${v.n}</td><td class="num">${v.act}</td></tr>`).join('')}</tbody></table></section>`;
+  <div class="sumline"><div><span>공종 종류</span><b>${rows.length}<small>가지</small></b></div><div><span>가장 많은 공종</span><b>${esc((rows[0] || [''])[0])}<small>${(rows[0] || [0, { n: 0 }])[1].n}건</small></b></div><div><span>진행 중 계약에 들어간 공종</span><b>${rows.filter(([, v]) => v.act).length}<small>가지</small></b></div></div>
+  <section class="panel"><div class="tbox"><table><thead><tr><th>공종</th><th style="width:40%">계약 수</th><th class="num">그중 진행 중</th><th class="num">관련 계약금액 (VAT 별도)</th></tr></thead><tbody>${rows.map(([k, v]) => `<tr><td class="t1">${esc(k)}</td><td><span class="dbar"><span class="b"><i style="width:${v.n / max * 100}%;background:var(--pri)"></i></span><b class="num" style="min-width:28px">${v.n}</b></span></td><td class="num">${v.act || '<span class="muted">—</span>'}</td><td class="num">${won(v.amt)}</td></tr>`).join('')}</tbody></table></div></section>`;
 };
-
 // ---------- 시스템관리
 PAGES.users = async (m) => {
   const r = await api('users');
-  m.innerHTML = head('사용자 관리', '<button class="btn pri" id="add">사용자 추가</button>') + `
+  m.innerHTML = head('사용자 관리', '<button class="btn pri" id="add">사용자 추가</button>') + `<div class="sumline"><div><span>사용자</span><b>${r.users.length}<small>명</small></b></div><div><span>승인</span><b>${r.users.filter((u) => u.상태 === '승인').length}<small>명</small></b></div><div><span>사용 중 기기</span><b>${r.devices.filter((d) => d.status === '사용').length}<small>대</small></b></div><div><span>차단·해제된 기기</span><b>${r.devices.filter((d) => d.status !== '사용').length}<small>대</small></b></div></div>
   <section class="panel"><div class="ph"><h2>사용자</h2><span class="sub">승인된 이메일만 로그인할 수 있습니다</span></div><div class="tbox"><table><thead><tr><th>이름</th><th>이메일</th><th>권한</th><th>상태</th><th class="num">사용 중 기기</th><th>메모</th><th></th></tr></thead><tbody>
   ${r.users.map((u, i) => `<tr><td>${esc(u.이름)}</td><td>${esc(u.이메일)}</td><td>${esc(u.권한)}</td><td>${u.상태 === '승인' ? '<span class="tag g">승인</span>' : '<span class="tag r">' + esc(u.상태) + '</span>'}</td><td class="num">${u.기기}</td><td>${esc(u.메모)}</td><td><button class="btn sm" data-u="${i}">수정</button></td></tr>`).join('')}</tbody></table></div></section>
   <section class="panel"><div class="ph"><h2>등록된 기기</h2><span class="sub">분실한 기기는 「차단」</span></div><div class="tbox"><table><thead><tr><th>이메일</th><th>기기</th><th>등록</th><th>마지막 접속</th><th>상태</th><th></th></tr></thead><tbody>
@@ -1048,7 +1395,7 @@ PAGES.users = async (m) => {
   $('#add').onclick = () => form();
   $$('[data-u]', m).forEach((b) => (b.onclick = () => form(r.users[+b.dataset.u])));
   $$('[data-rv]', m).forEach((b) => (b.onclick = async () => { await api('revoke', { id: b.dataset.rv }); toast('해제했습니다'); render(); }));
-  $$('[data-bk]', m).forEach((b) => (b.onclick = async () => { if (!confirm('이 기기를 차단할까요? 즉시 접속이 막힙니다.')) return; await api('revoke', { id: b.dataset.bk, block: true }); toast('차단했습니다'); render(); }));
+  $$('[data-bk]', m).forEach((b) => (b.onclick = async () => { if (!(await ask({ title: '기기 차단', msg: '이 기기를 차단할까요? 즉시 접속이 막히고, 다시 쓰려면 관리자가 풀어야 합니다.', ok: '차단', danger: true }))) return; await api('revoke', { id: b.dataset.bk, block: true }); toast('차단했습니다'); render(); }));
 };
 PAGES.roles = async (m) => {
   const rows = [['현장·계약·일정·수금 조회', 1, 1, 1], ['엑셀 내보내기', 1, 1, 1], ['현장·점검·연락·거래처 등록·수정', 1, 1, 0], ['거래명세서 작성·발행', 1, 1, 0], ['계약·계산서(청구·입금) 등록·수정', 1, 0, 0], ['삭제 (연락기록 제외)', 1, 0, 0], ['사용자·기기 관리', 1, 0, 0], ['엑셀 가져오기 · 백업 · 복구 · 원본 전환', 1, 0, 0]];
@@ -1066,7 +1413,7 @@ PAGES.backup = async (m) => {
     const md2 = modal('복구 미리보기', `<p>「${esc(pv.name)}」 시점으로 되돌리면 아래처럼 바뀝니다. 복구 직전 상태도 자동으로 백업됩니다.</p>
       <table class="mini"><thead><tr><th>표</th><th class="num">지금</th><th class="num">백업</th><th class="num">되살아남</th><th class="num">바뀜</th><th class="num">없어짐</th></tr></thead><tbody>${Object.entries(pv.tables).map(([t, v]) => `<tr><td>${t}</td><td class="num">${v.지금}</td><td class="num">${v.백업}</td><td class="num">${v.추가}</td><td class="num">${v.변경}</td><td class="num ${v.삭제 ? 'bad' : ''}">${v.삭제}</td></tr>`).join('')}</tbody></table>
       ${Object.entries(pv.tables).flatMap(([t, v]) => v.예.map((e) => `<div class="sub">${t} · ${e.동작} · ${esc(e.이름)}${e.칸 ? ' · ' + esc(e.칸.join(' / ')) : ''}</div>`)).slice(0, 20).join('')}`, '<span class="msg" id="rm"></span><button class="btn" data-close>취소</button><button class="btn pri" id="ok">복구 실행</button>', true);
-    $('#ok', md2).onclick = async () => { if (prompt('복구하려면 「복구」라고 입력하세요.') !== '복구') return; try { const x = await api('restoreCommit', { id: b.dataset.rs }); md2.remove(); invalidate(); LK = null; toast('복구했습니다. 복구 직전 백업: ' + x.safety); render(); } catch (e) { $('#rm', md2).textContent = e.message; } };
+    $('#ok', md2).onclick = async () => { if (!(await ask({ title: '백업 시점으로 복구', msg: '지금 데이터를 백업 시점으로 되돌립니다. 복구 직전 상태는 자동으로 백업됩니다.', type: '복구', ok: '복구 실행', danger: true }))) return; try { const x = await api('restoreCommit', { id: b.dataset.rs }); md2.remove(); invalidate(); LK = null; toast('복구했습니다. 복구 직전 백업: ' + x.safety); render(); } catch (e) { $('#rm', md2).textContent = e.message; } };
   }));
 };
 PAGES.settings = async (m) => {
@@ -1079,11 +1426,19 @@ PAGES.settings = async (m) => {
     <p class="sub" style="margin:0 0 8px">가져오기는 미리보기 → 확인 → 실행 순서이고, 실행 직전 DB 를 자동 백업합니다. 같은 엑셀을 여러 번 가져와도 중복되지 않습니다(고유 ID 기준).</p>
     <button class="btn pri" id="imp" ${S.source === '웹' ? 'disabled' : ''}>미리보기</button><div id="impOut"></div></div></section>
   <section class="panel"><div class="ph"><h2>데이터 현황</h2></div><div class="sec"><dl class="kv">${Object.entries(S.counts).map(([k, v]) => `<dt>${k}</dt><dd>${v}건</dd>`).join('')}</dl>${b.dbUrl ? `<p style="margin:10px 0 0"><a href="${esc(b.dbUrl)}" target="_blank" rel="noopener">업무관리 DB 스프레드시트 열기</a> <span class="sub">(직접 고치지 마세요 — 버전·이력이 남지 않습니다)</span></p>` : ''}</div></section>
-  <section class="panel"><div class="ph"><h2>회사 정보 (거래명세서에 들어감)</h2></div><div class="sec"><p class="sub" style="margin:0">업무관리 DB 의 「설정」 탭에 아래 키로 값을 넣으면 됩니다: 회사_상호, 회사_대표, 회사_사업자번호, 회사_주소, 회사_업태, 회사_종목, 회사_전화, 회사_팩스, 회사_거래명세서_기타사항</p></div></section>`;
+  <section class="panel"><div class="ph"><h2>거래명세서 공급자 정보</h2><span class="sub">통합관리 엑셀 「거래명세서」 시트에서 가져옴</span></div><div class="sec" id="coBox"><div class="sub">불러오는 중…</div></div></section>`;
+  lookups(true).then((L) => { const co = L.company, box = $('#coBox'); if (!box) return;
+    box.innerHTML = `<div style="display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:16px"><dl class="kv"><dt>상호</dt><dd>${esc(String(co.상호).replace(/\n/g, ''))}</dd><dt>사업자번호</dt><dd>${esc(co.사업자번호 || '—')}</dd><dt>대표</dt><dd>${esc(co.대표 || '—')}</dd><dt>주소</dt><dd>${esc(String(co.주소 || '—').replace(/\n/g, ' '))}</dd><dt>업태 · 종목</dt><dd>${esc([co.업태, co.종목].filter(Boolean).join(' · ') || '—')}</dd><dt>전화 · 팩스</dt><dd>${esc([co.전화, co.팩스].filter(Boolean).join(' · ') || '—')}</dd><dt>기타 사항</dt><dd class="pre">${esc(co.기타사항 || '—')}</dd></dl>
+      <div><div class="sub" style="margin-bottom:6px">직인 이미지</div><div style="height:96px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;background:#fff">${co.직인 ? `<img src="${co.직인}" alt="직인" style="max-height:88px">` : '<span class="sub">등록 안 됨</span>'}</div>
+      ${can('관리자') ? `<label class="btn sm" style="margin-top:6px;width:100%">${co.직인 ? '직인 바꾸기' : '직인 등록'}<input type="file" accept="image/png,image/jpeg" id="sealF" hidden></label>${co.직인 ? '<button class="btn sm ghost" id="sealDel" style="width:100%;margin-top:4px">직인 지우기</button>' : ''}` : ''}
+      <p class="sub" style="margin:6px 0 0">배경이 투명한 PNG 권장. 직인은 회사 Drive 에만 보관되고 로그인한 사람에게만 보입니다.</p></div></div>`;
+    const up = async (data) => { try { await api('saveSeal', { data }); invalidate(); LK = null; toast(data ? '직인을 등록했습니다' : '직인을 지웠습니다'); render(); } catch (e) { toast(e.message, 1); } };
+    if ($('#sealF')) $('#sealF').onchange = (e) => { const f = e.target.files[0]; if (!f) return; if (f.size > 400000) return toast('400KB 이하 이미지만 됩니다', 1); const rd = new FileReader(); rd.onload = () => up(rd.result); rd.readAsDataURL(f); };
+    if ($('#sealDel')) $('#sealDel').onclick = () => up(''); });
   $('#sw').onclick = async () => {
     const to = S.source === '엑셀' ? '웹' : '엑셀';
     const msg = to === '웹' ? '웹을 원본으로 전환하면 이후로는 엑셀 가져오기를 쓸 수 없고, 웹에서 고칩니다.\n전환 직전 상태는 자동으로 백업됩니다.\n\n계속하려면 「전환」이라고 입력하세요.' : '엑셀을 원본으로 되돌리면 다음 가져오기 때 웹에서 고친 내용(현장·계약·점검·청구·연락·거래처)이 엑셀 내용으로 덮어써집니다.\n\n계속하려면 「전환」이라고 입력하세요.';
-    if (prompt(msg) !== '전환') return;
+    if (!(await ask({ title: '데이터 원본 전환', msg: msg.replace(/\n\n계속하려면 「전환」이라고 입력하세요\./, ''), type: '전환', ok: '전환', danger: true }))) return;
     const r = await api('setSource', { value: to }); S.source = r.source; toast('원본: ' + r.source); render();
   };
   const drawSrc = (x) => {
@@ -1112,7 +1467,7 @@ PAGES.settings = async (m) => {
       ${r.warnings.length ? `<div class="note" style="margin-top:10px">${r.warnings.slice(0, 15).map(esc).join('<br>')}${r.warnings.length > 15 ? `<br>… 외 ${r.warnings.length - 15}건` : ''}</div>` : ''}
       ${Object.entries(r.tables).flatMap(([t, v]) => v.예.filter((e) => e.동작 !== '추가' || v.지금).map((e) => `<div class="sub">${t} · ${e.동작} · ${esc(e.이름)}${e.칸 ? ' · ' + esc(e.칸.join(' / ')) : ''}</div>`)).slice(0, 20).join('')}
       <div style="margin-top:12px"><button class="btn pri" id="go">이대로 가져오기</button> <span class="sub">미리보기는 30분 동안 유효합니다</span></div>`;
-      $('#go').onclick = async () => { if (!confirm('가져올까요? 직전 상태는 자동으로 백업됩니다.')) return; const x = await api('importCommit', { key: r.key }); invalidate(); LK = null; S.counts = x.counts; toast('가져왔습니다. 직전 백업: ' + x.safety); render(); };
+      $('#go').onclick = async () => { if (!(await ask({ title: '엑셀 가져오기', msg: '미리보기 내용대로 가져올까요? 직전 상태는 자동으로 백업됩니다.', ok: '가져오기' }))) return; const x = await api('importCommit', { key: r.key }); invalidate(); LK = null; S.counts = x.counts; toast('가져왔습니다. 직전 백업: ' + x.safety); render(); };
     } catch (e) { out.innerHTML = `<div class="note" style="margin-top:8px">${esc(e.message)}</div>`; }
   };
 };
@@ -1145,10 +1500,13 @@ async function start() {
   try {
     const b = await api('boot');
     S.user = b.user; S.source = b.source; S.counts = b.counts;
+    prefetch();
     fromHash();
   } catch (e) { if (S.token) $('#app').innerHTML = `<div class="login"><h1>연결하지 못했습니다</h1><p>${esc(e.message)}</p><button class="btn pri" onclick="start()">다시 시도</button></div>`; }
 }
-const APP_VERSION = '2026-11-13e';
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
+const APP_VERSION = '2026-11-13k';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
