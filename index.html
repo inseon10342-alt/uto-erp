@@ -253,7 +253,7 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .agenda .ai.done{color:#A9AFB5}
 .agenda .air{display:flex;align-items:center;gap:6px}
 .agenda .air .ai{flex:1;min-width:0}
-.agenda .air .xdel{flex:none;padding:1px 7px;font-size:11px;color:var(--sub2);opacity:0;transition:opacity .1s}
+.agenda .air .xdel{flex:none;margin-left:-2px;padding:1px 7px;font-size:11px;color:var(--sub2);opacity:0;transition:opacity .1s}
 .agenda .air:hover .xdel,.agenda .air .xdel:focus-visible{opacity:1}
 .agenda .air .xdel:hover{color:var(--bad-t);border-color:currentColor}
 @media (hover:none){.agenda .air .xdel{opacity:1}}
@@ -671,11 +671,19 @@ async function api(action, arg, opt) {
   opt = opt || {};
   const key = action + JSON.stringify(arg || {});
   // 조회 결과는 이 창의 메모리에만 3분 보관 (브라우저 저장소에는 남기지 않음). 저장·삭제하면 전부 비움
+  if (opt.cache && S.rec && !opt.quiet) S.rec.push([action, arg || {}]); // 이 화면이 부르는 조회 기록
   if (opt.cache) { const c = S.cache[key]; if (c && Date.now() - c.t < 180000) return c.p; }
+  const write = action === 'save' || action === 'del';
+  if (write && S.pageCalls && S.pageCalls.length) arg = Object.assign({}, arg, { after: S.pageCalls });
   if (!opt.quiet) { S.busy++; busyBar(); }
   const p = (async () => {
     try {
       const r = await run('api', S.token, action, arg || {});
+      if (write && r && r.ok && Array.isArray(r.pre)) { // 저장과 함께 받은 최신 조회 결과를 바로 써서 다시 부르지 않음
+        S.cache = {}; const t = Date.now();
+        r.pre.forEach(([a2, g2, res]) => { if (res && res.ok !== false) S.cache[a2 + JSON.stringify(g2)] = { t, fresh: t, p: Promise.resolve(Object.assign({ ok: true }, res)) }; });
+        delete r.pre;
+      }
       if (!r || !r.ok) {
         if (r && r.code === 'auth') { await logoutLocal(r.msg); throw new Error(r.msg); }
         const e = new Error((r && r.msg) || '처리하지 못했습니다'); e.r = r; throw e;
@@ -698,7 +706,7 @@ function labelTables(root) {
 }
 new MutationObserver(() => { cancelAnimationFrame(labelTables.f); labelTables.f = requestAnimationFrame(() => labelTables(document.body)); }).observe(document.body, { childList: true, subtree: true });
 document.addEventListener('click', (e) => { const t = e.target; if (t.classList && t.classList.contains('split') && !t.classList.contains('nodetail') && innerWidth <= 1180) go(S.page); });
-function invalidate() { S.cache = {}; }
+function invalidate() { const now = Date.now(), keep = {}; Object.keys(S.cache).forEach((k) => { const c = S.cache[k]; if (c.fresh && now - c.fresh < 4000) keep[k] = c; }); S.cache = keep; } // 저장 응답으로 방금 받은 조회 결과는 남김
 function busyBar() { let b = document.getElementById('busy'); if (S.busy > 0 && !b) { b = document.createElement('div'); b.id = 'busy'; b.className = 'busy'; document.body.appendChild(b); } else if (S.busy <= 0 && b) b.remove(); }
 
 // ===================== 도우미 =====================
@@ -831,7 +839,8 @@ async function render() {
   const m = $('#main');
   m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="empty">불러오는 중…</div>`;
   if (PC_ONLY.includes(S.page) && isMobile()) { m.innerHTML = `<div class="panel" style="margin-top:12px"><div class="empty" style="padding:40px 20px"><b style="font-size:15px;color:var(--ink)">PC 전용 메뉴입니다</b><br><br>「${esc(n)}」은(는) 넓은 화면에서 쓰도록 만든 메뉴입니다.<br>PC에서 열어 주세요.<br><br><button class="btn" onclick="go('home')">홈으로</button></div></div>`; return; }
-  try { await (PAGES[S.page] || PAGES.home)(m, S.params); } catch (e) { m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
+  S.rec = [];
+  try { await (PAGES[S.page] || PAGES.home)(m, S.params); S.pageCalls = S.rec.slice(0, 6); S.rec = null; } catch (e) { S.rec = null; m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
 }
 function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row">${S.page !== 'home' ? `<button class="backb" data-back type="button" aria-label="뒤로가기">${ic('back', 16)}<span>뒤로가기</span></button>` : ''}<h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
 function lockNote(what) { return excelLocked() ? `<div class="note">지금은 <b>엑셀이 원본</b>이라 ${what || '이 화면'}의 등록·수정은 엑셀에서 하고 「시스템관리 › 시스템 설정 › 엑셀 가져오기」로 반영합니다. 전환 후에는 여기서 바로 고칩니다.</div>` : ''; }
@@ -1242,7 +1251,8 @@ PAGES.schedule = async (m, p) => {
   const monthEv = ev.filter((e) => e.d.slice(0, 7) === ym);
   const cnt = (k) => r.events.filter((e) => e.k === k && e.d.slice(0, 7) === ym).length;
   const evs = []; // 점검·예정 일정 삭제용
-  const aRow = (e) => { const del = (e.k === '점검' || e.k === '예정') ? editBtn('점검', '삭제', 'sm xdel', `data-ei="" data-xd="${evs.push(e) - 1}" aria-label="${esc(e.현장 + ' ' + (e.t || '') + ' 일정 삭제')}"`) : '';
+  const aRow = (e) => { const i = (e.k === '점검' || e.k === '예정') ? evs.push(e) - 1 : -1, nm = esc(e.현장 + ' ' + (e.t || ''));
+    const del = i < 0 ? '' : editBtn('점검', '수정', 'sm xdel', `data-ei="" data-xe="${i}" aria-label="${nm} 일정 수정"`) + editBtn('점검', '삭제', 'sm xdel', `data-ei="" data-xd="${i}" aria-label="${nm} 일정 삭제"`);
     return `<div class="air"><button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}${e.done ? ' · 완료' : ''}</span></span></button>${del}</div>`; };
   const days = [...new Set(monthEv.map((e) => e.d))].sort();
   m.innerHTML = head('점검 일정', `<div class="seg" role="group" aria-label="보기">${['달력', '목록'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전 달">‹</button><b style="min-width:96px;text-align:center">${st.y}년 ${st.mo + 1}월</b><button class="btn" id="nm" aria-label="다음 달">›</button><button class="btn" id="tm">오늘</button>${editBtn('점검', ic('plus', 15) + ' 점검 일정 추가', 'pri', 'id="addI"')}`) + lockNote('점검 일정') + `
@@ -1255,16 +1265,25 @@ PAGES.schedule = async (m, p) => {
   $('#pm').onclick = () => mv(-1); $('#nm').onclick = () => mv(1);
   $('#tm').onclick = () => { st.y = now.getFullYear(); st.mo = now.getMonth(); st.sel = today(); render(); };
   if ($('#addI')) $('#addI').onclick = () => openForm('점검', { 예정일: st.sel >= today() ? st.sel : '' }, () => { invalidate(); render(); }); // 달력에서 고른 날을 점검 예정일로
+  // 일정 → 점검 1건 찾기 (서버가 id 를 주면 id 로, 아니면 날짜·현장·항목이 한 건으로 맞을 때만)
+  const evRow = async (e, what) => {
+    try {
+      const sd = await api('site', { id: e.현장id }, { cache: true }), its = sd.items || [];
+      let row = e.id ? its.find((x) => x.id === e.id) : null;
+      if (!row && !e.id) { const c = its.filter((x) => x.항목 === (e.t || '') && (e.k === '점검' ? x.점검일 === e.d : !x.점검일 && x.예정일 === e.d)); if (c.length === 1) row = c[0]; }
+      if (!row) toast(`${what}할 점검을 정확히 찾지 못했습니다. 현장 상세의 점검 탭에서 ${what}해 주세요.`, true);
+      return row;
+    } catch (er) { toast(er.message, true); return null; }
+  };
+  $$('[data-xe]', m).forEach((b) => (b.onclick = async (ev0) => {
+    ev0.stopPropagation(); b.disabled = true;
+    const row = await evRow(evs[+b.dataset.xe], '수정'); b.disabled = false;
+    if (row) openForm('점검', row, () => { invalidate(); render(); });
+  }));
   $$('[data-xd]', m).forEach((b) => (b.onclick = async (ev0) => {
     ev0.stopPropagation();
     const e = evs[+b.dataset.xd];
-    let row = null;
-    try {
-      const sd = await api('site', { id: e.현장id }), its = sd.items || [];
-      row = e.id ? its.find((x) => x.id === e.id) : null;
-      if (!row && !e.id) { const c = its.filter((x) => x.항목 === (e.t || '') && (e.k === '점검' ? x.점검일 === e.d : !x.점검일 && x.예정일 === e.d)); if (c.length === 1) row = c[0]; }
-    } catch (er) { toast(er.message, true); return; }
-    if (!row) { toast('삭제할 점검을 정확히 찾지 못했습니다. 현장 상세의 점검 탭에서 삭제해 주세요.'); return; }
+    const row = await evRow(e, '삭제'); if (!row) return;
     if (!(await ask({ title: '점검 일정 삭제', msg: `${e.d} · ${e.현장}\n「${row.항목 || ''}」 ${e.k === '점검' ? '점검' : '점검 예정'}을 삭제합니다.\n이 점검 1건만 삭제되며, 변경 이력에 남아 복구할 수 있습니다.`, ok: '삭제', danger: true }))) return;
     try { await api('del', { t: '점검', id: row.id, ver: row.버전 }); invalidate(); toast('점검 일정을 삭제했습니다'); render(); } catch (er) { toast(er.message, true); }
   }));
@@ -2114,7 +2133,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-14p';
+const APP_VERSION = '2026-11-14q';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-14b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-14c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -217,6 +217,17 @@ function api(token, action, arg) {
     return { ok: false, code: 'error', msg: e.message };
   }
 }
+// 저장 직후 화면이 다시 부를 조회를 같은 요청 안에서 미리 계산해 돌려줌 (왕복 한 번 절약). 조회 전용만 허용
+const AFTER_OK = ['dash', 'lookups', 'sites', 'site', 'contracts', 'contract', 'schedule', 'contacts', 'requests', 'money', 'reviews', 'journal', 'parcels', 'report', 'partners', 'partner'];
+function withAfter_(who, a, out) {
+  if (!out || out.ok === false || !Array.isArray(a.after)) return out;
+  const pre = [];
+  a.after.slice(0, 6).forEach((c) => {
+    if (!Array.isArray(c) || AFTER_OK.indexOf(c[0]) < 0) return;
+    try { pre.push([c[0], c[1] || {}, ACTIONS[c[0]](who, c[1] || {})]); } catch (e) {}
+  });
+  return Object.assign({}, out, { pre });
+}
 const ACTIONS = {
   boot: (who) => ({ user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
@@ -246,8 +257,8 @@ const ACTIONS = {
   docs: (who, a) => ({ docs: live_('문서').filter((d) => !a.종류 || d.종류 === a.종류).sort((x, y) => String(y.일자).localeCompare(String(x.일자))).map(clean_) }),
   doc: (who, a) => { const d = live_('문서').find((x) => x.id === a.id); return { doc: d ? clean_(d) : null }; },
   history: (who, a) => ({ history: history_(a.t, a.id) }),
-  save: (who, a) => save_(who, a.t, a.row || {}, a.ver),
-  del: (who, a) => save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true),
+  save: (who, a) => withAfter_(who, a, save_(who, a.t, a.row || {}, a.ver)),
+  del: (who, a) => withAfter_(who, a, save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true)),
   saveDoc: (who, a) => saveDoc_(who, a.doc || {}, a.ver, !!a.issue),
   // 관리자
   users: (who) => { need_(who, '관리자'); return users_(); },
@@ -297,8 +308,11 @@ function rows_(t) {
 function live_(t) { return rows_(t).filter((r) => r.삭제 !== 'Y'); }
 /** DB 시트의 머리줄이 지금 SCHEMA 와 다르면(열 추가 등) 이름 기준으로 옮겨 다시 씀 */
 function ensureCols_(t) {
+  const want = SCHEMA[t].concat(META), ck = 'cols:' + t + ':' + want.join('|').length + ':' + SERVER_VERSION, C = CacheService.getScriptCache();
+  if (C.get(ck)) return; // 머리줄 확인은 6시간에 한 번
   const sh = db_().getSheetByName(t); if (!sh) return;
-  const want = SCHEMA[t].concat(META), H = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(String);
+  C.put(ck, '1', 21600);
+  const H = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(String);
   if (H.slice(0, want.length).join('|') === want.join('|') && H.slice(want.length).every((h) => !h)) return;
   TBL_ = {}; const rows = rows_(t).map(clean_); writeTable_(t, rows);
 }
@@ -313,13 +327,17 @@ function newId_(t) {
   const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K' }[t] || 'X';
   return pre + 'W' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
 }
+let SET_ = null; // 한 번 실행하는 동안 설정 시트를 한 번만 읽음
 function setting_(k) {
-  const sh = db_().getSheetByName('설정'); if (!sh) return '';
-  const v = sh.getDataRange().getValues();
-  for (let i = 1; i < v.length; i++) if (String(v[i][0]) === k) return String(v[i][1]);
-  return '';
+  if (!SET_) {
+    SET_ = {}; const sh = db_().getSheetByName('설정'); if (!sh) return '';
+    const v = sh.getDataRange().getValues();
+    for (let i = 1; i < v.length; i++) { const kk = String(v[i][0]); if (!(kk in SET_)) SET_[kk] = String(v[i][1]); }
+  }
+  return k in SET_ ? SET_[k] : '';
 }
 function setSetting_(k, val, desc) {
+  SET_ = null;
   const sh = db_().getSheetByName('설정'), v = sh.getDataRange().getValues();
   for (let i = 1; i < v.length; i++) if (String(v[i][0]) === k) { sh.getRange(i + 1, 2).setValue(String(val)); return; }
   sh.appendRow([k, String(val), desc || '']);
@@ -366,8 +384,8 @@ function save_(who, t, row, ver, isDelete) {
     const vals = [cols.map((c) => (next[c] == null ? '' : next[c]))];
     if (cur) sh.getRange(cur._row, 1, 1, cols.length).setValues(vals); else sh.appendRow(vals[0]);
     log_(who, t, next.id, isDelete ? '삭제' : cur ? '수정' : '등록', cur, next);
-    TBL_ = {};
-    if (['계약', '점검', '청구', '검토'].indexOf(t) >= 0) derive_(); // 웹이 원본일 때만 계산 (엑셀 수식과 같게)
+    delete TBL_[t];
+    if (['계약', '점검', '청구', '검토'].indexOf(t) >= 0) derive_(true); // 웹이 원본일 때만 계산 (엑셀 수식과 같게)
     return { row: next };
   } finally { lock.releaseLock(); }
 }
@@ -1158,7 +1176,14 @@ function wantNew_(t, sheet, r, b) {
 
 /** 웹 DB 와 마지막 동기화 때의 차이만 엑셀에 씁니다. 반환: { 칸, 줄 } */
 function exportExcel_(by) {
-  const lock = LockService.getScriptLock(); lock.waitLock(60000);
+  // 엑셀 내려받기·고치기·올리기는 오래 걸리므로 그동안 웹 저장이 기다리지 않게 스크립트 잠금을 잡지 않음.
+  // 대신 엑셀 저장끼리 겹치지 않도록 짧은 잠금으로 「저장 중」 표시만 확인.
+  const lk = LockService.getScriptLock(); lk.waitLock(30000);
+  try {
+    const run = +(P.getProperty('EXPORT_RUN') || 0);
+    if (run && Date.now() - run < 6 * 60000) throw new Error('엑셀 저장이 이미 진행 중입니다. 잠시 뒤 다시 시도하세요.');
+    P.setProperty('EXPORT_RUN', String(Date.now()));
+  } finally { lk.releaseLock(); }
   try {
     const sync = readSync_();
     if (!sync) throw new Error('엑셀 연결 정보가 없습니다. 원본을 엑셀로 둔 상태에서 「엑셀 가져오기」를 한 번 해 주세요.');
@@ -1226,15 +1251,19 @@ function exportExcel_(by) {
     pruneXlBackups_();
     const blob = book.toBlob(file.getName(), 'application/vnd.ms-excel.sheet.macroEnabled.12');
     try { Drive.Files.update({}, sync.fileId, blob); } catch (e) { throw new Error('엑셀 파일을 덮어쓰지 못했습니다: ' + e.message); }
-    // 4) 웹 쪽 번호(NO) 맞추기 · 기준 갱신
-    dbFix.forEach(([t, id, col, v]) => setSilent_(t, id, { [col]: v }));
-    const now = fmtT_(new Date());
-    Object.assign(sync, { base: dbFix.length ? syncBase_() : cur, anchors: A, at: now, fileMod: DriveApp.getFileById(sync.fileId).getLastUpdated().getTime() });
+    // 4) 웹 쪽 번호(NO) 맞추기 · 기준 갱신 (기준은 이번에 엑셀에 쓴 내용 그대로 — 그 사이 웹에서 고친 것은 다음 저장 때 반영)
+    const fileMod = DriveApp.getFileById(sync.fileId).getLastUpdated().getTime(), now = fmtT_(new Date());
+    dbFix.forEach(([t, id, col, v]) => { const r = (cur[t] || []).find((x) => x.id === id); if (r) r[col] = v; });
+    if (dbFix.length) {
+      const lk2 = LockService.getScriptLock(); lk2.waitLock(30000);
+      try { TBL_ = {}; dbFix.forEach(([t, id, col, v]) => setSilent_(t, id, { [col]: v })); bumpVer_(); } finally { lk2.releaseLock(); }
+    }
+    Object.assign(sync, { base: cur, anchors: A, at: now, fileMod });
     writeSync_(sync);
     setSetting_('마지막 엑셀 저장', `${now} · ${by || ''} · ${rows}줄 ${cells}칸` + (skipped.length ? ` (수식 칸이라 건너뜀: ${skipped.slice(0, 3).join(', ')})` : ''));
     setSetting_('엑셀 저장 오류', '');
     return { 칸: cells, 줄: rows, 건너뜀: skipped };
-  } finally { lock.releaseLock(); }
+  } finally { P.deleteProperty('EXPORT_RUN'); }
 }
 function pruneXlBackups_() {
   const it = folder_(XL_FOLDER).getFiles(), list = [];
@@ -1277,16 +1306,17 @@ function setSilent_(t, id, ch) {
   const cols = SCHEMA[t].concat(META), sh = db_().getSheetByName(t);
   const next = Object.assign(clean_(r), ch);
   sh.getRange(r._row, 1, 1, cols.length).setValues([cols.map((c) => (next[c] == null ? '' : next[c]))]);
-  TBL_ = {};
+  Object.assign(r, ch); // 읽어 둔 표를 그 자리에서 고침 (표 전체를 다시 읽지 않음)
 }
 /** 웹이 원본일 때 엑셀 수식과 같은 계산: 계약 공급가·부가세·상태, 청구 공급가·부가세·수금액, 점검 기한·단계 */
-function derive_() {
+function derive_(fresh) {
   if ((setting_('원본') || '엑셀') !== '웹') return;
-  TBL_ = {};
+  if (!fresh) TBL_ = {};
   const days = +setting_('보고서기한일수') || 30;
   const bills = live_('청구'), cons = live_('계약'), C = {}; cons.forEach((c) => { C[c.id] = c; });
   const nk = (cid) => key_((C[cid] || {}).계약명);
-  const ch = (t, r, o) => { const diff = {}; Object.keys(o).forEach((k) => { if (String(r[k]) !== String(o[k])) diff[k] = o[k]; }); if (Object.keys(diff).length) { setSilent_(t, r.id, diff); Object.assign(r, diff); } };
+  const ch = (t, r, o) => { const diff = {}; Object.keys(o).forEach((k) => { if (String(r[k]) !== String(o[k])) diff[k] = o[k]; }); if (Object.keys(diff).length) { setSilent_(t, r.id, diff); Object.assign(r, diff); changed++; } };
+  let changed = 0;
   bills.forEach((b) => { const sup = b.청구액 ? Math.round(b.청구액 / 1.1) : 0; ch('청구', b, { 공급가: sup, 부가세: b.청구액 ? b.청구액 - sup : 0, 수금액: b.청구액 && b.입금일 ? b.청구액 : 0 }); });
   const paidByName = {}; bills.forEach((b) => { const k = nk(b.계약id); paidByName[k] = (paidByName[k] || 0) + b.수금액; });
   cons.forEach((c) => {
@@ -1307,7 +1337,7 @@ function derive_() {
     const due = x.점검일 ? iso_(new Date(toDate_(x.점검일).getTime() + days * 864e5)) : '';
     ch('점검', x, { 단계: st, 기한: due, 내부검토: iv });
   });
-  bumpVer_();
+  if (changed) bumpVer_();
 }
 
 // ---- xlsx 파일 다루기 (압축 안의 XML 을 직접 고침) ----
