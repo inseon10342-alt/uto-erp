@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -239,14 +239,17 @@ function finals_() {
   const info = (c) => { const its = byC[c.id] || [], ds = its.map((x) => x.점검일).filter(Boolean).sort();
     return { 계약명: c.계약명 || '', 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 연도: c.연도, 계약상태: c.상태 || '', 계약일: c.계약일 || '', 계약금: c.계약금 || 0,
       시공사: pn(c.시공사id) || pn(c.발주처id), 발주처: pn(c.발주처id), 종합보고서구분: c.종합보고서구분 || '', 종합보고서금액: c.종합보고서금액 || 0, 점검수: its.length, 점검완료: its.filter((x) => stageOf_(x) === '완료').length, 첫점검: ds[0] || '', 마지막점검: ds[ds.length - 1] || '' }; };
-  const rows = live_('종합').map((r) => { const c = C[r.계약id] || {}; let files = []; try { files = JSON.parse(r.파일 || '[]'); } catch (e) {} return Object.assign(clean_(r), info(c), { 파일: files }); })
+  // 내부 검토: 보고서 검토 관리(검토 표)에 점검항목 「종합보고서」로 기록 — 정기점검 보고서 검토와 같은 방식, 단계 계산에는 영향 없음
+  const RVF = {}; live_('검토').filter((v) => key_(v.항목) === key_('종합보고서')).forEach((v) => { (RVF[v.계약id] = RVF[v.계약id] || []).push(clean_(v)); });
+  const rvSt = (list) => { if (!list || !list.length) return ''; if (list.some((v) => v.상태 === '검토완료')) return '검토완료'; const l = list.slice().sort((a, b) => (+a.회차 || 0) - (+b.회차 || 0) || String(a.요청일).localeCompare(String(b.요청일))).pop(); return l.상태 === '수정요청' ? (l.재발송일 ? '검토중' : '수정요청') : '검토중'; };
+  const rows = live_('종합').map((r) => { const c = C[r.계약id] || {}; let files = []; try { files = JSON.parse(r.파일 || '[]'); } catch (e) {} const rv = (RVF[r.계약id] || []).sort((a, b) => (+a.회차 || 0) - (+b.회차 || 0)); return Object.assign(clean_(r), info(c), { 파일: files, 검토: rv, 검토상태: rvSt(rv) }); })
     .sort((a, b) => String(b.요청일).localeCompare(String(a.요청일)) || (b.차수 - a.차수));
   // 계약별 최신 차수만 「현재 상태」로 셈
   const last = {}; rows.forEach((r) => { if (!last[r.계약id] || r.차수 > last[r.계약id].차수) last[r.계약id] = r; });
   const cur = Object.values(last);
   const done = live_('계약').filter((c) => c.상태 && c.상태 !== '진행중').map((c) => Object.assign({ id: c.id }, info(c), { 요청: last[c.id] ? last[c.id].상태 : '' }))
     .sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || a.현장명.localeCompare(b.현장명));
-  return { list: rows, done, kpi: { 완료용역: done.length, 요청: cur.length, 미작성: cur.filter((r) => r.상태 === '미작성').length, 작성중: cur.filter((r) => r.상태 === '작성 중').length, 제출완료: cur.filter((r) => r.상태 === '제출 완료').length } };
+  return { list: rows, done, kpi: { 완료용역: done.length, 요청: cur.length, 미작성: cur.filter((r) => r.상태 === '미작성').length, 작성중: cur.filter((r) => r.상태 === '작성 중').length, 검토중: cur.filter((r) => r.상태 !== '제출 완료' && (r.검토상태 === '검토중' || r.검토상태 === '수정요청')).length, 제출완료: cur.filter((r) => r.상태 === '제출 완료').length } };
 }
 function finalDir_() {
   const id = P.getProperty('FINAL_DIR');

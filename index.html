@@ -1082,7 +1082,7 @@ PAGES.home = async (m) => {
   m.innerHTML = head('업무 현황', `<span class="sub">기준일 ${r.today}</span><button class="btn" id="rf">새로고침</button>`) + `
   <div class="sumline">
     <button data-go="sites"><span>진행 중 현장</span><b>${k.진행현장}<small>곳 · 완료 ${k.완료현장}</small></b></button>
-    <button data-go="todo"><span>보고서 작성 중</span><b>${k.작성중}<small>건${k.작성완료 ? ` · 작성 완료 ${k.작성완료}` : ''}</small></b></button>
+    ${(() => { const fz = r.final ? r.final.미작성 + r.final.작성중 : 0; return `<button data-go="${fz && !k.작성중 ? 'finals' : 'todo'}"><span>보고서 작성 중</span><b>${k.작성중 + fz}<small>건${fz ? ` · 정기 ${k.작성중} · 종합 ${fz}` : ''}${k.작성완료 ? ` · 작성 완료 ${k.작성완료}` : ''}</small></b></button>`; })()}
     <button data-go="todo"><span>제출 기한 14일 이내</span><b class="${k.기한14 ? 'warn' : ''}">${k.기한14}<small>건${k.기한초과 ? ` · 초과 ${k.기한초과}` : ''}</small></b></button>
     <button data-go="todo"><span>처리할 일</span><b class="${S.todoN ? 'bad' : ''}">${S.todoN}<small>건</small></b></button>
     <button data-go="collect"><span>입금 대기</span><b>${won(k.입금대기)}<small>원 · ${k.입금대기건}건</small></b></button>
@@ -1095,7 +1095,7 @@ PAGES.home = async (m) => {
       ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(w.항목)}${w.작성완료일 ? ' <span class="tag wd">보고서 작성 완료</span>' : ''}</div></td><td class="nw sub">${esc(w.점검일 || '—')}</td><td class="nw">${esc(w.기한 || '—')}</td><td>${dbar(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">제출 전 보고서가 없습니다</td></tr>'}
       </tbody></table></div></section>
     ${r.final ? `<section class="panel"><div class="ph"><h2>종합보고서</h2><span class="sub">용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도</span><a href="#finals" data-go="finals">관리</a></div>
-      <div class="sumline flat"><button data-go="finals"><span>용역 완료</span><b>${r.final.완료용역}<small>건</small></b></button><button data-go="finals"><span>종합보고서 요청</span><b>${r.final.요청}<small>건</small></b></button><button data-go="finals" data-fst="미작성"><span>미작성</span><b class="${r.final.미작성 ? 'warn' : ''}">${r.final.미작성}</b></button><button data-go="finals" data-fst="작성 중"><span>작성 중</span><b>${r.final.작성중}</b></button><button data-go="finals" data-fst="제출 완료"><span>제출 완료</span><b>${r.final.제출완료}</b></button></div>
+      <div class="sumline flat"><button data-go="finals"><span>용역 완료</span><b>${r.final.완료용역}<small>건</small></b></button><button data-go="finals"><span>종합보고서 요청</span><b>${r.final.요청}<small>건</small></b></button><button data-go="finals" data-fst="미작성"><span>미작성</span><b class="${r.final.미작성 ? 'warn' : ''}">${r.final.미작성}</b></button><button data-go="finals" data-fst="작성 중"><span>작성 중</span><b>${r.final.작성중}${r.final.검토중 ? `<small> · 내부 검토 ${r.final.검토중}</small>` : ''}</b></button><button data-go="finals" data-fst="제출 완료"><span>제출 완료</span><b>${r.final.제출완료}</b></button></div>
       ${r.final.open.length ? `<div class="tbox"><table><thead><tr><th>현장 · 계약</th><th>요청일</th><th>상태</th></tr></thead><tbody>${r.final.open.map((f) => `<tr class="click" data-final="${esc(f.id)}"><td><div class="t1">${esc(f.현장명)}${subN(f.시공사)}</div><div class="t2">${esc(f.연도 || '')} · ${esc(f.계약명)}</div></td><td class="nw sub">${esc(f.요청일)}</td><td>${finalTag(f.상태)}</td></tr>`).join('')}</tbody></table></div>` : ''}</section>` : ''}
     <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span><a href="#invoices" data-go="invoices">세금계산서</a></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
       ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}${subN(b.입금자 || b.발주처)}</div><div class="t2">${esc(b.품명)}</div></td><td class="nw sub">${esc(b.발행일)}</td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>
@@ -1972,6 +1972,7 @@ PAGES.report = async (m) => {
 // ---------- ③ 택배발송: 보낼 것 · 보낸 것
 const trackNo = (s) => { const t = String(s || '').match(/\d[\d-]{7,}\d/); return t ? t[0] : ''; };
 // ===================== 종합보고서 관리 (용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도) =====================
+const rvTagF = (st) => `<span class="tag ${st === '검토완료' ? 'g' : st === '수정요청' ? 'w' : st ? 't' : 'plain'}">${st === '검토완료' ? '검토 완료' : st === '수정요청' ? '수정 요청' : st ? '검토 중' : '검토 요청 전'}</span>`;
 const finalTag = (st) => `<span class="tag ${st === '제출 완료' ? 'g' : st === '작성 중' ? 't' : 'w'}">${esc(st || '미작성')}</span>`;
 const fsize = (n) => (n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB');
 // 파일처럼 큰 내용은 주소에 실을 수 없어서 POST 로 보냄 (응답도 같은 형식)
@@ -2003,14 +2004,14 @@ PAGES.finals = async (m, p) => {
     <div><span>용역 완료 계약</span><b>${K.완료용역}<small>건</small></b></div>
     <div><span>종합보고서 요청</span><b>${K.요청}<small>건</small></b></div>
     <button data-fs="미작성"><span>미작성</span><b class="${K.미작성 ? 'warn' : ''}">${K.미작성}<small>건</small></b></button>
-    <button data-fs="작성 중"><span>작성 중</span><b>${K.작성중}<small>건</small></b></button>
+    <button data-fs="작성 중"><span>작성 중</span><b>${K.작성중}<small>건${K.검토중 ? ` · 내부 검토 ${K.검토중}` : ''}</small></b></button>
     <button data-fs="제출 완료"><span>제출 완료</span><b>${K.제출완료}<small>건</small></b></button>
   </div>
   <div class="filters"><div class="seg">${['전체', '미작성', '작성 중', '제출 완료'].map((x) => `<button data-fs="${x}" class="${st.st === x ? 'on' : ''}">${x}</button>`).join('')}</div><input class="inp" type="search" id="fq" placeholder="현장·계약·시공사" value="${esc(st.q)}" style="width:220px"></div>
-  <section class="panel"><div class="tbox"><table class="mt"><thead><tr><th>현장 · 계약</th><th class="date">요청일</th><th class="date">작성일</th><th class="date">제출일</th><th class="c">파일</th><th class="c">상태</th></tr></thead><tbody id="fl"></tbody></table></div></section>`;
+  <section class="panel"><div class="tbox"><table class="mt"><thead><tr><th>현장 · 계약</th><th class="date">요청일</th><th class="date">작성일</th><th class="c">내부 검토</th><th class="date">제출일</th><th class="c">파일</th><th class="c">상태</th></tr></thead><tbody id="fl"></tbody></table></div></section>`;
   const draw = () => {
     const q = norm(st.q), rows = cur.filter((x) => (st.st === '전체' || x.상태 === st.st) && (!q || norm(x.현장명 + x.계약명 + x.시공사 + x.발주처).includes(q)));
-    $('#fl').innerHTML = rows.map((x) => `<tr class="click" data-final="${esc(x.id)}"><td class="tc"><div class="t1">${esc(x.현장명)}${subN(x.시공사)}</div><div class="t2">${esc(x.연도 || '')} · ${esc(x.계약명)}${x.비고 ? ' · ' + esc(String(x.비고).slice(0, 40)) : ''}</div></td><td class="date sub">${esc(x.요청일 || '—')}</td><td class="date">${esc(x.작성일 || '—')}</td><td class="date">${esc(x.제출일 || '—')}</td><td class="c">${(x.파일 || []).length || '<span class="muted">—</span>'}</td><td class="c">${finalTag(x.상태)}</td></tr>`).join('') || `<tr><td colspan="6" class="empty">${r.list.length ? '조건에 맞는 요청이 없습니다' : '아직 종합보고서 요청이 없습니다. 「요청 등록」에서 용역 완료 계약을 고르세요.'}</td></tr>`;
+    $('#fl').innerHTML = rows.map((x) => `<tr class="click" data-final="${esc(x.id)}"><td class="tc"><div class="t1">${esc(x.현장명)}${subN(x.시공사)}</div><div class="t2">${esc(x.연도 || '')} · ${esc(x.계약명)}${x.비고 ? ' · ' + esc(String(x.비고).slice(0, 40)) : ''}</div></td><td class="date sub">${esc(x.요청일 || '—')}</td><td class="date">${esc(x.작성일 || '—')}</td><td class="c">${rvTagF(x.검토상태)}</td><td class="date">${esc(x.제출일 || '—')}</td><td class="c">${(x.파일 || []).length || '<span class="muted">—</span>'}</td><td class="c">${finalTag(x.상태)}</td></tr>`).join('') || `<tr><td colspan="7" class="empty">${r.list.length ? '조건에 맞는 요청이 없습니다' : '아직 종합보고서 요청이 없습니다. 「요청 등록」에서 용역 완료 계약을 고르세요.'}</td></tr>`;
     labelTables(m);
     $$('[data-final]', $('#fl')).forEach((tr) => (tr.onclick = () => finalDetail(tr.dataset.final)));
   };
@@ -2049,7 +2050,7 @@ async function finalDetail(id) {
   const md = modal(`종합보고서 · ${x.현장명}`, `
     <div class="fhead"><div><b>${esc(x.계약명)}</b> <span class="sub">${esc(x.연도 || '')} · 계약 ${esc(x.계약상태 || '')}${x.계약일 ? ' · 계약일 ' + esc(x.계약일) : ''}</span></div>
       <dl class="kv"><dt>시공사</dt><dd>${esc(x.시공사 || '—')}</dd><dt>발주처</dt><dd>${esc(x.발주처 || '—')}</dd><dt>계약금</dt><dd>${won(x.계약금)}원${x.종합보고서구분 ? ` · 종합보고서 ${esc(x.종합보고서구분)}${x.종합보고서금액 ? ' ' + won(x.종합보고서금액) + '원' : ''}` : ''}</dd><dt>점검</dt><dd>${x.점검완료}/${x.점검수}회 완료${x.첫점검 ? ` · ${esc(x.첫점검)} ~ ${esc(x.마지막점검)}` : ''}</dd></dl></div>
-    <h3 class="fh">종합보고서 <span class="sub">요청 → 작성 → 시공사 제출 (계약당 1회)</span></h3>
+    <h3 class="fh">종합보고서 <span class="sub">요청 → 작성 → 내부 검토 → 시공사 제출 (계약당 1회)</span></h3>
     ${rounds.map((y) => `<div class="fround ${y.id === latest.id ? 'cur' : ''}"><div class="frh">${finalTag(y.상태)} <span class="sub">요청 ${esc(y.요청일 || '—')}${y.요청자 ? ' · ' + esc(y.요청자) : ''} · 작성 ${esc(y.작성일 || '—')} · 제출 ${esc(y.제출일 || '—')}${y.제출일 ? ' (' + esc(y.제출처 || x.시공사 || '시공사') + ')' : ''}</span>${ed ? `<button class="btn sm ghost" data-fe="${esc(y.id)}">수정</button>` : ''}</div>
       ${y.비고 ? `<div class="pre sub">${esc(y.비고)}</div>` : ''}<ul class="flist">${fileRows(y)}</ul></div>`).join('')}
     ${ed ? `<div class="factions">
@@ -2057,6 +2058,9 @@ async function finalDetail(id) {
       ${latest.상태 !== '제출 완료' ? '<button class="btn" id="fWrote">작성일 기록</button><button class="btn pri" id="fSub">시공사 제출 완료</button>' : ''}
       <label class="btn">${'파일 첨부 (HWP·PDF)'}<input type="file" id="fUp" accept=".hwp,.hwpx,.pdf" multiple hidden></label>
       <select class="inp" id="fKind" style="width:auto"><option>작성본</option><option>제출본</option><option>참고</option></select></div><div class="sub" id="fMsg" style="margin-top:6px"></div>` : ''}
+    <h3 class="fh">내부 검토 ${rvTagF(x.검토상태)} <span class="sub">보고서 검토 관리에 「종합보고서」로 기록됩니다</span></h3>
+    ${(x.검토 || []).length ? `<div class="tbox"><table class="mini"><thead><tr><th>회차</th><th>요청일</th><th>검토자</th><th>결과</th><th>회신일</th><th>의견</th><th></th></tr></thead><tbody>${x.검토.map((v) => `<tr><td class="nw">${esc(v.회차 || '')}회차</td><td class="nw">${esc(v.요청일 || '—')}</td><td>${esc(v.검토자 || '—')}</td><td>${rvTagF(v.상태 === '수정요청' ? '수정요청' : v.상태 || '검토중')}</td><td class="nw">${esc(v.회신일 || '—')}</td><td class="sub">${esc(String(v.의견 || '').slice(0, 60))}</td><td>${ed ? `<button class="btn sm ghost" data-rv="${esc(v.id)}">회신 기록</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="sub">아직 내부 검토를 요청하지 않았습니다.</div>'}
+    ${ed && latest.상태 !== '제출 완료' && x.검토상태 !== '검토중' ? `<div class="factions"><button class="btn" id="fRv">${x.검토상태 === '수정요청' ? '고쳐서 다시 검토 요청' : x.검토상태 === '검토완료' ? '추가 검토 요청' : '내부 검토 요청'}</button></div>` : ''}
     <h3 class="fh">점검 이력 <span class="sub">이 계약의 정기점검 ${items.length}회 (자동 연결)</span></h3>
     <div class="tbox"><table class="mini"><thead><tr><th>점검항목</th><th>점검일</th><th>보고서 발송</th><th>단계</th></tr></thead><tbody>${items.map((i) => `<tr><td>${esc(i.항목)}</td><td class="nw">${esc(i.점검일 || (i.예정일 ? i.예정일 + ' (예정)' : '—'))}</td><td class="nw">${esc(i.발송일 || '—')}</td><td>${stageTag(i.단계)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">점검 이력 없음</td></tr>'}</tbody></table></div>`,
     `<button class="btn" data-site-go="${esc(x.현장id)}">현장 상세</button><button class="btn" data-close>닫기</button>`, true);
@@ -2084,7 +2088,9 @@ async function finalDetail(id) {
   }));
   if ($('#fStart', md)) $('#fStart', md).onclick = () => save({ 상태: '작성 중' });
   if ($('#fWrote', md)) $('#fWrote', md).onclick = async () => { const v = await dateAsk('작성일 기록', '종합보고서 작성일'); if (v) save({ 작성일: v.d, 상태: '작성 중' }); };
-  if ($('#fSub', md)) $('#fSub', md).onclick = async () => { const v = await dateAsk('시공사 제출 완료', '제출일', `<p class="sub" style="margin:4px 0 0">제출처: <b>${esc(x.시공사 || '시공사 정보 없음')}</b> (계약의 시공사)</p>`); if (v) save({ 제출일: v.d, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
+  if ($('#fRv', md)) $('#fRv', md).onclick = () => { const n = (x.검토 || []).reduce((a, v) => Math.max(a, +v.회차 || 0), 0); md.remove(); openForm('검토', { 계약id: x.계약id, 항목: '종합보고서', 회차: String(n + 1), 요청일: today(), 상태: '검토중', 제목: `[종합보고서] ${x.현장명}` }, () => { invalidate(); go('finals', { id }); }); };
+  $$('[data-rv]', md).forEach((b) => (b.onclick = () => { const v = x.검토.find((z) => z.id === b.dataset.rv); md.remove(); openForm('검토', Object.assign({}, v, { 회신일: v.회신일 || today() }), () => { invalidate(); go('finals', { id }); }); }));
+  if ($('#fSub', md)) $('#fSub', md).onclick = async () => { if (x.검토상태 !== '검토완료' && !(await ask({ title: '내부 검토 확인', msg: x.검토상태 ? `내부 검토가 아직 「${x.검토상태 === '수정요청' ? '수정 요청' : '검토 중'}」입니다. 그래도 시공사 제출 완료로 처리할까요?` : '내부 검토 기록이 없습니다. 그래도 시공사 제출 완료로 처리할까요?', ok: '제출 처리' }))) return; const v = await dateAsk('시공사 제출 완료', '제출일', `<p class="sub" style="margin:4px 0 0">제출처: <b>${esc(x.시공사 || '시공사 정보 없음')}</b> (계약의 시공사)</p>`); if (v) save({ 제출일: v.d, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
   $('#fUp', md).onchange = async (e) => {
     const fs = [...e.target.files]; if (!fs.length) return;
     const msg = $('#fMsg', md), kind = $('#fKind', md).value;
@@ -2338,7 +2344,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15c';
+const APP_VERSION = '2026-11-15d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
