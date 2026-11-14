@@ -466,11 +466,14 @@ const Vault = (() => {
 const pref = { get(k, d) { try { const v = localStorage.getItem('erp-pref:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('erp-pref:' + k, JSON.stringify(v)); } catch (e) {} } };
 
 // ===================== 서버 호출 =====================
-function run(fn, ...args) {
-  if (!window.API_URL || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(window.API_URL)) return Promise.reject(new Error('config.js 에 서버 주소(API_URL)를 넣어 주세요.'));
+// 서버 호출 방식: 브라우저에 Google 계정이 여러 개 로그인돼 있으면 Google이 「파일을 열 수 없습니다」를 돌려주므로,
+// 로그인 정보(쿠키) 없이 부르는 방식을 먼저 써 보고, 안 되는 브라우저에서만 예전 방식으로 부릅니다. (판별은 해가 없는 요청으로 한 번만)
+let RUN_ANON = null;
+function jsonp(fn, args, anon) {
   return new Promise((res, rej) => {
     const cb = '__e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     const sc = document.createElement('script');
+    if (anon) sc.crossOrigin = 'anonymous';
     const done = (f, v) => { clearTimeout(t); try { delete window[cb]; } catch (e) { window[cb] = undefined; } sc.remove(); f(v); };
     const t = setTimeout(() => done(rej, new Error('서버 응답이 없습니다 (시간 초과)')), 120000);
     window[cb] = (r) => done(res, r);
@@ -478,6 +481,20 @@ function run(fn, ...args) {
     sc.src = window.API_URL + '?cb=' + cb + '&q=' + encodeURIComponent(JSON.stringify({ fn, args })) + '&_=' + Date.now();
     document.head.appendChild(sc);
   });
+}
+let runModeP = null;
+function runMode() {
+  if (RUN_ANON !== null) return Promise.resolve(RUN_ANON);
+  return runModeP || (runModeP = jsonp('api', ['', 'ping', {}], true).then(() => (RUN_ANON = true), () => (RUN_ANON = false)));
+}
+async function run(fn, ...args) {
+  if (!window.API_URL || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(window.API_URL)) throw new Error('config.js 에 서버 주소(API_URL)를 넣어 주세요.');
+  const anon = await runMode();
+  try { return await jsonp(fn, args, anon); }
+  catch (e) {
+    if (!anon) throw new Error(e.message + ' — 이 브라우저에 Google 계정이 여러 개 로그인돼 있으면 시크릿 창이나 다른 브라우저에서 열어 보세요.');
+    throw e;
+  }
 }
 const S = { token: null, user: null, source: '엑셀', counts: {}, cat: 'dash', page: 'home', params: {}, cache: {}, busy: 0 };
 async function api(action, arg, opt) {
@@ -1506,7 +1523,7 @@ async function start() {
 }
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-13k';
+const APP_VERSION = '2026-11-14a';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
