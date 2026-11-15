@@ -210,6 +210,8 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .split.nodetail{grid-template-columns:minmax(0,1fr)}
 .detail{position:sticky;top:60px;max-height:calc(100vh - 72px);overflow-y:auto;scrollbar-width:thin}
 @media (min-width:1181px){.split:not(.nodetail) .opt,.split:not(.nodetail) tfoot{display:none}}
+@media (min-width:1181px) and (max-width:1439px){.split:not(.nodetail) .opt2{display:none}}
+@media (min-width:761px) and (max-width:1365px){th,td{padding-left:8px;padding-right:8px}.mt th,.mt td{padding-left:8px;padding-right:8px}} /* 좁은 PC(노트북) 화면: 표 칸 여백을 줄여 가로 스크롤 방지 */ /* 좁은 PC 화면에서 상세를 열면 계약일 칸은 접음 (상세에 표시됨) */
 .dhead{padding:12px 14px 10px;border-bottom:1px solid var(--line2);position:sticky;top:0;background:#fff;z-index:2}
 .dhead h2{margin:2px 0 0;font-size:15px;font-weight:700;line-height:1.4;padding-right:32px;word-break:keep-all}
 .dhead .x{position:absolute;top:8px;right:8px}
@@ -420,6 +422,7 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
   #toasts{left:12px;right:12px;bottom:12px;align-items:stretch}
 }
 @media (min-width:761px){.cal .cd .dot{display:none}}
+.cdrow{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line2)}.cdrow small{display:block}
 .sumline.flat{border:0;border-radius:0;margin:0;border-bottom:1px solid var(--line2)}
 .plist{display:flex;flex-direction:column;gap:4px;max-height:56vh;overflow:auto}
 .pli{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;text-align:left;padding:9px 10px;border:1px solid var(--line2);border-radius:var(--r);background:#fff;cursor:pointer}.pli:hover{background:var(--bg2)}
@@ -576,6 +579,8 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
 .rpr .bar{display:flex;height:8px;background:var(--line2);border-radius:4px;overflow:hidden}.rpr .bar i{display:block;height:100%;background:var(--done)}.rpr .bar i.w{background:var(--prog)}
 .rpr .p{text-align:right;font-size:12px;color:var(--sub2);font-variant-numeric:tabular-nums}.rpr .a{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
 .rplist th{white-space:nowrap;line-height:1.3}.rplist td.num{white-space:nowrap}
+@media (max-width:1700px){.rplist th,.rplist td{padding-left:5px;padding-right:5px;font-size:12px}.rplist td:nth-child(3){min-width:150px!important}.rplist td:last-child{max-width:90px!important;overflow-wrap:anywhere}.rplist .minibar{width:30px}}
+@media (min-width:761px) and (max-width:1365px){.rplist th,.rplist td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px!important}.rplist .minibar{display:none}.rplist td:nth-child(3){min-width:104px!important}.rplist td:last-child{max-width:70px!important}.rpt th,.rpt td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px}.rpt th:first-child,.rpt td:first-child{padding-left:8px!important}.rpt th:last-child,.rpt td:last-child{padding-right:8px!important}}
 /* ③ 택배발송 */
 .pcstat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px}
 .pcstat>div{padding:10px 16px;border-left:1px solid var(--line2);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:baseline}.pcstat>div:first-child{border-left:0}
@@ -630,7 +635,7 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
 .cpick{display:flex;flex-direction:column;gap:6px}.jsseg{display:inline-flex;vertical-align:middle;margin-left:6px}.jsseg button{height:22px;padding:0 7px;font-size:11.5px}.cpick .seg{align-self:flex-start}.seg button small{color:inherit;opacity:.7;font-size:11px;margin-left:2px}
 .rvact{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
 .rvdot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;margin-right:3px;color:#fff;background:var(--prog)}.rvdot.g{background:var(--done)}.rvdot.w{background:var(--warn)}
-@media (max-width:1380px){.jwrap{grid-template-columns:236px minmax(0,1fr) 312px}.rvboard{grid-template-columns:repeat(2,minmax(0,1fr))}.pcrow{grid-template-columns:58px minmax(160px,1.3fr) minmax(150px,1fr) minmax(120px,1fr) auto}}
+@media (max-width:1380px){.jwrap{grid-template-columns:236px minmax(0,1fr) 312px}.rvboard{grid-template-columns:repeat(2,minmax(0,1fr))}.pcrow{grid-template-columns:54px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto;gap:10px}.pcrow>*{min-width:0;overflow-wrap:anywhere}}
 @media print{
   body.print-report .rp-title{display:block;font-size:15px;font-weight:700;margin:0 0 8px}
   body.print-report .rpgrid .seg,body.print-report .seg,body.print-report .btn{display:none!important}
@@ -782,7 +787,37 @@ const dlTag = (n) => (n == null ? '' : `<span class="tag ${n < 0 ? 'r' : n <= 14
 const stageTag = (s) => `<span class="tag ${s === '보고서 작성중' ? 'w' : s === '보고서 작성 완료' ? 'wd' : s === '완료' ? 'g' : /대기|예정/.test(s) ? 't' : ''}">${esc(s)}</span>`;
 // ===================== 시각화 도우미 (단계 표시 · 차트 · 타임라인) =====================
 // 보고서 상태 3가지를 따로 표시: 작성 · 검토 · 발송 (서로 자동으로 넘기지 않음)
-const rptLine = (x) => !x.점검일 ? '' : `<div class="rpt3"><span>작성 <b class="${x.작성완료일 ? 'ok' : 'ing'}">${x.작성완료일 ? '완료 ' + esc(md(x.작성완료일)) : '작성 중'}</b></span><span>검토 <b class="${x.내부검토 === '검토완료' ? 'ok' : x.내부검토 ? 'ing' : 'no'}">${esc(x.내부검토 || '미진행')}</b></span><span>시공사 발송 <b class="${x.발송일 ? 'ok' : 'no'}">${x.발송일 ? '완료 ' + esc(md(x.발송일)) : '미발송'}</b></span></div>`;
+// 계약일 표시: 없으면 「미입력」 + 바로 입력 (완료된 용역은 엑셀에 계약일 칸이 없어 비어 있음)
+const cdayCell = (c) => c.계약일 ? esc(c.계약일) : `<span class="muted">미입력</span>${can(WR.계약) && !excelLocked() ? ` <a href="#" data-cday="${esc(c.id)}">입력</a>` : ''}`;
+async function cdayAsk(id, done) {
+  const d = modal('계약일 입력', `<div class="fg"><label><span>계약일</span><input class="inp" type="date" id="cdv"></label></div><p class="sub" style="margin:8px 0 0">이 계약의 계약일만 저장합니다. 다른 내용은 바뀌지 않습니다.</p>`, '<button class="btn" data-close>취소</button><button class="btn pri" id="cdok">저장</button>');
+  $('#cdok', d).onclick = async () => {
+    const v = $('#cdv', d).value; if (!v) return toast('날짜를 고르세요', true);
+    try { const c = (await api('contract', { id })).contract; const out = await api('save', { t: '계약', row: { id, 계약일: v }, ver: c.버전 }); if (out.ok === false) throw new Error(out.msg); d.remove(); invalidate(); toast('계약일을 저장했습니다'); done && done(); } catch (e) { toast(e.message, true); }
+  };
+}
+// 계약일이 비어 있는 계약을 한 화면에서 채움
+function cdayBulk(list) {
+  const d = modal(`계약일 미입력 ${list.length}건`, `<p class="sub" style="margin:0 0 8px">완료된 용역은 엑셀(용역대장·완료보관)에 계약일 칸이 없어 비어 있습니다. 아는 것만 넣고 저장하세요. 빈 칸은 그대로 둡니다.</p>
+    <div class="plist">${list.map((c) => `<label class="cdrow"><span><b>${esc(c.계약명)}</b><small class="sub"> ${esc(c.연도 || '')} · ${esc(c.상태)}${c.시공사 ? ' · ' + esc(c.시공사) : ''}</small></span><input class="inp" type="date" data-cd="${esc(c.id)}"></label>`).join('')}</div>`,
+    '<button class="btn" data-close>닫기</button><button class="btn pri" id="cdsave">입력한 것 저장</button>', true);
+  $('#cdsave', d).onclick = async () => {
+    const todo = $$('[data-cd]', d).filter((i) => i.value); if (!todo.length) return toast('입력한 날짜가 없습니다', true);
+    const b = $('#cdsave', d); b.disabled = true; let ok = 0;
+    for (const i of todo) { const c = list.find((x) => x.id === i.dataset.cd); b.textContent = `저장 중… ${ok + 1}/${todo.length}`;
+      try { const out = await api('save', { t: '계약', row: { id: c.id, 계약일: i.value }, ver: c.버전 }, { quiet: true }); if (out.ok === false) throw new Error(out.msg); ok++; } catch (e) { toast(`${c.계약명}: ${e.message}`, true); } }
+    d.remove(); invalidate(); toast(`계약일 ${ok}건을 저장했습니다`); render();
+  };
+}
+const dShort = (d) => (String(d).slice(0, 4) === today().slice(0, 4) ? md(d) : d); // 올해는 월-일, 지난 해는 연도까지
+const rptLine = (x) => { // 보고서 상태 3가지: 작성 · 검토 · 발송. 이미 끝난 점검(단계 완료)은 날짜 기록이 없어도 모두 완료로 표시
+  if (!x.점검일 && x.단계 !== '완료') return '';
+  const st = String(x.단계 || ''), done = st === '완료' || !!x.발송일, past = done || /대기/.test(st); // past: 검토까지 끝나 청구·입금·발송 대기
+  const w = x.작성완료일 ? ['ok', '완료 ' + dShort(x.작성완료일)] : (past || x.내부검토 || /검토/.test(st)) ? ['ok', '완료'] : ['ing', '작성 중'];
+  const v = x.내부검토 === '검토완료' || past ? ['ok', '완료' + (x.검토회신일 ? ' ' + dShort(x.검토회신일) : '')] : x.내부검토 ? ['ing', x.내부검토 + (x.검토요청일 ? ' (요청 ' + dShort(x.검토요청일) + ')' : '')] : ['no', '미진행'];
+  const d = x.발송일 ? ['ok', '완료 ' + dShort(x.발송일)] : done ? ['ok', '완료'] : ['no', '미발송'];
+  return `<div class="rpt3"><span>작성 <b class="${w[0]}">${esc(w[1])}</b></span><span>검토 <b class="${v[0]}">${esc(v[1])}</b></span><span>시공사 발송 <b class="${d[0]}">${esc(d[1])}</b></span></div>`;
+};
 const STG = ['점검 전', '점검 예정', '보고서 작성중', '청구 대기', '입금 대기', '완료'];
 function sIdx(s) { s = String(s || ''); const i = STG.indexOf(s); if (i >= 0) return i; if (s === '보고서 작성 완료') return 2; if (/완료/.test(s)) return 5; if (/입금/.test(s)) return 4; if (/청구|발송/.test(s)) return 3; if (/작성|검토/.test(s)) return 2; if (/예정/.test(s)) return 1; return 0; }
 function stgDots(list) { return `<span class="stg ${(list || []).length > 16 ? 'many' : ''}">${(list || []).map(([n, s]) => `<i class="s${sIdx(s)}" title="${esc(n)}: ${esc(s)}"></i>`).join('')}</span>`; }
@@ -1136,6 +1171,7 @@ PAGES.todo = async (m) => {
   bindCommon(m);
 };
 function bindCommon(root) {
+  $$('[data-cday]', root).forEach((a) => (a.onclick = (e) => { e.preventDefault(); e.stopPropagation(); cdayAsk(a.dataset.cday, render); }));
   $$('[data-go]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go(b.dataset.go, b.dataset.fst ? { st: b.dataset.fst } : undefined); }));
   $$('tr[data-final]', root).forEach((b) => (b.onclick = () => go('finals', { id: b.dataset.final })));
   $$('[data-site]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (b.dataset.site) go('sites', { id: b.dataset.site }); }));
@@ -1158,7 +1194,7 @@ PAGES.sites = async (m, p) => {
     S._siteRows = rows;
     const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
     $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((s) => `<tr class="click ${s.id === p.id ? 'sel' : ''}" data-id="${s.id}"><td style="min-width:230px"><div class="t1">${esc(s.현장명)}${s.계약수 > 1 ? ` <span class="tag plain">계약 ${s.계약수}</span>` : ''}</div><div class="t2">${esc([s.관할구, s.시공사].filter(Boolean).join(' · '))}</div></td>
-      <td class="nw date">${s.계약일 ? esc(s.계약일) : '<span class="muted">—</span>'}</td><td class="nw">${(() => { const c = [0, 0, 0, 0, 0, 0]; (s.단계목록 || []).forEach(([, x]) => c[sIdx(x)]++); return `<b>${s.완료}</b><span class="sub"> / ${s.점검} 완료</span>${s.작성중 ? ` <span class="tag w">작성 중 ${s.작성중}</span>` : ''}${s.작성완료 ? ` <span class="tag wd">작성 완료 ${s.작성완료}</span>` : ''}${c[3] + c[4] ? ` <span class="tag t">청구·입금 대기 ${c[3] + c[4]}</span>` : ''}`; })()}</td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="nw"><span class="prog"><i style="width:${Math.min(100, s.수금률 * 100)}%"></i></span><span class="sub">${pct(s.수금률)}</span></td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
+      <td class="nw date opt2">${s.계약일 ? esc(s.계약일) : '<span class="muted">—</span>'}</td><td class="nw">${(() => { const c = [0, 0, 0, 0, 0, 0]; (s.단계목록 || []).forEach(([, x]) => c[sIdx(x)]++); return `<b>${s.완료}</b><span class="sub"> / ${s.점검} 완료</span>${s.작성중 ? ` <span class="tag w">작성 중 ${s.작성중}</span>` : ''}${s.작성완료 ? ` <span class="tag wd">작성 완료 ${s.작성완료}</span>` : ''}${c[3] + c[4] ? ` <span class="tag t">청구·입금 대기 ${c[3] + c[4]}</span>` : ''}`; })()}</td><td class="opt">${s.다음 ? esc(s.다음) : '<span class="muted">—</span>'}</td><td class="nw">${s.기한 ? `<span class="sub">${md(s.기한)}</span> ${dlTag(s.남은날)}` : '<span class="muted">—</span>'}</td><td class="nw opt2"><span class="prog"><i style="width:${Math.min(100, s.수금률 * 100)}%"></i></span><span class="sub">${pct(s.수금률)}</span></td><td class="nw sub opt">${esc(s.최근연락 || '—')}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">조건에 맞는 현장이 없습니다</td></tr>';
     $('#pg').innerHTML = pager(rows.length, st.pg, per, 'site');
     $('#cnt').textContent = `${rows.length}곳`;
     $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('sites', { id: tr.dataset.id })));
@@ -1169,7 +1205,7 @@ PAGES.sites = async (m, p) => {
   <div class="filters"><div class="seg" role="group" aria-label="상태">${['진행', '완료', '전체'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x === '진행' ? '진행 중' : x}</button>`).join('')}</div>
     <select class="inp" id="gu"><option value="">관할구 전체</option>${gus.map((g) => `<option ${st.gu === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}</select>
     <input class="inp" id="q" type="search" placeholder="현장명·시공사·주소" value="${esc(st.q)}" style="width:220px"><span class="cnt" id="cnt"></span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr>${[['현장', '현장명'], ['계약일', '계약일'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '다음' || k === '최근연락' ? 'opt' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div><div id="pg"></div></section>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr>${[['현장', '현장명'], ['계약일', '계약일'], ['점검 진행', '완료'], ['다음 점검', '다음'], ['보고서 기한', '남은날'], ['수금률', '수금률'], ['최근 연락', '최근연락']].map(([l, k]) => `<th class="sort ${k === '다음' || k === '최근연락' ? 'opt' : k === '계약일' || k === '수금률' ? 'opt2' : ''}" data-sort="${k}">${l}${st.sort === k ? (st.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="tb"></tbody></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
@@ -1195,9 +1231,9 @@ async function siteDetail(el, id, tab) {
       <div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div></div>
       <div class="sec"><h3>점검 회차별 진행</h3><table class="mini stp"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
       <div class="sec"><h3>현장 정보</h3><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구 · 규모</dt><dd>${esc([s.관할구, s.규모].filter(Boolean).join(' · ') || '-')}</dd>
-      <dt>계약일</dt><dd>${r.contracts.length > 1 ? r.contracts.map((c) => `${esc(c.연도 || '')} · ${esc(c.계약일 || '—')}`).join('<br>') : esc(c0.계약일 || '—')}</dd><dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
+      <dt>계약일</dt><dd>${r.contracts.length > 1 ? r.contracts.map((c) => `${esc(c.연도 || '')} · ${cdayCell(c)}`).join('<br>') : c0.id ? cdayCell(c0) : '—'}</dd><dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
       ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3>${timeline([{ d: `${r.contacts[0].연락일} · ${r.contacts[0].방법 || ''} · ${r.contacts[0].담당자 || ''}`, h: esc(r.contacts[0].메모 || r.contacts[0].공정 || '') }])}</div>` : ''}`,
-    items: () => `<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><span class="sub">날짜순 · 점검일(없으면 예정일)</span>${editBtn('점검', ic('plus', 14) + ' 점검 추가', 'sm', 'id="addI"')}</div><div class="sec">${timeline(r.items.slice().sort((a, b) => String(itemDate(a) || '9').localeCompare(String(itemDate(b) || '9'))).map((x) => { const i = sIdx(x.단계); return { c: i === 5 ? 'g' : i === 2 ? 'w' : i >= 3 ? 't' : '', d: itemDate(x) ? `${itemDate(x)}${x.점검일 ? '' : ' (예정)'}` : '날짜 미정', tag: stageTag(x.단계), h: `<b>${esc(x.항목)}</b>${x.기한 ? ` <span class="sub">· 보고서 기한 ${esc(x.기한)}</span>` : ''}${x.발송일 ? ` <span class="sub">· 발송 ${esc(x.발송일)}</span>` : ''}${x.시기 && !x.점검일 ? `<div class="sub">${esc(x.시기)}</div>` : ''}${rptLine(x)} ${x.점검일 && !x.발송일 && !x.작성완료일 ? editBtn('점검', '작성 완료', 'sm', `data-eh="" data-wdone="${esc(x.id)}"`) + ' ' : ''}${x.작성완료일 && !x.내부검토 && !x.발송일 ? editBtn('점검', '작성 완료 취소', 'sm ghost', `data-eh="" data-wundo="${esc(x.id)}"`) + ' ' : ''}${editBtn('점검', '수정', 'sm ghost', `data-ei="${esc(x.id)}"`)}` }; }))}</div>`,
+    items: () => `<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><span class="sub">날짜순 · 점검일(없으면 예정일)</span>${editBtn('점검', ic('plus', 14) + ' 점검 추가', 'sm', 'id="addI"')}</div><div class="sec">${timeline(r.items.slice().sort((a, b) => String(itemDate(a) || '9').localeCompare(String(itemDate(b) || '9'))).map((x) => { const i = sIdx(x.단계); return { c: i === 5 ? 'g' : i === 2 ? 'w' : i >= 3 ? 't' : '', d: itemDate(x) ? `${itemDate(x)}${x.점검일 ? '' : ' (예정)'}` : '날짜 미정', tag: stageTag(x.단계), h: `<b>${esc(x.항목)}</b>${x.기한 ? ` <span class="sub">· 보고서 기한 ${esc(x.기한)}</span>` : ''}${x.발송일 ? ` <span class="sub">· 발송 ${esc(x.발송일)}</span>` : ''}${x.시기 && !x.점검일 ? `<div class="sub">${esc(x.시기)}</div>` : ''}${rptLine(x)} ${x.단계 === '보고서 작성중' ? editBtn('점검', '작성 완료', 'sm', `data-eh="" data-wdone="${esc(x.id)}"`) + ' ' : ''}${x.단계 === '보고서 작성 완료' ? editBtn('점검', '작성 완료 취소', 'sm ghost', `data-eh="" data-wundo="${esc(x.id)}"`) + ' ' : ''}${editBtn('점검', '수정', 'sm ghost', `data-ei="${esc(x.id)}"`)}` }; }))}</div>`,
     contact: () => `<div class="sec" style="display:flex;justify-content:flex-end">${editBtn('연락', ic('plus', 14) + ' 연락 기록 추가', 'sm', 'id="addT"')}</div><div class="sec">${timeline(r.contacts.map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} · ${c.담당자 || ''}`, c: c.다음연락 && c.다음연락 <= today() ? 'w' : '', h: `${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}<div class="pre">${esc(c.메모)}</div>${c.다음연락 ? `<div class="sub">다음 연락 ${esc(c.다음연락)}</div>` : ''} ${editBtn('연락', '수정', 'sm ghost', `data-et="${esc(c.id)}"`)}` }))) || '<div class="sub">연락 기록 없음</div>'}</div>`,
     req: () => `<div class="sec"><h3>자료요청 ${(r.requests || []).length}건</h3>${timeline((r.requests || []).map((q) => ({ c: q.받음 ? 'g' : q.기한남음 != null && q.기한남음 < 0 ? 'r' : 'w', d: `${q.요청일} · ${q.방법 || ''}`, tag: reqTag(q), h: `<a href="#" data-q="${esc(q.id)}">${esc(String(q.자료).replace(/\n/g, ' ').slice(0, 70))}</a>` }))) || '<div class="sub">없음</div>'}</div>
       <div class="sec"><h3>보낸 메일 ${(r.mails || []).length}건</h3>${timeline((r.mails || []).map((x) => ({ c: x.회신대기 ? 'w' : 'g', d: x.보낸날, tag: mailTag(x), h: `<a href="#" data-mm="${esc(x.id)}">${esc(x.제목)}</a>` }))) || '<div class="sub">없음</div>'}</div>`,
@@ -1256,7 +1292,7 @@ PAGES.contracts = async (m, p) => {
     const sum = rows.reduce((a, c) => [a[0] + c.공급가, a[1] + c.계약금, a[2] + c.수금, a[3] + c.대기], [0, 0, 0, 0]);
     $('#sl').innerHTML = `<div><span>${st.y ? st.y + '년 ' : ''}${st.s || '전체'} 계약</span><b>${rows.length}<small>건</small></b></div><div><span>공급가 합계 (VAT 별도)</span><b>${won(sum[0])}</b></div><div><span>계약금 합계 (VAT 포함)</span><b>${won(sum[1])}</b></div><div><span>수금</span><b class="ok">${won(sum[2])}<small>${sum[1] ? Math.round(sum[2] / sum[1] * 100) : 0}%</small></b></div><div><span>입금 대기</span><b class="${sum[3] ? 'warn' : ''}">${won(sum[3])}</b></div><div><span>남은 금액</span><b>${won(sum[1] - sum[2])}</b></div>`;
     const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
-    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw date">${c.계약일 ? esc(c.계약일) : '<span class="muted">—</span>'}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
+    $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw date opt2">${c.계약일 ? esc(c.계약일) : '<span class="muted">—</span>'}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
     $('#tf').innerHTML = `<tr><td colspan="2">${rows.length}건 합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td><td colspan="2"></td></tr>`;
     $('#pg').innerHTML = pager(rows.length, st.pg, per, 'con');
     $('#cnt').textContent = rows.length + '건';
@@ -1264,19 +1300,21 @@ PAGES.contracts = async (m, p) => {
     $$('[data-pg]', m).forEach((b) => (b.onclick = () => { st.pg = +b.dataset.pg.split(':')[1]; draw(); }));
   };
   const yv = (f) => yAsc.map((y) => r.contracts.filter((c) => c.연도 === y).reduce((a, c) => a + c[f], 0));
-  m.innerHTML = head('계약·용역 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('계약', ic('plus', 15) + ' 계약 등록', 'pri', 'id="add"')}`) + lockNote('계약') + `
+  const noDay = r.contracts.filter((c) => !c.계약일);
+  m.innerHTML = head('계약·용역 관리', `${noDay.length && can(WR.계약) && !excelLocked() ? `<button class="btn" id="cdb">계약일 미입력 ${noDay.length}건</button>` : ''}<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('계약', ic('plus', 15) + ' 계약 등록', 'pri', 'id="add"')}`) + lockNote('계약') + `
   <div class="grid2" style="grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);margin-bottom:12px"><div class="sumline g3" id="sl" style="margin:0;align-self:start"></div>
   <section class="panel"><div class="ph"><h2>연도별 계약 규모</h2><span class="sub">계약금 · 수금</span></div><div class="chart">${barChart({ w: 380, height: 130, vals: true, fmt: () => '', labels: yAsc.map(String), series: [{ name: '계약금', color: '#526779', values: yv('계약금') }, { name: '수금', color: '#82968A', values: yv('수금') }] })}</div></section></div>
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${years.map((y) => `<option ${st.y === String(y) ? 'selected' : ''}>${y}</option>`).join('')}</select>
   <div class="seg" role="group" aria-label="상태">${['', '진행중', '완료', '종료', '취소'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x ? (x === '진행중' ? '진행 중' : x) : '전체'}</button>`).join('')}</div>
   <input class="inp" id="q" type="search" placeholder="계약명·발주처·번호" value="${esc(st.q)}" style="width:220px"><span class="sub">공급가 VAT 별도 · 계약금·수금 VAT 포함</span><span class="cnt" id="cnt"></span></div>
-  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="date">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
+  <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="date opt2">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
   draw();
   $('#y').onchange = (e) => { st.y = e.target.value; st.pg = 0; draw(); };
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
   $('#q').oninput = (e) => { st.q = e.target.value; st.pg = 0; draw(); };
   $('#add').onclick = () => openForm('계약', { 연도: new Date().getFullYear(), 상태: '진행중', VAT기준: '별도' }, (row) => go('contracts', { id: row.id }));
+  if ($('#cdb')) $('#cdb').onclick = () => cdayBulk(noDay);
   $('#xl').onclick = () => exportXlsx('계약목록', [['계약', [['번호', '연도', '계약명', '발주처', '시공사', '계약일', '공급가', '부가세', '계약금', '수금', '입금 대기', '잔여', '점검', '제출', '상태']].concat(S._conRows.map((c) => [c.id.slice(1), c.연도, c.계약명, c.발주처, c.시공사, c.계약일, c.공급가, c.부가세, c.계약금, c.수금, c.대기, c.잔여, c.점검, c.제출, c.상태]))]]);
   if (p.id) contractDetail($('#det'), p.id);
 };
@@ -1298,7 +1336,7 @@ async function contractDetail(el, id) {
       ${c.종합보고서구분 ? `<dt>종합보고서</dt><dd>${esc(c.종합보고서구분)} ${c.종합보고서금액 ? won(c.종합보고서금액) + '원' : ''}</dd>` : ''}<dt>VAT 기준</dt><dd>${esc(c.VAT기준 || '-')}</dd></dl></div>
     <div class="sec"><h3>당사자 · 기간</h3><dl class="kv"><dt>발주처(계약자)</dt><dd><a href="#" data-partner="${esc(c.발주처.id || '')}">${esc(c.발주처.거래처명 || '-')}</a> <span class="sub">${esc(c.발주처.사업자번호 || '')}</span></dd>
       ${c.실제입금처.id ? `<dt>실제 입금처</dt><dd><a href="#" data-partner="${esc(c.실제입금처.id)}">${esc(c.실제입금처.거래처명)}</a></dd>` : ''}<dt>시공사</dt><dd>${esc(c.시공사.거래처명 || c.발주처.거래처명 || '-')}</dd>
-      <dt>계약일</dt><dd>${esc(c.계약일 || '—')}</dd><dt>준공 예정</dt><dd>${esc(c.준공예정일 || '—')}</dd><dt>완료일</dt><dd>${esc(c.완료일 || '—')}</dd>${c.비고 ? `<dt>비고</dt><dd class="pre">${esc(c.비고)}</dd>` : ''}</dl></div>`;
+      <dt>계약일</dt><dd>${cdayCell(c)}</dd><dt>준공 예정</dt><dd>${esc(c.준공예정일 || '—')}</dd><dt>완료일</dt><dd>${esc(c.완료일 || '—')}</dd>${c.비고 ? `<dt>비고</dt><dd class="pre">${esc(c.비고)}</dd>` : ''}</dl></div>`;
   $('#closeD', el).onclick = () => go('contracts');
   $('#editC', el).onclick = () => openForm('계약', Object.assign({}, c, { 발주처id: c.발주처.id || '', 실제입금처id: c.실제입금처.id || '', 시공사id: c.시공사.id || '' }), () => { invalidate(); render(); });
   $('#addB', el).onclick = () => openForm('청구', { 계약id: id, 발행일: today() }, reload);
@@ -1741,8 +1779,13 @@ PAGES.roles = async (m) => {
 };
 PAGES.backup = async (m) => {
   const r = await api('backups');
-  m.innerHTML = head('데이터 백업 및 복구', '<button class="btn pri" id="now">지금 백업</button>') + `<div class="note info">매일 새벽 3시에 자동으로 백업하고(최근 60개 보관), 가져오기·복구·원본 전환 직전에도 자동으로 백업합니다. 백업은 Google Drive 「업무관리 백업」 폴더의 스프레드시트이며 엑셀(.xlsx)로도 받을 수 있습니다.</div>
+  m.innerHTML = head('데이터 백업 및 복구', '<button class="btn" id="aud">데이터 점검</button><button class="btn pri" id="now">지금 백업</button>') + `<div class="note info">매일 새벽 3시에 자동으로 백업하고(최근 60개 보관), 가져오기·복구·원본 전환 직전에도 자동으로 백업합니다. 백업은 Google Drive 「업무관리 백업」 폴더의 스프레드시트이며 엑셀(.xlsx)로도 받을 수 있습니다.</div>
   <section class="panel tbox"><table><thead><tr><th>백업 시각</th><th>이름</th><th></th></tr></thead><tbody>${r.backups.map((b) => `<tr><td class="nw">${esc(b.at)}</td><td>${esc(b.name)}</td><td class="nw"><a href="${esc(b.xlsx)}" target="_blank" rel="noopener">엑셀로 받기</a> · <a href="${esc(b.url)}" target="_blank" rel="noopener">열기</a> · <button class="btn sm" data-rs="${esc(b.id)}">이 시점으로 복구…</button></td></tr>`).join('') || '<tr><td colspan="3" class="empty">아직 백업이 없습니다</td></tr>'}</tbody></table></section>`;
+  $('#aud').onclick = async () => {
+    const a = await api('audit'); const bad = a.checks.filter((c) => c.건수);
+    modal('데이터 점검 결과', `<p class="sub" style="margin:0 0 8px">${esc(a.at)} 기준 · 현장 ${a.수.현장} · 계약 ${a.수.계약} (진행 ${a.수.진행} · 완료 ${a.수.완료}) · 점검 ${a.수.점검} · 세금계산서 ${a.수.세금계산서} · 검토 ${a.수.검토}<br>표 사이 연결과 빠진 값을 확인만 합니다. 아무것도 고치거나 지우지 않습니다.</p>
+      <div class="tbox"><table class="mini"><thead><tr><th>구분</th><th>점검 내용</th><th class="num">건수</th></tr></thead><tbody>${a.checks.map((c) => `<tr><td class="nw">${esc(c.구분)}</td><td>${esc(c.설명)}${c.건수 ? `<div class="sub pre" style="margin-top:3px">${esc(c.예.join('\n'))}${c.건수 > c.예.length ? `\n… 외 ${c.건수 - c.예.length}건` : ''}</div>` : ''}</td><td class="num">${c.건수 ? `<span class="tag ${c.심각 === '오류' ? 'w' : 'plain'}">${c.건수}</span>` : '<span class="tag g">정상</span>'}</td></tr>`).join('')}</tbody></table></div>`, '<button class="btn" data-close>닫기</button>', true);
+  };
   $('#now').onclick = async () => { const x = await api('backupNow'); toast('백업했습니다: ' + x.backup.name); render(); };
   $$('[data-rs]', m).forEach((b) => (b.onclick = async () => {
     const pv = await api('restorePreview', { id: b.dataset.rs });
@@ -2346,7 +2389,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15e';
+const APP_VERSION = '2026-11-15f';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

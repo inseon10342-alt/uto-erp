@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15e'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15f'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -230,7 +230,29 @@ function withAfter_(who, a, out) {
   });
   return Object.assign({}, out, { pre });
 }
-const WEB_ONLY = { 점검: ['작성완료일'] };
+const WEB_ONLY = { 점검: ['작성완료일'], 계약: ['계약일'] }; // 계약일: 완료된 용역은 엑셀에 칸이 없어 웹에서 넣은 값을 가져오기 때 지우지 않음
+// ---- 데이터 점검: 표 사이 연결이 끊겼거나 빠진 값을 찾아 보여줌 (읽기만 하고 아무것도 고치지 않음) ----
+function audit_() {
+  const S = byId_('현장'), C = byId_('계약'), cs = live_('계약'), insp = live_('점검'), inv = live_('청구'), rv = live_('검토');
+  const out = [], add = (구분, 심각, 설명, list) => out.push({ 구분, 심각, 설명, 건수: list.length, 예: list.slice(0, 30) });
+  const nm = (c) => (c.계약명 || c.id) + (c.연도 ? ' (' + c.연도 + ')' : '');
+  const byC = {}; insp.forEach((x) => { (byC[x.계약id] = byC[x.계약id] || []).push(x); });
+  const done = cs.filter((c) => c.상태 && c.상태 !== '진행중'), act = cs.filter((c) => c.상태 === '진행중');
+  add('연결', '오류', '계약에 연결된 현장이 없음', cs.filter((c) => !S[c.현장id]).map(nm));
+  add('연결', '오류', '점검에 연결된 계약이 없음', insp.filter((x) => !C[x.계약id]).map((x) => x.id));
+  add('연결', '오류', '세금계산서에 연결된 계약이 없음', inv.filter((b) => b.계약id && !C[b.계약id]).map((b) => (b.발행일 || '') + ' ' + (b.품명 || b.id)));
+  add('연결', '오류', '보고서 검토에 연결된 계약이 없음', rv.filter((v) => !C[v.계약id]).map((v) => v.id));
+  add('연결', '확인', '보고서 검토의 점검항목이 그 계약의 점검에 없음 (종합보고서 제외)', rv.filter((v) => C[v.계약id] && key_(v.항목) !== key_('종합보고서') && !(byC[v.계약id] || []).some((x) => key_(x.항목) === key_(v.항목))).map((v) => nm(C[v.계약id]) + ' · ' + v.항목));
+  add('연결', '확인', '계약이 하나도 없는 현장', live_('현장').filter((s) => !cs.some((c) => c.현장id === s.id)).map((s) => s.현장명));
+  add('상태', '오류', '완료된 용역인데 완료가 아닌 점검이 있음', done.filter((c) => (byC[c.id] || []).some((x) => stageOf_(x) !== '완료')).map((c) => nm(c) + ' · ' + (byC[c.id] || []).filter((x) => stageOf_(x) !== '완료').map((x) => x.항목 + '=' + stageOf_(x)).join(', ')));
+  add('상태', '확인', '진행 중 용역인데 점검이 모두 완료됨 (완료 처리 대상일 수 있음)', act.filter((c) => (byC[c.id] || []).length && (byC[c.id] || []).every((x) => stageOf_(x) === '완료')).map(nm));
+  add('상태', '확인', '점검이 한 건도 없는 계약', cs.filter((c) => !(byC[c.id] || []).length).map(nm));
+  add('누락', '참고', '계약일이 비어 있는 완료 용역 (엑셀 용역대장·완료보관에 계약일 칸이 없음 → 웹에서 입력)', done.filter((c) => !c.계약일).map(nm));
+  add('누락', '확인', '계약일이 비어 있는 진행 중 용역', act.filter((c) => !c.계약일).map(nm));
+  add('누락', '참고', '완료된 점검인데 시공사 발송일 기록이 없음 (이전 관리파일에서 점검일만 넘어온 건)', insp.filter((x) => stageOf_(x) === '완료' && !x.발송일).map((x) => nm(C[x.계약id] || {}) + ' · ' + x.항목));
+  add('누락', '확인', '완료된 점검인데 점검일이 없음', insp.filter((x) => stageOf_(x) === '완료' && !x.점검일).map((x) => nm(C[x.계약id] || {}) + ' · ' + x.항목));
+  return { at: fmtT_(new Date()), 수: { 현장: live_('현장').length, 계약: cs.length, 진행: act.length, 완료: done.length, 점검: insp.length, 세금계산서: inv.length, 검토: rv.length }, checks: out };
+}
 // ---- 종합보고서 ----
 function finals_() {
   const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처'), insp = live_('점검');
@@ -328,6 +350,7 @@ const ACTIONS = {
   myDevices: (who) => ({ devices: devices_().filter((d) => d.email === who.user.email).map((d) => Object.assign(d, { me: d.id === who.device.id })) }),
   importPreview: (who) => { need_(who, '관리자'); return importPreview_(who); },
   importCommit: (who, a) => { need_(who, '관리자'); return importCommit_(who, a.key); },
+  audit: (who) => { need_(who, '관리자'); return audit_(); },
   backups: (who) => { need_(who, '관리자'); return { backups: backups_() }; },
   backupNow: (who) => { need_(who, '관리자'); return { backup: backup_('수동', who.user.email) }; },
   restorePreview: (who, a) => { need_(who, '관리자'); return restorePreview_(a.id); },
@@ -540,7 +563,9 @@ function siteDetail_(id) {
   if (!s) return { site: null };
   const cs = contractList_().filter((c) => c.현장id === id), ids = cs.map((c) => c.id);
   const T = today_();
-  const items = live_('점검').filter((x) => ids.indexOf(x.계약id) >= 0).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x), 남은날: x.기한 && isWriting_(stageOf_(x)) ? dd_(x.기한, T) : null }));
+  // 점검별 내부 검토 이력 (보고서 검토 관리에서): 마지막 요청일 · 검토 완료 회신일
+  const RVI = {}; live_('검토').filter((v) => ids.indexOf(v.계약id) >= 0).forEach((v) => { const k = v.계약id + '|' + key_(v.항목), o = RVI[k] = RVI[k] || { 요청: '', 회신: '' }; if (v.요청일 && String(v.요청일) > o.요청) o.요청 = String(v.요청일); if (v.상태 === '검토완료' && v.회신일 && String(v.회신일) > o.회신) o.회신 = String(v.회신일); });
+  const items = live_('점검').filter((x) => ids.indexOf(x.계약id) >= 0).map((x) => { const rv = RVI[x.계약id + '|' + key_(x.항목)] || {}; return Object.assign(clean_(x), { 단계: stageOf_(x), 남은날: x.기한 && isWriting_(stageOf_(x)) ? dd_(x.기한, T) : null, 검토요청일: rv.요청 || '', 검토회신일: rv.회신 || '' }); });
   return { site: clean_(s), contracts: cs, items, invoices: live_('청구').filter((b) => ids.indexOf(b.계약id) >= 0).map(clean_).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일))),
     contacts: live_('연락').filter((x) => x.현장id === id).map(clean_).sort((a, b) => String(b.연락일).localeCompare(String(a.연락일))),
     docs: live_('문서').filter((d) => d.현장id === id || ids.indexOf(d.계약id) >= 0).map(clean_),
