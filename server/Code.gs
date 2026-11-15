@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15f'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-15g'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -27,7 +27,7 @@ const SCHEMA = {
   현장: ['id', '현장명', '주소', '관할구', '규모', '비고'],
   거래처: ['id', '거래처명', '사업자번호', '대표자', '주소', '업태', '종목', '구분', '전화', '이메일', '비고'],
   계약: ['id', '현장id', '계약명', '연도', 'No', '계약일', '공급가', '부가세', '계약금', 'VAT기준', '종합보고서구분', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '상태',
-    '발주처id', '실제입금처id', '시공사id', '용역코드', '준공예정일', '완료일', '비고', '입금비고', '기존수금', '기존미입금'],
+    '발주처id', '실제입금처id', '시공사id', '용역코드', '준공예정일', '완료일', '비고', '입금비고', '기존수금', '기존미입금', '상태지정'], // 상태지정: 웹 전용 — 완료 처리 / 진행으로 복원 (비어 있으면 엑셀 수식처럼 수금 기준 자동)
   점검: ['id', '계약id', '항목', '단계', '예정일', '점검일', '기한', '발송일', '시기', '위치', '내부검토', '비고', '작성완료일'], // 작성완료일: 웹 전용 (엑셀에 칸 없음)
   청구: ['id', '계약id', '발행일', '품명', '청구액', '공급가', '부가세', '입금일', '수금액', '입금자', '상태', '연결점검', '계약외', '할증', '비고', '분할입금'],
   연락: ['id', '현장id', '연락일', '방법', '담당자', '공정', '메모', '예상점검', '예상시기', '다음연락', '비고', '작성자'],
@@ -39,12 +39,16 @@ const SCHEMA = {
   택배: ['id', '현장id', '발송일', '항목', '받는사람', '주소', '비고'],
   // 종합보고서: 용역이 끝난 계약에 나중에 들어오는 종합보고서 요청 (웹 전용). 한 줄 = 요청 1회(차수), 재작성 요청은 다음 차수로 새 줄
   종합: ['id', '계약id', '현장id', '차수', '요청일', '요청자', '상태', '작성일', '제출일', '제출처', '파일', '비고'],
+  // 외주관리 (엑셀 「외주관리」 A~K 입력 칸). 업체명·현장명은 엑셀에 적힌 글자 그대로 보관 (거래처·계약을 못 찾아도 값이 사라지지 않게)
+  외주: ['id', '계산서일', '업체id', '업체명', '계약id', '현장명', '점검일', '내용', '청구금액', '지급금액', '지급일', '비고', '연결점검'],
+  // 회차별 단가 (엑셀 「회차별 단가」: 1줄 = 용역 1개의 점검항목(공정) 1개). VAT 별도 계약은 공급가로 저장 (엑셀과 같음)
+  단가: ['id', '계약id', '계약명', '항목', '단가', '횟수', '회차', '메모'],
 };
-const NUMCOLS = ['연도', 'No', '공급가', '부가세', '계약금', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '청구액', '수금액', '세액', '합계', '버전', '기존수금', '기존미입금', '차수'];
-const FROM_EXCEL = ['현장', '거래처', '계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '일지', '택배'];   // 가져오기가 채우는 표
+const NUMCOLS = ['연도', 'No', '공급가', '부가세', '계약금', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '청구액', '수금액', '세액', '합계', '버전', '기존수금', '기존미입금', '차수', '청구금액', '지급금액', '횟수']; // 단가(회차별 단가)는 빈 칸과 0원을 구분해야 해서 글자로 보관
+const FROM_EXCEL = ['현장', '거래처', '계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '일지', '택배', '외주', '단가'];   // 가져오기가 채우는 표
 const ROLE_RANK = { 조회: 0, 일반: 1, 관리자: 2 };
-const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반' };
-const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배', 종합: '종합보고서' };
+const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반', 외주: '관리자', 단가: '관리자' };
+const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배', 종합: '종합보고서', 외주: '외주', 단가: '회차별 단가' };
 
 // ===================== 진입 =====================
 function doGet(e) {
@@ -211,6 +215,7 @@ function api(token, action, arg) {
   const who = auth_(token);
   if (!who.ok) return who;
   try {
+    ensureAll_();
     const f = ACTIONS[action];
     if (!f) return { ok: false, msg: '알 수 없는 요청: ' + action };
     const out = f(who, arg);
@@ -220,7 +225,7 @@ function api(token, action, arg) {
   }
 }
 // 저장 직후 화면이 다시 부를 조회를 같은 요청 안에서 미리 계산해 돌려줌 (왕복 한 번 절약). 조회 전용만 허용
-const AFTER_OK = ['finals', 'dash', 'lookups', 'sites', 'site', 'contracts', 'contract', 'schedule', 'contacts', 'requests', 'money', 'reviews', 'journal', 'parcels', 'report', 'partners', 'partner'];
+const AFTER_OK = ['finals', 'dash', 'lookups', 'sites', 'site', 'contracts', 'contract', 'schedule', 'contacts', 'requests', 'money', 'reviews', 'journal', 'parcels', 'report', 'partners', 'partner', 'prices', 'outsource'];
 function withAfter_(who, a, out) {
   if (!out || out.ok === false || !Array.isArray(a.after)) return out;
   const pre = [];
@@ -230,7 +235,7 @@ function withAfter_(who, a, out) {
   });
   return Object.assign({}, out, { pre });
 }
-const WEB_ONLY = { 점검: ['작성완료일'], 계약: ['계약일'] }; // 계약일: 완료된 용역은 엑셀에 칸이 없어 웹에서 넣은 값을 가져오기 때 지우지 않음
+const WEB_ONLY = { 점검: ['작성완료일'], 계약: ['계약일', '상태지정'] }; // 계약일: 완료된 용역은 엑셀에 칸이 없어 웹에서 넣은 값을 가져오기 때 지우지 않음
 // ---- 데이터 점검: 표 사이 연결이 끊겼거나 빠진 값을 찾아 보여줌 (읽기만 하고 아무것도 고치지 않음) ----
 function audit_() {
   const S = byId_('현장'), C = byId_('계약'), cs = live_('계약'), insp = live_('점검'), inv = live_('청구'), rv = live_('검토');
@@ -309,7 +314,7 @@ function finalGet_(who, a) {
   return { name: f.n, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
 }
 const ACTIONS = {
-  boot: (who) => ({ user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
+  boot: (who) => (migrateG_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
   logout: (who) => { setDevice_(who.device.row, '해제', who.device.h); return {}; },
   dash: () => cached_('dash', dash_),
@@ -334,6 +339,8 @@ const ACTIONS = {
   }),
   journal: () => cached_('journal', () => ({ jobs: live_('일지').map(clean_).sort((a, b) => String(a.날짜).localeCompare(String(b.날짜))), year: +(setting_('일지연도') || new Date().getFullYear()) })),
   parcels: () => cached_('parcels', parcelsList_),
+  prices: () => cached_('prices', pricesList_),
+  outsource: () => cached_('outsource', outsourceList_),
   report: () => cached_('report', report_),
   partners: () => cached_('partners', () => ({ partners: partnersList_() })),
   partner: (who, a) => cached_('partner:' + a.id, () => partnerDetail_(a.id)),
@@ -394,11 +401,19 @@ function live_(t) { return rows_(t).filter((r) => r.삭제 !== 'Y'); }
 function ensureCols_(t) {
   const want = SCHEMA[t].concat(META), ck = 'cols:' + t + ':' + want.join('|').length + ':' + SERVER_VERSION, C = CacheService.getScriptCache();
   if (C.get(ck)) return; // 머리줄 확인은 6시간에 한 번
-  const sh = db_().getSheetByName(t); if (!sh) return;
+  const sh = db_().getSheetByName(t) || ensureSheet_(db_(), t, want); // 새로 생긴 표(외주·단가 등)는 시트를 만듦
   C.put(ck, '1', 21600);
   const H = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(String);
   if (H.slice(0, want.length).join('|') === want.join('|') && H.slice(want.length).every((h) => !h)) return;
   TBL_ = {}; const rows = rows_(t).map(clean_); writeTable_(t, rows);
+}
+/** 모든 표의 머리줄을 지금 SCHEMA 에 맞춤 (서버 업데이트로 칸이 늘면 첫 요청 때 한 번). 칸 위치로 쓰는 곳(setSilent_ 등)이 어긋나지 않게 */
+function ensureAll_() {
+  const C = CacheService.getScriptCache(), key = (t) => 'cols:' + t + ':' + SCHEMA[t].concat(META).join('|').length + ':' + SERVER_VERSION;
+  const ks = Object.keys(SCHEMA), got = C.getAll(ks.map(key)) || {}, miss = ks.filter((t) => !got[key(t)]);
+  if (!miss.length || !P.getProperty('DB_ID')) return;
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try { miss.forEach((t) => ensureCols_(t)); TBL_ = {}; } finally { lock.releaseLock(); }
 }
 function norm_(h, v) {
   if (NUMCOLS.indexOf(h) >= 0) return num_(v);
@@ -408,7 +423,7 @@ function norm_(h, v) {
 function clean_(r) { const o = {}; for (const k in r) if (k !== '_row') o[k] = r[k]; return o; }
 function byId_(t) { const m = {}; live_(t).forEach((r) => { m[r.id] = r; }); return m; }
 function newId_(t) {
-  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K', 종합: 'F' }[t] || 'X';
+  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K', 종합: 'F', 외주: 'O', 단가: 'U' }[t] || 'X';
   return pre + 'W' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
 }
 let SET_ = null; // 한 번 실행하는 동안 설정 시트를 한 번만 읽음
@@ -467,6 +482,12 @@ function save_(who, t, row, ver, isDelete) {
       if (next.계약id && live_('종합').some((y) => y.계약id === next.계약id && y.id !== next.id)) return { ok: false, code: 'invalid', msg: '이 계약은 이미 종합보고서가 등록되어 있습니다. 목록에서 그 건을 여세요.' };
       if (!cur && !next.요청자) next.요청자 = '';
     }
+    if ((t === '외주' || t === '단가') && !isDelete) { // 엑셀에 적을 글자 칸: 고른 계약·거래처 이름으로 맞춤
+      const oc = byId_('계약')[next.계약id];
+      if (oc) { if (t === '외주') next.현장명 = oc.계약명; else next.계약명 = oc.계약명; }
+      if (t === '외주' && next.업체id) { const op = byId_('거래처')[next.업체id]; if (op) next.업체명 = op.거래처명; }
+      if (t === '단가') { next.단가 = String(next.단가 == null ? '' : next.단가).replace(/[,\s원]/g, '') === '' ? '' : String(Math.round(num_(next.단가))); next.횟수 = Math.max(0, Math.round(num_(next.횟수))); }
+    }
     const err = validate_(t, next, cur);
     if (err) return { ok: false, code: 'invalid', msg: err };
     if (t === '계약' && !isDelete) {
@@ -480,7 +501,8 @@ function save_(who, t, row, ver, isDelete) {
     if (cur) sh.getRange(cur._row, 1, 1, cols.length).setValues(vals); else sh.appendRow(vals[0]);
     log_(who, t, next.id, isDelete ? '삭제' : cur ? '수정' : '등록', cur, next);
     delete TBL_[t];
-    if (['계약', '점검', '청구', '검토'].indexOf(t) >= 0) derive_(true); // 웹이 원본일 때만 계산 (엑셀 수식과 같게)
+    if (['계약', '점검', '청구', '검토'].indexOf(t) >= 0) derive_(true);
+    if (t === '계약' && !isDelete && next.상태지정 && next.상태 !== next.상태지정) { setSilent_('계약', next.id, { 상태: next.상태지정 }); next.상태 = next.상태지정; } // 웹이 원본일 때만 계산 (엑셀 수식과 같게)
     return { row: next };
   } finally { lock.releaseLock(); }
 }
@@ -498,7 +520,13 @@ function validate_(t, r, cur) {
   }
   if (t === '점검' && (!r.계약id || !r.항목)) return '계약과 점검항목을 입력하세요.';
   if (t === '점검' && r.작성완료일 && !r.점검일) return '보고서 작성 완료일은 점검일을 입력한 뒤에 넣을 수 있습니다.';
-  if (t === '청구' && (!r.계약id || !(r.발행일 || r.입금일))) return '계약과 발행일(또는 입금일)을 입력하세요.';
+  if (t === '청구' && (!r.계약id || !(r.발행일 || r.입금일 || num_(r.계약외) || num_(r.할증)))) return '계약과 발행일(또는 입금일)을 입력하세요. (날짜 없는 줄은 계약 외 금액·할증분이 있을 때만 저장)';
+  if (t === '외주' && !(r.업체명 || r.업체id)) return '외주업체를 입력하세요.';
+  if (t === '외주' && !(r.계약id || r.현장명)) return '용역(현장)을 고르세요.';
+  if (t === '외주' && r.지급금액 && !r.청구금액) return '청구금액을 먼저 입력하세요.';
+  if (t === '단가' && (!r.계약id || !r.항목)) return '계약과 점검항목(공정)을 입력하세요.';
+  if (t === '단가' && others.some((x) => x.계약id === r.계약id && key_(x.항목) === key_(r.항목))) return '이 계약에 같은 점검항목 단가가 이미 있습니다. 그 줄을 고치세요.';
+  if (t === '단가' && r.단가 !== '' && num_(r.단가) < 0) return '단가는 0 이상으로 입력하세요.';
   if (t === '연락' && (!r.현장id || !r.연락일)) return '현장과 연락일을 입력하세요.';
   if (t === '검토' && (!r.계약id || !r.항목 || !r.요청일)) return '계약, 점검항목, 검토요청일을 입력하세요.';
   if (t === '종합' && (!r.계약id || !r.요청일)) return '대상 계약(현장)과 요청일을 입력하세요.';
@@ -531,7 +559,8 @@ function contractList_() {
     return { id: c.id, 연도: c.연도, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명, 계약명: c.계약명, 계약일: c.계약일, 상태: c.상태,
       발주처: (Pn[c.발주처id] || {}).거래처명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 공급가: c.공급가, 부가세: c.부가세, 계약금: c.계약금,
       수금: m.수금, 대기: m.대기, 잔여: m.잔여, 수금률: m.수금률, 청구: m.청구, 점검: items.length, 제출: done, 공종: works_(items), 버전: c.버전,
-      입금비고: c.입금비고 || '', 기존수금: c.기존수금 || 0, 기존미입금: c.기존미입금 || 0, 미수금: c.미수금 || 0, 종합보고서구분: c.종합보고서구분 || '', 종합보고서금액: c.종합보고서금액 || 0 };
+      입금비고: c.입금비고 || '', 기존수금: c.기존수금 || 0, 기존미입금: c.기존미입금 || 0, 미수금: c.미수금 || 0, 종합보고서구분: c.종합보고서구분 || '', 종합보고서금액: c.종합보고서금액 || 0,
+      이월수금: c.이월수금 || 0, 상태지정: c.상태지정 || '', VAT기준: c.VAT기준 || '', 완료일: c.완료일 || '' };
   }).sort((a, b) => b.연도 - a.연도 || String(b.id).localeCompare(String(a.id)));
 }
 function works_(items) {
@@ -578,7 +607,27 @@ function contractDetail_(id) {
   return { contract: Object.assign(clean_(c), m, { 현장명: (byId_('현장')[c.현장id] || {}).현장명 || '', 발주처: clean_(Pn[c.발주처id] || {}), 실제입금처: clean_(Pn[c.실제입금처id] || {}), 시공사: clean_(Pn[c.시공사id] || {}) }),
     items: live_('점검').filter((x) => x.계약id === id).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x) })),
     invoices: inv.filter((b) => b.계약id === id).map(clean_).sort((a, b) => String(a.발행일).localeCompare(String(b.발행일))),
-    docs: live_('문서').filter((d) => d.계약id === id).map(clean_) };
+    docs: live_('문서').filter((d) => d.계약id === id).map(clean_), prices: live_('단가').filter((u) => u.계약id === id).map(clean_),
+    final: (live_('종합').find((f) => f.계약id === id) || null) };
+}
+// ---- 회차별 단가 목록 (현장별 · 공정별 조회)
+function pricesList_() {
+  const C = byId_('계약'), S = byId_('현장'), insp = live_('점검');
+  const cnt = {}; insp.forEach((x) => { const k = x.계약id + '|' + key_(procKey_(x.항목)); (cnt[k] = cnt[k] || []).push(x.항목); });
+  const rows = live_('단가').map((u) => { const c = C[u.계약id] || {}, live = cnt[u.계약id + '|' + key_(procKey_(u.항목))] || [];
+    return Object.assign(clean_(u), { 계약명: c.계약명 || u.계약명, 현장id: c.현장id || '', 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || u.계약명, 연도: c.연도 || '', 상태: c.상태 || '', VAT: c.VAT기준 === '별도' ? '별도 (공급가)' : '포함', 단가: u.단가 === '' ? '' : num_(u.단가), 금액: u.단가 !== '' && u.횟수 ? num_(u.단가) * u.횟수 : 0, 점검수: live.length, 점검회차: live.join(', ') }); });
+  return { prices: rows };
+}
+// 점검항목 → 공정 이름 (뒤의 「N차」를 뗌: 지보공2차 → 지보공) — 엑셀 ProcKey 와 같음
+function procKey_(it) { let s = String(it || '').trim(); if (/차$/.test(s)) { s = s.slice(0, -1).replace(/\d+$/, '').trim(); } return s || String(it || '').trim(); }
+// ---- 외주관리 목록 (엑셀 L~P 계산과 같게)
+function outsourceList_() {
+  const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처');
+  const rows = live_('외주').map((o) => { const c = C[o.계약id] || {}, F = o.청구금액, G = o.지급금액, sup = F ? round_(F / 1.1) : 0;
+    return Object.assign(clean_(o), { 업체: o.업체명 || (Pn[o.업체id] || {}).거래처명 || '', 계약명: c.계약명 || o.현장명, 현장id: c.현장id || '', 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || o.현장명,
+      미지급: F ? Math.max(0, F - G) : 0, 공급가: sup, 부가세: F ? F - sup : 0, 상태: !F ? '금액 없음' : G >= F ? '지급 완료' : G > 0 ? '일부 지급' : '지급 대기', 연도: String(o.계산서일 || '').slice(0, 4) }); })
+    .sort((a, b) => String(b.계산서일).localeCompare(String(a.계산서일)));
+  return { outsource: rows };
 }
 function schedule_(from, to) {
   const C = byId_('계약'), S = byId_('현장'), ev = [];
@@ -618,9 +667,16 @@ function money_() {
   }).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일)));
   const monthly = {};
   invoices.forEach((b) => { const k = String(b.발행일).slice(0, 7); if (!k) return; const m = monthly[k] = monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; m.청구 += b.청구액; m.수금 += b.수금액; m.건수++; });
+  // 월별 실적 (엑셀 진행현황보고 「월별 실적」과 같은 기준 · 완료된 용역 포함): 점검 건수(점검일) · 현장 방문(같은 날 같은 용역은 1회) · 보고서 발송(발송일) · 청구(발행일) · 입금(입금일 기준 수금액)
+  const perf = {}, P0 = (k) => (perf[k] = perf[k] || { 점검: 0, 방문: 0, 발송: 0, 청구: 0, 입금: 0, 계약외: 0 }), visit = {};
+  live_('점검').forEach((x) => {
+    if (x.점검일) { const k = String(x.점검일).slice(0, 7); P0(k).점검++; const vk = x.점검일 + '|' + x.계약id; if (!visit[vk]) { visit[vk] = 1; perf[k].방문++; } }
+    if (/^\d{4}-\d\d-\d\d/.test(String(x.발송일 || ''))) P0(String(x.발송일).slice(0, 7)).발송++;
+  });
+  live_('청구').forEach((b) => { if (b.발행일) P0(String(b.발행일).slice(0, 7)).청구 += b.청구액; if (b.입금일) P0(String(b.입금일).slice(0, 7)).입금 += b.수금액; });
   const years = {};
   contracts.forEach((c) => { const y = years[c.연도] = years[c.연도] || { 건수: 0, 공급가: 0, 계약금: 0, 수금: 0, 진행: 0, 완료: 0 }; y.건수++; y.공급가 += c.공급가; y.계약금 += c.계약금; y.수금 += c.수금; if (c.상태 === '진행중') y.진행++; else y.완료++; });
-  return { contracts, invoices, monthly, years };
+  return { contracts, invoices, monthly, years, perf };
 }
 function partnersList_() {
   const cs = contractList_(), raw = live_('계약');
@@ -693,7 +749,7 @@ function recentChanges_(n) {
   const v = sh.getRange(Math.max(2, last - 60), 1, Math.min(61, last - 1), 5).getValues().reverse();
   return v.filter((r) => r[4] !== '가져오기' && r[4] !== '복구').slice(0, n).map((r) => ({ 시각: norm_('수정일', r[0]), 사용자: r[1], 표: r[2], id: r[3], 동작: r[4] }));
 }
-function counts_() { const o = {}; FROM_EXCEL.concat(['문서']).forEach((t) => { o[t] = live_(t).length; }); return o; }
+function counts_() { const o = {}; FROM_EXCEL.concat(['문서']).forEach((t) => { o[t] = live_(t).length; }); const cs = live_('계약'); o.진행계약 = cs.filter((c) => c.상태 === '진행중').length; o.완료계약 = cs.length - o.진행계약; return o; }
 function lookups_() {
   return { sites: live_('현장').map((s) => ({ id: s.id, n: s.현장명 })).sort((a, b) => a.n.localeCompare(b.n)),
     partners: live_('거래처').map((p) => ({ id: p.id, n: p.거래처명, biz: p.사업자번호, 대표자: p.대표자, 주소: p.주소, 업태: p.업태, 종목: p.종목 })).sort((a, b) => a.n.localeCompare(b.n)),
@@ -932,7 +988,7 @@ function setSourceFile_(who, id) {
   return sourceList_();
 }
 function readWorkbook_(file) {
-  const want = ['용역관리', '용역대장', '점검이력', '수금대장', '현장연락', '외주관리', '완료보관', '거래명세서', '자료요청관리', '메일관리', '입금관리', '보고서검토관리', '업무일지', '택배발송'];
+  const want = ['용역관리', '용역대장', '점검이력', '수금대장', '현장연락', '외주관리', '회차별 단가', '완료보관', '거래명세서', '자료요청관리', '메일관리', '입금관리', '보고서검토관리', '업무일지', '택배발송'];
   let tmpId;
   try { tmpId = Drive.Files.copy({ name: '_업무관리_가져오기_임시', mimeType: MimeType.GOOGLE_SHEETS }, file.getId()).id; }
   catch (e) { tmpId = Drive.Files.copy({ title: '_업무관리_가져오기_임시' }, file.getId(), { convert: true }).id; }
@@ -984,6 +1040,57 @@ function importCommit_(who, key) {
     setSetting_('마지막 가져오기', now + ' · ' + who.user.email);
     log_(who, '전체', '엑셀', '가져오기', null, { 백업: safety.name });
     return { done: true, safety: safety.name, counts: counts_() };
+  } finally { lock.releaseLock(); }
+}
+
+/** 1회 이관 (원본이 웹으로 전환된 뒤 추가된 표): 엑셀 「외주관리」·「회차별 단가」, 날짜 없는 계약 외 입금 줄
+ *  - 이미 있는 자료는 고치지 않고, 빠진 줄만 넣음 · 넣기 전에 DB 백업 · 엑셀 줄 위치(연결 정보)도 함께 기억해 다음 엑셀 저장 때 줄이 겹치지 않게 함
+ *  - 한 번 끝나면 스크립트 속성 MIG_G 에 결과를 남기고 다시 하지 않음 */
+function migrateG_(by) {
+  const done = P.getProperty('MIG_G') || '';
+  if (/^done/.test(done)) return null;
+  if ((setting_('원본') || '엑셀') !== '웹') return null; // 엑셀이 원본이면 「가져오기」가 함께 채움
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(2000)) return null;
+  try {
+    if (/^done/.test(P.getProperty('MIG_G') || '')) return null;
+    const run = +((P.getProperty('MIG_G') || '').split(':')[1] || 0); if (run && Date.now() - run < 10 * 60000) return null;
+    const tries = +(P.getProperty('MIG_G_N') || 0); if (tries >= 3) return null; // 3번 실패하면 멈춤 (시스템 설정에 오류 표시)
+    P.setProperty('MIG_G_N', String(tries + 1));
+    P.setProperty('MIG_G', 'run:' + Date.now());
+    const sync = readSync_(); if (!sync) { P.setProperty('MIG_G', 'done:연결 정보 없음 (이관 안 함)'); return null; }
+    const file = DriveApp.getFileById(sync.fileId);
+    const safety = backup_('외주·단가 이관 직전', by || '시스템');
+    const mp = mapWorkbook_(readWorkbook_(file)), T = mp.tables, now = fmtT_(new Date());
+    TBL_ = {};
+    // 엑셀로 다시 읽은 계약 → 지금 DB 계약 (이름+연도, 없으면 이름만)
+    const dbC = live_('계약'), mC = {}; (T.계약 || []).forEach((c) => { mC[c.id] = c; });
+    const cid = (id) => { const m = mC[id]; if (!m) return ''; const k = key_(m.계약명); const same = dbC.filter((c) => key_(c.계약명) === k); return ((same.find((c) => +c.연도 === +m.연도) || same.sort((a, b) => b.연도 - a.연도)[0]) || {}).id || ''; };
+    const pid = (() => { const P2 = live_('거래처'); return (name) => { const k = key_(corp_(name)); return (P2.find((p) => key_(corp_(p.거래처명)) === k) || {}).id || ''; }; })();
+    const base = sync.base = sync.base || {}, A = sync.anchors = sync.anchors || {}, res = {};
+    const put = (t, rows) => {
+      const have = {}; rows_(t).forEach((r) => { have[r.id] = 1; });
+      const add = rows.filter((r) => !have[r.id]); if (!add.length) return 0;
+      const cols = SCHEMA[t].concat(META), sh = db_().getSheetByName(t) || ensureSheet_(db_(), t, cols);
+      const vals = add.map((r) => cols.map((c) => (c === '버전' ? 1 : c === '수정일' ? now : c === '수정자' ? '이관' : c === '삭제' ? '' : r[c] == null ? '' : r[c])));
+      sh.getRange(sh.getLastRow() + 1, 1, vals.length, cols.length).setNumberFormat('@').setValues(vals);
+      (base[t] = base[t] || []).push(...add.map((r) => { const o = {}; SCHEMA[t].forEach((c) => { o[c] = r[c] == null ? '' : r[c]; }); o.삭제 = ''; return o; }));
+      add.forEach((r) => { const an = ((mp.anchors || {})[t] || {})[r.id]; if (an) (A[t] = A[t] || {})[r.id] = an; });
+      delete TBL_[t]; return add.length;
+    };
+    const outs = (T.외주 || []).map((o) => Object.assign({}, o, { 계약id: cid(o.계약id), 업체id: pid(o.업체명) || '' }));
+    const prices = (T.단가 || []).map((u) => Object.assign({}, u, { 계약id: cid(u.계약id) }));
+    const bills = (T.청구 || []).filter((b) => !b.발행일 && !b.입금일).map((b) => Object.assign({}, b, { 계약id: cid(b.계약id) })).filter((b) => b.계약id);
+    res.외주 = put('외주', outs); res.단가 = put('단가', prices); res.청구 = put('청구', bills);
+    writeSync_(sync);
+    log_({ user: { email: by || '시스템' } }, '전체', '엑셀', '이관', null, { 외주: res.외주, 단가: res.단가, 청구: res.청구, 백업: safety.name });
+    const msg = `${now} · 외주 ${res.외주}건 (청구금액 ${outs.reduce((a, o) => a + o.청구금액, 0).toLocaleString('en-US')}원) · 회차별 단가 ${res.단가}건 · 날짜 없는 계약 외 줄 ${res.청구}건 (${bills.reduce((a, b) => a + b.계약외, 0).toLocaleString('en-US')}원) · 백업 ${safety.name}`;
+    setSetting_('엑셀 이관(외주·단가)', msg, '1회 이관 결과 (자동)');
+    P.setProperty('MIG_G', 'done:' + msg);
+    bumpVer_();
+    return res;
+  } catch (e) {
+    P.setProperty('MIG_G', 'err:' + Date.now() + ':' + e.message); setSetting_('엑셀 이관(외주·단가)', fmtT_(new Date()) + ' · 실패: ' + e.message + ' (다음 접속 때 다시 시도)', '1회 이관 결과 (자동)');
+    return null;
   } finally { lock.releaseLock(); }
 }
 
@@ -1079,15 +1186,16 @@ function mapWorkbook_(V) {
   const bills = [], bseen = {};
   table_(V['수금대장'], 6, 7, '용역명').forEach((r) => {
     const d = iso_(g_(r, '세/계 발행일')), paidOn = iso_(g_(r, '입금일')), anyD = d || paidOn;
-    if (!anyD) return; // 발행일도 입금일도 없는 빈 줄 (발행 없이 입금만 된 줄은 가져옴: 예) 추가 입금)
-    const name = one_(g_(r, '용역명')), c = pickC(name, +anyD.slice(0, 4));
+    // 발행일도 입금일도 없는 줄: 계약 외 금액·할증분·금액이 적혀 있으면 가져옴 (예: 계약 외 현금 990,000원), 아무것도 없으면 빈 줄
+    if (!anyD && !(num_(g_(r, '계약 외')) || num_(g_(r, '할증')) || num_(g_(r, '청구액')))) return;
+    const name = one_(g_(r, '용역명')), c = pickC(name, anyD ? +anyD.slice(0, 4) : 0);
     if (!c) { warnings.push(`수금대장의 용역을 용역대장에서 찾지 못함: ${name} (${d})`); return; }
     let id = 'B' + hashS_([anyD, key_(name), key_(one_(g_(r, '품명'))), num_(g_(r, '청구액'))].join('|')); while (bseen[id]) id += '+'; bseen[id] = 1;
     const links = [1, 2, 3, 4].map((i) => one_(g_(r, '연결 점검 ' + i))).filter((x) => x && !/금액/.test(x));
     anchor('청구', id, '수금대장', r._r);
     const [memo, parts] = splitParts_(s_(g_(r, '비고')));
     bills.push({ id, 계약id: c.id, 발행일: d, 품명: one_(g_(r, '품명')), 청구액: num_(g_(r, '청구액')), 공급가: num_(g_(r, '공급가')), 부가세: num_(g_(r, '부가세')), 입금일: iso_(g_(r, '입금일')),
-      수금액: num_(g_(r, '수금액')), 입금자: one_(g_(r, '입금자')), 상태: one_(g_(r, '상태')), 연결점검: links.join(', '), 계약외: num_(g_(r, '계약 외')), 할증: num_(g_(r, '할증')), 비고: memo || (d ? '' : '계산서 발행 없이 입금'), 분할입금: parts });
+      수금액: num_(g_(r, '수금액')), 입금자: one_(g_(r, '입금자')), 상태: one_(g_(r, '상태')), 연결점검: links.join(', '), 계약외: num_(g_(r, '계약 외')), 할증: num_(g_(r, '할증')), 비고: memo || (d || !paidOn ? '' : '계산서 발행 없이 입금'), 분할입금: parts });
   });
   // 연락(현장연락)
   const calls = [], tseen = {};
@@ -1154,8 +1262,29 @@ function mapWorkbook_(V) {
     anchor('택배', id, '택배발송', r._r);
     parcels.push({ id, 현장id: s.id, 발송일: d, 항목: one_(g_(r, '점검항목')), 받는사람: one_(g_(r, '받는 사람')), 주소: one_(g_(r, '주소')), 비고: one_(g_(r, '비고')) });
   });
-  // 외주업체도 거래처로
-  table_(V['외주관리'], 6, 7, '외주업체').forEach((r) => partner(g_(r, '외주업체'), null, '외주'));
+  // 외주관리 (외주업체도 거래처로). 엑셀 글자(업체·용역명)는 그대로 보관
+  const outs = [], oseen = {};
+  table_(V['외주관리'], 6, 7, '외주업체').forEach((r) => {
+    const vn = one_(g_(r, '외주업체')), pid = partner(vn, null, '외주'), name = one_(g_(r, '용역명')), d = iso_(g_(r, '계산서일자'));
+    const c = name ? pickC(name, d ? +d.slice(0, 4) : 0) : null;
+    if (name && !c) warnings.push(`외주관리의 용역을 용역대장에서 찾지 못함: ${name} (글자 그대로 보관)`);
+    let id = 'O' + hashS_([d, key_(vn), key_(name), key_(one_(g_(r, '작업내용'))), num_(g_(r, '청구금액'))].join('|')); while (oseen[id]) id += '+'; oseen[id] = 1;
+    anchor('외주', id, '외주관리', r._r);
+    const pd = g_(r, '점검일');
+    outs.push({ id, 계산서일: d, 업체id: pid, 업체명: vn, 계약id: c ? c.id : '', 현장명: name, 점검일: iso_(pd) || one_(pd), 내용: s_(g_(r, '작업내용')), 청구금액: num_(g_(r, '청구금액')), 지급금액: num_(g_(r, '지급금액')),
+      지급일: iso_(g_(r, '지급일')), 비고: s_(g_(r, '비고')), 연결점검: [1, 2].map((i) => one_(g_(r, '연결 점검 ' + i))).filter(Boolean).join(', ') });
+  });
+  // 회차별 단가 (1줄 = 용역 × 점검항목)
+  const prices = [], useen = {};
+  table_(V['회차별 단가'], 6, 7, '용역명').forEach((r) => {
+    const name = one_(g_(r, '용역명')), item = one_(g_(r, '점검항목')); if (!name || !item) return;
+    const c = pickC(name);
+    if (!c) warnings.push(`회차별 단가의 용역을 용역대장에서 찾지 못함: ${name} ${item} (글자 그대로 보관)`);
+    let id = 'U' + hashS_([key_(name), key_(item)].join('|')); while (useen[id]) id += '+'; useen[id] = 1;
+    anchor('단가', id, '회차별 단가', r._r);
+    const up = g_(r, '회당 단가');
+    prices.push({ id, 계약id: c ? c.id : '', 계약명: name, 항목: item, 단가: up === '' || up == null || /^#/.test(String(up)) ? '' : String(num_(up)), 횟수: num_(g_(r, '횟수')), 회차: one_(g_(r, '해당 회차')), 메모: s_(g_(r, '메모')) });
+  });
   // 검증: 엑셀이 계산한 값과 DB 로 다시 계산한 값 비교
   const checks = [];
   const byYear = {};
@@ -1174,13 +1303,15 @@ function mapWorkbook_(V) {
   Object.keys(byYear).sort().forEach((y) => checks.push({ 항목: `${y}년 계약금(VAT 포함)`, 엑셀: byYear[y].계약금, DB: byYear[y].계약금 }));
   checks.push({ 항목: '수금 합계 (엑셀 계산 vs 이월+수금대장)', 엑셀: paidX, DB: paidD, 차이건수: paidMismatch });
   checks.push({ 항목: '청구 후 입금 대기가 다른 계약 수', 엑셀: 0, DB: waitMismatch });
+  checks.push({ 항목: '외주 내역 건수 · 청구금액 합계', 엑셀: table_(V['외주관리'], 6, 7, '외주업체').length + '건 · ' + table_(V['외주관리'], 6, 7, '외주업체').reduce((a, r) => a + num_(g_(r, '청구금액')), 0), DB: outs.length + '건 · ' + outs.reduce((a, o) => a + o.청구금액, 0) });
+  checks.push({ 항목: '회차별 단가 줄 수', 엑셀: table_(V['회차별 단가'], 6, 7, '용역명').length, DB: prices.length });
   const partners = Object.values(PT);
   // 엑셀 「거래명세서」 시트의 공급자 칸 (H3 사업자번호, H4 업체명, J4 대표, H5 주소, H6 업태, J6 종목, H7 전화, J7 팩스, A39 기타사항)
   const TS = V['거래명세서'] || [], cell = (r, c) => String(((TS[r - 1] || [])[c - 1]) == null ? '' : TS[r - 1][c - 1]).trim();
   const company = TS.length ? { 사업자번호: cell(3, 8), 상호: cell(4, 8), 대표: cell(4, 10), 주소: cell(5, 8), 업태: cell(6, 8), 종목: cell(6, 10), 전화: cell(7, 8), 팩스: cell(7, 10), 거래명세서_기타사항: cell(39, 1) } : {};
   const PI = V['점검이력'] || [], numAt = (r, c, d) => { const v = (PI[r - 1] || [])[c - 1]; return typeof v === 'number' && v > 0 ? v : d; };
   const rules = { 보고서기한일수: numAt(4, 4, 30), 입금지연일수: numAt(4, 14, 30), 일지연도: (typeof (JV[1] || [])[3] === 'number' && JV[1][3]) || new Date().getFullYear() }; // 점검이력 D4 · N4, 업무일지 D2
-  return { tables: { 현장: Object.values(S), 거래처: partners, 계약: contracts, 점검: insp, 청구: bills, 연락: calls, 자료요청: reqs, 메일: mails, 검토: revs, 일지: jobs, 택배: parcels }, checks, warnings, company, anchors: AN, rules };
+  return { tables: { 현장: Object.values(S), 거래처: partners, 계약: contracts, 점검: insp, 청구: bills, 연락: calls, 자료요청: reqs, 메일: mails, 검토: revs, 일지: jobs, 택배: parcels, 외주: outs, 단가: prices }, checks, warnings, company, anchors: AN, rules };
 }
 function archive_(v) {
   const out = {};
@@ -1217,8 +1348,10 @@ const XL = { // 시트: 데이터 첫 행, 수식이 미리 깔린 마지막 행
   자료요청관리: { first: 7, last: 306, key: 'C' },
   메일관리: { first: 6, last: 2000, key: 'H' },
   택배발송: { first: 7, last: 506, key: 'B' },
+  외주관리: { first: 7, last: 506, key: 'B' },
+  '회차별 단가': { first: 7, last: 1006, key: 'C' },
 };
-const SYNC_TABLES = ['계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '택배'];
+const SYNC_TABLES = ['계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '택배', '외주', '단가'];
 const XL_FOLDER = '업무관리 엑셀백업';
 const XL_KEEP = 30;
 
@@ -1271,11 +1404,14 @@ function renderXl_(t, r, X, isNew) {
   if (t === '연락') return { 현장연락: { A: d(r.연락일), B: s(X.site(r.현장id)), C: s(r.방법), D: s(r.담당자), E: s(r.공정), F: s(r.예상점검), G: d(r.예상시기), H: d(r.다음연락), I: s(r.메모), J: s(r.비고) } };
   if (t === '자료요청') return { 자료요청관리: { C: s(X.site(r.현장id)), D: d(r.요청일), E: s(r.방법), F: s(r.담당자), G: s(r.항목), I: s(r.구분), J: s(r.원요청), K: s(r.자료), L: d(r.기한), M: d(r.수신일), N: s(r.상태), Q: s(r.검토), R: s(r.비고) } };
   if (t === '검토') { const c = X.C[r.계약id] || {}; return { 보고서검토관리: { C: s(c.계약명), D: s(r.항목), F: /^\d+$/.test(String(r.회차)) ? n(r.회차) : s(r.회차), G: d(r.요청일), H: s(r.검토자), I: s(r.제목), J: s(r.상태), K: d(r.회신일), N: s(r.의견), O: s(r.조치), P: d(r.재발송일), Q: s(r.비고) } }; }
+  if (t === '외주') { const c = X.C[r.계약id] || {}, L = String(r.연결점검 || '').split(/\s*,\s*/).filter(Boolean);
+    return { 외주관리: { A: d(r.계산서일), B: s(r.업체명 || X.pn(r.업체id)), C: s(c.계약명 || r.현장명), D: /^\d{4}-\d\d-\d\d$/.test(String(r.점검일 || '')) ? d(r.점검일) : s(r.점검일), E: s(r.내용), F: n(r.청구금액), G: n(r.지급금액), H: d(r.지급일), I: s(r.비고), J: s(L[0]), K: s(L[1]) } }; }
+  if (t === '단가') { const c = X.C[r.계약id] || {}; return { '회차별 단가': { C: s(c.계약명 || r.계약명), D: s(r.항목), E: String(r.단가 == null ? '' : r.단가) === '' ? ['s', ''] : ['z', num_(r.단가)], F: n(r.횟수), G: s(r.회차), J: s(r.메모) } }; }
   if (t === '택배') return { 택배발송: { A: d(r.발송일), B: s(X.site(r.현장id)), C: s(r.항목), D: s(r.받는사람), E: s(r.주소), F: s(r.비고) } };
   if (t === '메일') return { 메일관리: { A: /^\d+$/.test(String(r.NO)) ? n(r.NO) : s(r.NO), B: s(X.site(r.현장id)), C: s(r.구분), D: s(r.항목), E: s(r.받는사람), F: s(r.이메일), G: d(r.보낸날), H: s(r.제목), I: s(r.내용), J: s(r.첨부), K: s(r.회신필요), L: s(r.회신상태), M: d(r.회신일), N: s(r.회신내용), O: s(r.회신첨부), Q: s(r.비고) } };
   return {};
 }
-function xlKey_(v) { return v[0] + '|' + (v[0] === 'n' ? (num_(v[1]) || '') : String(v[1] == null ? '' : v[1]).trim()); }
+function xlKey_(v) { return (v[0] === 'z' && String(v[1]) === '' ? 's' : v[0]) + '|' + (v[0] === 'n' ? (num_(v[1]) || '') : String(v[1] == null ? '' : v[1]).trim()); }
 // 엑셀에 아직 없는 줄을 새로 만들지
 function wantNew_(t, sheet, r, b) {
   if (t === '계약') return !b && (sheet === '용역대장' || r.상태 !== '완료');
@@ -1381,12 +1517,14 @@ function pruneXlBackups_() {
 function xlVal_(k, v) {
   if (v === '' || v == null) return '';
   if (k === 'n') { const x = num_(v); return x ? x : ''; }
+  if (k === 'z') return num_(v); // 0 도 숫자로 씀 (회차별 단가: 0원과 빈 칸을 구분)
   if (k === 'd') { const m = String(v).match(/^(\d{4})-(\d\d)-(\d\d)/); return m ? (Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(1899, 11, 30)) / 864e5 : ''; }
   return String(v);
 }
 /** 자동 저장: 5분마다 돌며, 마지막 입력 뒤 2분이 지났으면 저장 */
 function exportTick() {
   if ((setting_('원본') || '엑셀') !== '웹') return;
+  try { ensureAll_(); migrateG_('자동'); } catch (e) {}
   const d = +(P.getProperty('EXPORT_DIRTY') || 0);
   if (!d || Date.now() - d < 2 * 60000) return;
   try {
@@ -1430,7 +1568,8 @@ function derive_(fresh) {
   cons.forEach((c) => {
     const sup = c.계약금 ? Math.round(c.계약금 / 1.1) : 0, paid = c.이월수금 + (paidByName[key_(c.계약명)] || 0);
     const goal = c.계약금 + (c.종합보고서구분 === '별도' ? c.종합보고서금액 : 0);
-    ch('계약', c, { 공급가: sup || c.공급가, 부가세: c.계약금 ? c.계약금 - sup : c.부가세, 상태: !c.계약금 ? (c.상태 || '진행중') : paid >= goal ? '완료' : '진행중' });
+    const auto = !c.계약금 ? (c.상태 || '진행중') : paid >= goal ? '완료' : '진행중';
+    ch('계약', c, { 공급가: sup || c.공급가, 부가세: c.계약금 ? c.계약금 - sup : c.부가세, 상태: c.상태지정 === '완료' || c.상태지정 === '진행중' ? c.상태지정 : auto }); // 완료 처리·진행으로 복원한 계약은 그 상태 유지
   });
   const RV = {}; // 보고서검토관리 → 점검이력 「내부검토」 (엑셀 L열과 같은 규칙)
   live_('검토').forEach((r) => { const k = nk(r.계약id) + '|' + key_(r.항목); const a = (RV[k] = RV[k] || { n: 0, done: 0, ing: 0 }); a.n++; if (r.상태 === '검토완료') a.done++; if (r.상태 === '검토중') a.ing++; });

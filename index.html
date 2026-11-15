@@ -127,7 +127,7 @@ textarea.inp{height:auto;min-height:64px;padding:6px 9px;resize:vertical}
 .strip em{display:block;font-style:normal;font-size:11.5px;color:var(--sub);margin-top:1px}
 .strip small{font-size:11.5px;color:var(--sub);font-weight:400;margin-left:3px}
 /* ── 표 */
-.tbox{overflow-x:auto}
+.tbox{overflow-x:auto;overflow-y:hidden} /* 가로로만 넘김: 세로 스크롤 칸이 따로 생겨 페이지 스크롤을 가로채거나 스크롤바가 겹치지 않게 */
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 th{text-align:left;font-weight:600;font-size:12px;color:var(--sub2);background:#F8F9FA;padding:0 10px;height:32px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;z-index:1}
 th.sort{cursor:pointer;user-select:none}th.sort:hover{color:var(--ink)}
@@ -208,7 +208,7 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 /* ── 목록 + 상세 패널 (목록 표 위쪽 선에 맞춰 시작) */
 .split{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:12px;align-items:start}
 .split.nodetail{grid-template-columns:minmax(0,1fr)}
-.detail{position:sticky;top:60px;max-height:calc(100vh - 72px);overflow-y:auto;scrollbar-width:thin}
+.detail{position:sticky;top:60px;max-height:calc(100vh - 72px);overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain}
 @media (min-width:1181px){.split:not(.nodetail) .opt,.split:not(.nodetail) tfoot{display:none}}
 @media (min-width:1181px) and (max-width:1439px){.split:not(.nodetail) .opt2{display:none}}
 @media (min-width:761px) and (max-width:1365px){th,td{padding-left:8px;padding-right:8px}.mt th,.mt td{padding-left:8px;padding-right:8px}} /* 좁은 PC(노트북) 화면: 표 칸 여백을 줄여 가로 스크롤 방지 */ /* 좁은 PC 화면에서 상세를 열면 계약일 칸은 접음 (상세에 표시됨) */
@@ -286,11 +286,12 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .note.info{background:var(--pri-l);color:var(--pri-d);border-color:#DCE4EA}
 .later-box{padding:28px 24px}.later-box h2{margin:0 0 6px;font-size:15px}.later-box p{color:var(--sub2)}.later-box ul{margin:8px 0 0;padding-left:18px;color:var(--sub2);line-height:1.9}
 /* ── 창 (입력·수정·확인) */
-.modal{position:fixed;inset:0;background:rgba(48,56,65,.36);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:50;overflow:auto}
-.mbox{background:#fff;border-radius:4px;width:100%;max-width:640px;box-shadow:0 12px 32px rgba(48,56,65,.2)}
+.modal{position:fixed;inset:0;background:rgba(48,56,65,.36);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:50;overflow:auto;overscroll-behavior:contain}
+.mbox{background:#fff;border-radius:4px;width:100%;max-width:640px;box-shadow:0 12px 32px rgba(48,56,65,.2);display:flex;flex-direction:column;max-height:90vh;max-height:90dvh} /* 창 높이를 화면 안으로: 제목·버튼은 늘 보이고 본문만 스크롤 (스크롤바 하나) */
 .mbox.wide{max-width:900px}
 .mh{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}.mh h2{margin:0;font-size:15px;flex:1}
-.mb{padding:12px 16px;max-height:72vh;overflow:auto}
+.mb{padding:12px 16px;flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.mh,.mf{flex:none}
 .mf{display:flex;justify-content:flex-end;gap:6px;padding:10px 14px;border-top:1px solid var(--line);align-items:center;background:#F8F9FA;border-radius:0 0 4px 4px}
 .mf .msg{flex:1;color:var(--bad-t);font-size:12.5px}
 .mf .dan{margin-right:auto}
@@ -347,6 +348,7 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
 
 /* ── 반응형 */
 @media (max-width:1280px){.strip{grid-template-columns:repeat(3,minmax(0,1fr))}.stmt{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:1281px) and (max-width:1439px){.stmt{grid-template-columns:minmax(0,1fr)}} /* 1366 노트북: 품목 표가 넘치지 않게 명세서를 아래로 */
 @media (max-width:1180px){
   .split{grid-template-columns:minmax(0,1fr)}
   .split:not(.nodetail)::before{content:'';position:fixed;inset:0;background:rgba(48,56,65,.3);z-index:44}
@@ -411,8 +413,8 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
   .sec{padding:16px}.dhead{padding:16px}
   .fg{grid-template-columns:minmax(0,1fr)}
   .modal{padding:0;align-items:stretch}
-  .mbox,.mbox.wide{max-width:none;border-radius:0;display:flex;flex-direction:column;min-height:100%}
-  .mb{flex:1;max-height:none}
+  .mbox,.mbox.wide{max-width:none;border-radius:0;display:flex;flex-direction:column;min-height:100%;max-height:none}
+  .mb{flex:1 0 auto;max-height:none;overflow:visible}
   .mf{border-radius:0;position:sticky;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
   .mf .btn{flex:1}.mf .dan{flex:0 0 auto}.mf .msg{flex-basis:100%;order:-1}
   .mf{flex-wrap:wrap}
@@ -438,7 +440,7 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
 /* ── 휴대폰 전용 틀 */
 .mbar,.mnav{display:none}
 html{touch-action:manipulation}
-.mall{position:fixed;inset:0;z-index:55;background:var(--bg2);overflow-y:auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.mall{position:fixed;inset:0;z-index:55;background:var(--bg2);overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 .mall-h{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 8px 0 16px;background:#fff;border-bottom:1px solid var(--line);font-size:17px;z-index:1}
 .mall-h .tbtn,.mbar .tbtn{width:44px;height:44px}
 .mall-s{display:flex;align-items:center;gap:8px;margin:12px 16px 0;height:44px;padding:0 12px;background:#fff;border:1px solid var(--line);border-radius:var(--r);color:var(--sub)}
@@ -462,13 +464,13 @@ html{touch-action:manipulation}
   .mbar .mback{order:-1;width:auto;padding:0 8px 0 4px;gap:2px;font-size:13px;font-weight:600;color:var(--sub2);flex:none}
   .h1row .backb{display:none}
   .mbar .badge{top:6px;right:6px}
-  /* 하단 탭 고정: 화면 전체(문서)는 움직이지 않고 가운데 본문만 스크롤 — 아이폰 사파리·홈 화면 앱에서 탭이 중간에 멈추던 현상 방지 */
-  html.appshell,html.appshell body{height:100%;overflow:hidden;overscroll-behavior:none}
-  html.appshell #app{height:100%;height:100dvh;display:flex;flex-direction:column}
-  html.appshell .mbar{position:relative;flex:none}
-  html.appshell .body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
-  html.appshell .mnav{position:relative!important;flex:none}
-  html.appshell .main{padding-bottom:24px}
+  /* 스크롤은 문서(페이지) 하나로만: 위 제목줄은 붙어 있고(sticky) 아래 탭은 고정(fixed). 본문 안에 따로 세로 스크롤 칸을 두지 않음
+     — 안쪽 스크롤 칸을 두면 아이폰 사파리에서 스크롤이 중간에 멈추거나 일부만 움직이는 문제가 생김.
+     하단 탭이 화면 중간에 멈추지 않도록 탭의 조상에는 transform·filter·overflow 를 두지 않음 */
+  html.appshell,html.appshell body{height:auto;overflow-x:clip;overflow-y:visible}
+  html.appshell .body{overflow:visible}
+  .mnav{transform:none;will-change:auto}
+  .detail,.mall,.modal{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   .mnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
   .mnav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:58px;border:0;background:none;color:var(--sub);font-size:11.5px}
   .mnav button.on{color:var(--pri);font-weight:700}
@@ -580,7 +582,7 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
 .rpr .p{text-align:right;font-size:12px;color:var(--sub2);font-variant-numeric:tabular-nums}.rpr .a{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
 .rplist th{white-space:nowrap;line-height:1.3}.rplist td.num{white-space:nowrap}
 @media (max-width:1700px){.rplist th,.rplist td{padding-left:5px;padding-right:5px;font-size:12px}.rplist td:nth-child(3){min-width:150px!important}.rplist td:last-child{max-width:90px!important;overflow-wrap:anywhere}.rplist .minibar{width:30px}}
-@media (min-width:761px) and (max-width:1365px){.rplist th,.rplist td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px!important}.rplist .minibar{display:none}.rplist td:nth-child(3){min-width:104px!important}.rplist td:last-child{max-width:70px!important}.rpt th,.rpt td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px}.rpt th:first-child,.rpt td:first-child{padding-left:8px!important}.rpt th:last-child,.rpt td:last-child{padding-right:8px!important}}
+@media (min-width:761px) and (max-width:1439px){.rplist th,.rplist td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px!important}.rplist .minibar{display:none}.rplist td:nth-child(3){min-width:104px!important}.rplist td:last-child{max-width:70px!important}.rpt th,.rpt td{padding-left:4px!important;padding-right:4px!important;font-size:11.5px}.rpt th:first-child,.rpt td:first-child{padding-left:8px!important}.rpt th:last-child,.rpt td:last-child{padding-right:8px!important}}
 /* ③ 택배발송 */
 .pcstat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px}
 .pcstat>div{padding:10px 16px;border-left:1px solid var(--line2);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:baseline}.pcstat>div:first-child{border-left:0}
@@ -642,6 +644,25 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
   body.print-report .rpbars{max-height:none;overflow:visible}
   body.print-report .panel{break-inside:avoid}
 }
+/* 1115g: 회차별 단가 · 외주 · 실적 */
+.kpi4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line2)}
+.kpi4 div{padding:7px 10px;border-left:1px solid var(--line2);min-width:0}.kpi4 div:first-child{border-left:0}
+.kpi4 span{display:block;font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kpi4 b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}.kpi4 small{font-size:11px;color:var(--sub);font-weight:400;margin-left:2px}
+.kpi4.m b{font-size:13.5px}
+.uptab td,.uptab th{padding:5px 8px}.uptab td:first-child,.uptab th:first-child{padding-left:0}
+.uptab input.inp{width:64px;height:28px;padding:2px 6px;text-align:right}
+.uptab tfoot td{font-weight:600;border-top:1px solid var(--line);border-bottom:0}
+.upcalc .kv{margin-bottom:10px}.upamt{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.upamt span{font-size:12.5px;color:var(--sub2)}.upamt input{width:180px;text-align:right}
+.note.pre{white-space:pre-wrap}
+table.uplist tr.grp td{background:#F8F9FA;border-top:1px solid var(--line);font-size:12.5px;padding-top:7px;padding-bottom:7px}
+table.uplist tr.grp a{color:var(--ink)}
+table.uplist td.tc{max-width:240px}table.uplist td.tc .t2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chk{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--sub2);white-space:nowrap}
+.osgrid{grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr)}
+@media (max-width:1365px){.osgrid{grid-template-columns:minmax(0,1fr)}}
+table.perf tr.cur td{background:#FFFBEA}
+.paylist td.date{white-space:nowrap}
+@media (max-width:760px){.kpi4{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi4 div:nth-child(3){border-left:0}.kpi4 div:nth-child(n+3){border-top:1px solid var(--line2)}.upamt input{width:100%}.uptab input.inp{width:56px}}
 </style>
 </head>
 <body>
@@ -847,6 +868,145 @@ function timeline(items) { if (!items.length) return ''; return `<ul class="tl">
 function pager(total, page, per, id) { if (total <= per) return ''; const pages = Math.ceil(total / per); return `<div class="pager">${page * per + 1}–${Math.min(total, (page + 1) * per)} / ${total}건 <button class="btn sm" data-pg="${id}:${page - 1}" ${page ? '' : 'disabled'}>‹ 이전</button><button class="btn sm" data-pg="${id}:${page + 1}" ${page < pages - 1 ? '' : 'disabled'}>다음 ›</button></div>`; }
 function sortRows(rows, key, dir) { const m = dir === 'desc' ? -1 : 1; return rows.slice().sort((a, b) => { const x = a[key], y = b[key]; if (typeof x === 'number' || typeof y === 'number') return ((Number(x) || 0) - (Number(y) || 0)) * m; return String(x || '').localeCompare(String(y || ''), 'ko') * m; }); }
 
+// @@UPCALC-START — 계약금 → 공정별 회당 단가 (엑셀 「계약용 자동단가」 VBA: AutoLoad · 다시불러오기_종합 · AutoCalc · Split100 · OneFine · OneRound 를 그대로 옮김)
+const UP = (() => {
+  const xround = (x, d) => { d = d || 0; const v = Math.abs(x); if (d < 0) { const m = Math.pow(10, -d); return Math.sign(x) * Math.round(v / m + 1e-9) * m; } const f = Math.pow(10, d); return Math.sign(x) * Math.round(v * f + 1e-9) / f; }; // 엑셀 ROUND (0.5 는 0에서 먼 쪽)
+  const gcd = (x, y) => { while (y !== 0) { const t = x % y; x = y; y = t; } return x; };
+  const niceLv = (v) => (v - Math.floor(v / 100) * 100 === 0 ? 4 : v - Math.floor(v / 50) * 50 === 0 ? 3 : v - Math.floor(v / 10) * 10 === 0 ? 2 : 1);
+  const niceTxt = (v) => ['', '1원 단위', '10원 단위', '50원 단위', '100원 단위'][niceLv(v)];
+  const procKey = (it) => { let s = String(it || '').trim(); if (s.slice(-1) === '차') { s = s.slice(0, -1); while (s.length && /\d/.test(s.slice(-1))) s = s.slice(0, -1); s = s.trim(); } return s || String(it || '').trim(); };
+  const supOf = (incl) => { const s0 = xround(incl / 1.1, 0); for (let d = -2; d <= 2; d++) { const s = s0 + d; if (s + xround(s * 0.1, 0) === incl) return s; } return s0; };
+  // n, wt, u: 1부터 쓰는 배열 (VBA 와 같은 번호)
+  function split100(Au, p, n, wt, u) {
+    if (p < 1 || Au < 1) return false;
+    const b = [], f = [], kmin = [], kmax = []; let W = 0, RM = Au, smin = 0, smax = 0;
+    for (let i = 1; i <= p; i++) W += n[i] * wt[i];
+    for (let i = 1; i <= p; i++) { const t = Au * wt[i] / W; b[i] = Math.floor(t); f[i] = t - b[i]; RM -= n[i] * b[i]; }
+    for (let i = 1; i <= p; i++) {
+      kmin[i] = -2; if (b[i] + kmin[i] < 1) kmin[i] = 1 - b[i];
+      kmax[i] = Math.trunc(RM / n[i]) + 2; if (kmax[i] < kmin[i]) kmax[i] = kmin[i];
+      if (n[i] * kmin[i] < 0) smin += n[i] * kmin[i];
+      if (n[i] * kmax[i] > 0) smax += n[i] * kmax[i];
+    }
+    if (RM < smin || RM > smax) return false;
+    const INF = 1e300, Wd = smax - smin + 1;
+    let prev = new Float64Array(Wd).fill(INF); prev[-smin] = 0;
+    const ch = [];
+    for (let i = 1; i <= p; i++) {
+      const cur = new Float64Array(Wd).fill(INF), ci = new Int32Array(Wd);
+      for (let s = smin; s <= smax; s++) {
+        const d0 = prev[s - smin]; if (!(d0 < INF)) continue;
+        for (let k = kmin[i]; k <= kmax[i]; k++) {
+          const s2 = s + n[i] * k;
+          if (s2 >= smin && s2 <= smax) { const c = d0 + n[i] * (k - f[i]) * (k - f[i]) / wt[i]; if (c < cur[s2 - smin]) { cur[s2 - smin] = c; ci[s2 - smin] = k; } }
+        }
+      }
+      ch[i] = ci; prev = cur;
+    }
+    if (!(prev[RM - smin] < INF)) return false;
+    let s = RM;
+    for (let i = p; i >= 1; i--) { const k = ch[i][s - smin]; u[i] = b[i] + k; s -= n[i] * k; }
+    return true;
+  }
+  function oneFine(a, p, n, wt, u, out, onlyJ) {
+    let W = 0, best = -1; const bu = [];
+    for (let i = 1; i <= p; i++) W += n[i] * wt[i];
+    for (let j = 1; j <= p; j++) {
+      if (!(onlyJ === 0 || onlyJ === j)) continue;
+      const ideal = a * wt[j] / W; let q = 0; const no = [], wO = [], uO = [];
+      for (let i = 1; i <= p; i++) if (i !== j) { q++; no[q] = n[i]; wO[q] = wt[i]; }
+      if (q === 0) {
+        if (a - Math.floor(a / n[j]) * n[j] === 0 && a / n[j] >= 100) { const uj = a / n[j], sc = niceLv(uj) * 1e6; if (sc > best) { best = sc; out.sj = j; out.su = uj; } }
+      } else {
+        let gq = no[1]; for (let i = 2; i <= q; i++) gq = gcd(gq, no[i]);
+        const tgt = a - ideal * n[j], m0 = Math.floor(tgt / (100 * gq));
+        for (let m = m0 - 2 * n[j] - 2; m <= m0 + 2 * n[j] + 2; m++) {
+          if (m < 1) continue;
+          const x = 100 * gq * m, rest = a - x;
+          if (rest >= 100 * n[j] && rest - Math.floor(rest / n[j]) * n[j] === 0) {
+            const uj = rest / n[j]; let dev = Math.abs(uj - ideal) / ideal * 100; if (dev > 999) dev = 999;
+            const sc = niceLv(uj) * 1e6 - dev * 1000;
+            if (sc > best && split100(Math.round(x / 100), q, no, wO, uO)) {
+              best = sc; out.sj = j; out.su = uj; let k2 = 0;
+              for (let i = 1; i <= p; i++) if (i !== j) { k2++; bu[i] = uO[k2]; }
+            }
+          }
+        }
+      }
+    }
+    if (best < 0) return false;
+    for (let i = 1; i <= p; i++) u[i] = i !== out.sj ? bu[i] : 0;
+    return true;
+  }
+  function oneRound(a, p, n, wt, u, out) {
+    let j = 0; for (let i = 1; i <= p; i++) if (n[i] >= 2) { if (j === 0 || n[i] > n[j]) j = i; }
+    if (j === 0) return false;
+    const n2 = [], w2 = [], u2 = [], o2 = {};
+    for (let i = 1; i <= p; i++) { n2[i] = n[i]; w2[i] = wt[i]; }
+    n2[j] = n[j] - 1; n2[p + 1] = 1; w2[p + 1] = wt[j];
+    if (!oneFine(a, p + 1, n2, w2, u2, o2, p + 1)) return false;
+    for (let i = 1; i <= p; i++) u[i] = u2[i];
+    out.sj = j; out.su = o2.su; return true;
+  }
+  /** rows: [{ 공정, 횟수, 비중 }] (화면 순서) · a: 나눌 금액 → { ok, msg, md, prices[], extra, extraIdx } */
+  function calc(a, rows, vat) {
+    const fmt = (v) => Math.round(v).toLocaleString('ko-KR');
+    if (!(a > 0)) return { ok: false, msg: "'나눌 금액'을 넣으세요." };
+    if (a !== Math.floor(a)) return { ok: false, msg: "'나눌 금액'은 원 단위(소수점 없이)로 넣으세요." };
+    const rw = [], n = [], wt = [], u = []; let p = 0, tot = 0;
+    for (let r = 0; r < rows.length; r++) {
+      const x = rows[r]; if (!String(x.공정 || '').trim() && (x.횟수 === '' || x.횟수 == null)) continue;
+      const cnt = Number(x.횟수);
+      if (x.횟수 === '' || isNaN(cnt)) return { ok: false, msg: `${r + 1}번째 줄 '횟수'를 숫자로 넣으세요.` };
+      if (cnt !== Math.floor(cnt) || cnt < 0) return { ok: false, msg: `${r + 1}번째 줄 '횟수'는 0 이상의 정수로 넣으세요.` };
+      if (cnt > 0) { p++; rw[p] = r; n[p] = cnt; wt[p] = Number(x.비중) > 0 ? Number(x.비중) : 1; tot += cnt; }
+    }
+    if (!p) return { ok: false, msg: '표에 공정과 횟수가 없습니다.' };
+    let g = n[1]; for (let i = 2; i <= p; i++) g = gcd(g, n[i]);
+    let MD = 0; const o = {};
+    if (a - Math.floor(a / 100) * 100 === 0 && (Math.round(a / 100) % g) === 0 && split100(Math.round(a / 100), p, n, wt, u)) MD = 1;
+    if (!MD && oneFine(a, p, n, wt, u, o, 0)) MD = 2;
+    if (!MD && oneRound(a, p, n, wt, u, o)) MD = 3;
+    if (!MD) return { ok: false, msg: '금액이 너무 작아 공정마다 100원 이상으로 나눌 수 없습니다.' };
+    const prices = rows.map(() => '');
+    for (let i = 1; i <= p; i++) prices[rw[i]] = u[i] * 100;
+    let extra = 0;
+    if (MD === 2) prices[rw[o.sj]] = o.su;
+    if (MD === 3) extra = o.su - u[o.sj] * 100;
+    let chk = extra; for (let i = 1; i <= p; i++) chk += n[i] * prices[rw[i]];
+    if (chk !== a) return { ok: false, msg: `계산 확인 오류: 합계 ${fmt(chk)} ≠ ${fmt(a)}` };
+    const nmj = MD > 1 ? rows[rw[o.sj]].공정 : '';
+    let msg = MD === 1 ? `공정 ${p}개 · 총 ${tot}회 → 단가 100원 단위, 합계 ${fmt(a)}원 정확히 일치 (반올림 없음)`
+      : MD === 2 ? `100원 단위로는 정확히 안 나눠져서 '${nmj}'만 회당 ${fmt(o.su)}원 (${niceTxt(o.su)})으로 맞춤 · 나머지는 100원 단위 → 합계 ${fmt(a)}원 정확히 일치 (회차마다 같은 단가)`
+      : `회차마다 같은 단가로는 정확히 안 나눠져서 '${nmj}' 1회만 ${extra > 0 ? '+' : '-'}${fmt(Math.abs(extra))}원 (회당 ${fmt(u[o.sj] * 100)}원, 그 1회는 ${fmt(o.su)}원) → 합계 ${fmt(a)}원 정확히 일치\n※ 회차별 단가에는 회당 ${fmt(u[o.sj] * 100)}원으로 저장되니, 그 1회를 청구할 때 금액을 ${fmt(o.su)}원으로 고쳐 주세요`;
+    if (vat === '별도') msg += `\nVAT 별도 계약: 위 단가는 공급가 · 부가세 ${fmt(xround(a * 0.1, 0))}원은 합계에 따로`;
+    return { ok: true, md: MD, prices, extra, extraIdx: MD === 3 ? rw[o.sj] : -1, oneAmt: MD === 3 ? o.su : 0, msg };
+  }
+  /** 계약 + 점검 목록 → 계산기 처음 상태 (엑셀 [다시 불러오기] = 다시불러오기_종합) */
+  function load(c, items) {
+    const incl = Number(c.계약금) || 0, vat = c.VAT기준 === '별도' ? '별도' : '포함';
+    let amt = vat === '별도' && incl > 0 ? supOf(incl) : incl;
+    const rows = [], idx = {};
+    (items || []).forEach((x) => { const it = String(x.항목 || '').trim(); if (!it) return; const pk = procKey(it); if (!(pk in idx)) { if (rows.length >= 30) return; idx[pk] = rows.length; rows.push({ 공정: pk, 횟수: 0, 비중: 1, 차수: [] }); } const r = rows[idx[pk]]; r.횟수++; r.차수.push(it); });
+    const jb = String(c.종합보고서구분 || '').trim(); let note = '';
+    if (jb === '해당없음') note = '종합보고서: 해당없음 (계약금 전체를 점검 공정에 나눔)';
+    else if (jb !== '포함' && jb !== '별도') note = '종합보고서 구분이 비어 있어 계약금 전체를 나눴습니다.';
+    else {
+      let jamt = Number(c.종합보고서금액) || 0;
+      if (vat === '별도' && jamt > 0) jamt = xround(jamt / 1.1, -2);
+      let jr = rows.findIndex((r) => r.공정 === '종합보고서');
+      if (jr < 0 && jb === '포함' && jamt > 0 && rows.length < 30) { rows.push({ 공정: '종합보고서', 횟수: 0, 비중: 1, 차수: ['종합보고서'] }); jr = rows.length - 1; }
+      if (jb === '포함') { if (jamt > 0 && amt) amt -= jamt; note = `계약 포함 · ${Math.round(jamt).toLocaleString('ko-KR')}원 (따로 정함 · 나누기에서 뺌)`; }
+      else note = `별도 청구 (계약금 밖) · ${(Number(c.종합보고서금액) || 0).toLocaleString('ko-KR')}원`;
+      if (jr >= 0) { rows[jr].횟수 = 0; rows[jr].메모 = note; }
+      note = '종합보고서: ' + note;
+    }
+    return { incl, vat, amt, rows, note };
+  }
+  return { calc, load, procKey, supOf, xround };
+})();
+// @@UPCALC-END
+
 // ===================== 엑셀 내보내기 (조회 화면 공통) =====================
 let xlsxP = null;
 function loadXlsx() { return xlsxP || (xlsxP = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = () => res(window.XLSX); s.onerror = () => { xlsxP = null; rej(new Error('엑셀 모듈을 불러오지 못했습니다')); }; document.head.appendChild(s); })); }
@@ -864,9 +1024,9 @@ async function exportXlsx(name, sheets) {
 // ===================== 메뉴 =====================
 const MENU = [
   { k: 'dash', n: '대시보드', items: [['home', '업무 현황'], ['todo', '내 할 일'], ['journal', '업무일지', '일지']] },
-  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['requests', '자료요청 · 메일', '자료요청'], ['reviews', '보고서 검토 관리', '검토'], ['finals', '종합보고서 관리'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
+  { k: 'site', n: '현장관리', items: [['sites', '현장 목록', '현장'], ['contracts', '계약·용역 관리', '진행계약'], ['done', '완료 용역', '완료계약'], ['schedule', '점검 일정'], ['contacts', '현장 연락기록', '연락'], ['requests', '자료요청 · 메일', '자료요청'], ['reviews', '보고서 검토 관리', '검토'], ['finals', '종합보고서 관리'], ['photos', '현장사진 관리', null, 1], ['survey', '조사자료 관리', null, 1]] },
   { k: 'doc', n: '문서관리', items: [['cdoc', '계약서 작성', null, 1], ['estimate', '견적서 작성', null, 1], ['letter', '공문 작성', null, 1], ['statement', '거래명세서 작성'], ['reports', '보고서 관리', null, 1], ['docbox', '문서 보관함', '문서'], ['parcels', '택배 발송', '택배']] },
-  { k: 'biz', n: '경영관리', items: [['report', '현황 보고'], ['sales', '매출 현황'], ['invoices', '세금계산서', '청구'], ['payments', '입금 관리'], ['collect', '수금 현황'], ['unpaid', '미수금 관리'], ['yearly', '연도별 실적']] },
+  { k: 'biz', n: '경영관리', items: [['report', '현황 보고'], ['sales', '매출 현황'], ['invoices', '세금계산서', '청구'], ['payments', '입금 관리'], ['collect', '수금 현황'], ['unpaid', '미수금 관리'], ['yearly', '연도별 실적'], ['prices', '회차별 단가', '단가'], ['outsource', '외주 관리', '외주']] },
   { k: 'base', n: '기초정보', items: [['partners', '거래처 관리', '거래처'], ['people', '담당자 관리'], ['works', '공종 및 용역 분류'], ['templates', '문서 양식 관리', null, 1]] },
   { k: 'sys', n: '시스템관리', items: [['users', '사용자 관리'], ['roles', '권한 관리'], ['backup', '데이터 백업 및 복구'], ['settings', '시스템 설정']] },
 ];
@@ -916,24 +1076,38 @@ function shell() {
   [$('.side .on'), $('.cats .on')].forEach((el) => { if (el && el.parentElement.scrollWidth > el.parentElement.clientWidth) el.parentElement.scrollLeft = el.offsetLeft - 16; });
   if (S.todoN) { $('#bellN').textContent = S.todoN; $('#bellN').classList.remove('hide'); }
 }
+// ---- 스크롤: 페이지(문서) 하나로만 스크롤. 창·전체 메뉴·(좁은 화면의) 상세가 열려 있는 동안은 뒤 페이지를 고정하고, 닫히면 원래 위치로 되돌림
+const SL = (() => {
+  let on = false, y = 0;
+  const want = () => innerWidth <= 1180 && !!(document.querySelector('.modal, .mall') || document.querySelector('.split:not(.nodetail) > .detail:not(.hide)'));
+  const sync = () => {
+    const need = want(); if (need === on) return; on = need; const b = document.body.style;
+    if (on) { y = window.scrollY; Object.assign(b, { position: 'fixed', top: -y + 'px', left: '0', right: '0', width: '100%' }); }
+    else { Object.assign(b, { position: '', top: '', left: '', right: '', width: '' }); window.scrollTo(0, y); }
+  };
+  let raf = 0; new MutationObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+  addEventListener('resize', sync);
+  return { y: () => (on ? y : window.scrollY), to: (v) => { if (on) y = v; else window.scrollTo(0, v); }, sync, locked: () => on };
+})();
 async function render() {
   if (!S.token) return;
-  const rk = S.page + JSON.stringify(S.params || {}), sc0 = document.querySelector('.body'), keepY = rk === S._rk && sc0 ? sc0.scrollTop : 0; S._rk = rk;
+  const rk = S.page + JSON.stringify(S.params || {}), samePage = S.page === S._rp, keepY = samePage ? SL.y() : 0; S._rk = rk; S._rp = S.page; // 같은 메뉴 안(상세 열기·닫기·새로고침)은 위치 유지, 다른 메뉴로 가면 맨 위
+  if (!samePage) SL.to(0);
   shell();
   const [c, n] = pageName(S.page);
   const m = $('#main');
   m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="empty">불러오는 중…</div>`;
   if (PC_ONLY.includes(S.page) && isMobile()) { m.innerHTML = `<div class="panel" style="margin-top:12px"><div class="empty" style="padding:40px 20px"><b style="font-size:15px;color:var(--ink)">PC 전용 메뉴입니다</b><br><br>「${esc(n)}」은(는) 넓은 화면에서 쓰도록 만든 메뉴입니다.<br>PC에서 열어 주세요.<br><br><button class="btn" onclick="go('home')">홈으로</button></div></div>`; return; }
-  S.rec = [];
-  try { await (PAGES[S.page] || PAGES.home)(m, S.params); S.pageCalls = S.rec.slice(0, 6); S.rec = null; if (keepY && isMobile()) { const sc = document.querySelector('.body'); if (sc) sc.scrollTop = keepY; } } catch (e) { S.rec = null; m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
+  S.rec = []; const tok = S._rtok = (S._rtok || 0) + 1; // 화면 그리기가 겹치면(앞 요청이 늦게 끝남) 마지막 것만 마무리
+  try { await (PAGES[S.page] || PAGES.home)(m, S.params); if (tok !== S._rtok) return; S.pageCalls = (S.rec || []).slice(0, 6); S.rec = null; if (keepY) SL.to(keepY); SL.sync(); } catch (e) { if (tok !== S._rtok) return; S.rec = null; m.innerHTML = `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="panel"><div class="empty">${esc(e.message)}<br><br><button class="btn" onclick="render()">다시 시도</button></div></div>`; }
 }
 function head(title, actions) { const [c, n] = pageName(S.page); return `<div class="crumb">${esc(c)} › ${esc(n)}</div><div class="h1row">${S.page !== 'home' ? `<button class="backb" data-back type="button" aria-label="뒤로가기">${ic('back', 16)}<span>뒤로가기</span></button>` : ''}<h1>${esc(title || n)}</h1>${actions || ''}</div>`; }
 function lockNote(what) { return excelLocked() ? `<div class="note">지금은 <b>엑셀이 원본</b>이라 ${what || '이 화면'}의 등록·수정은 엑셀에서 하고 「시스템관리 › 시스템 설정 › 엑셀 가져오기」로 반영합니다. 전환 후에는 여기서 바로 고칩니다.</div>` : ''; }
 function editBtn(t, label, cls, attrs) { const ok = can(WR[t]) && !(excelLocked() && t !== '문서' && t !== '종합'); if (!ok && /data-e[ibth]=/.test(attrs || '')) return ''; return `<button class="btn ${cls || 'sm'}" ${attrs || ''} ${ok ? '' : `disabled title="${excelLocked() ? '엑셀이 원본인 동안은 엑셀에서 고칩니다' : '권한이 없습니다'}"`}>${label}</button>`; }
-const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반' };
+const WR = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반', 외주: '관리자', 단가: '관리자' };
 
 // 휴대폰 하단 메뉴: 홈 · 현장 · 일정 · 수금 · 전체
-const MNAV = [['home', '홈', 'home', ['home', 'todo']], ['sites', '현장', 'site', ['sites', 'contracts', 'contacts', 'requests']], ['schedule', '일정', 'cal', ['schedule']], ['collect', '수금', 'won', ['collect', 'invoices', 'sales', 'unpaid', 'yearly']], ['all', '전체', 'menu', null]];
+const MNAV = [['home', '홈', 'home', ['home', 'todo']], ['sites', '현장', 'site', ['sites', 'contracts', 'done', 'contacts', 'requests']], ['schedule', '일정', 'cal', ['schedule']], ['collect', '수금', 'won', ['collect', 'invoices', 'sales', 'unpaid', 'yearly']], ['all', '전체', 'menu', null]];
 const MNAV_PAGES = ['home', 'sites', 'schedule', 'collect'];
 function openAllMenu(focusSearch) {
   const visibleCats = MENU.filter((c) => c.k !== 'sys' || can('관리자'));
@@ -962,7 +1136,7 @@ function bindSearch(inp, box, onGo, inline) {
     const L = await lookups();
     const hit = [].concat(
       L.sites.filter((s) => norm(s.n).includes(q)).slice(0, 8).map((s) => ({ t: s.n, k: '현장', go: () => go('sites', { id: s.id }) })),
-      L.contracts.filter((c) => norm(c.n + c.id).includes(q)).slice(0, 6).map((c) => ({ t: `${c.n}`, s: `${c.연도} · ${c.상태}`, k: '계약', go: () => go('contracts', { id: c.id }) })),
+      L.contracts.filter((c) => norm(c.n + c.id).includes(q)).slice(0, 6).map((c) => ({ t: `${c.n}`, s: `${c.연도} · ${c.상태}`, k: '계약', go: () => go(c.상태 === '진행중' ? 'contracts' : 'done', { id: c.id }) })),
       L.partners.filter((p) => norm(p.n + p.biz).includes(q)).slice(0, 6).map((p) => ({ t: p.n, s: p.biz, k: '거래처', go: () => go('partners', { id: p.id }) })));
     box.innerHTML = hit.map((h, i) => `<button data-i="${i}"><span class="tag">${h.k}</span> ${esc(h.t)}<small>${esc(h.s || '')}</small></button>`).join('') || '<div class="empty">결과 없음</div>';
     box.classList.remove('hide');
@@ -976,26 +1150,29 @@ const FORMS = {
   현장: [['#현장 정보'], ['현장명', 'text', 1, 'full'], ['관할구', 'text'], ['규모', 'text'], ['주소', 'text', 0, 'full'], ['#메모'], ['비고', 'area']],
   거래처: [['#기본 정보'], ['거래처명', 'text', 1], ['구분', 'text'], ['사업자번호', 'text'], ['대표자', 'text'], ['#사업장'], ['주소', 'text', 0, 'full'], ['업태', 'text'], ['종목', 'text'], ['#연락처'], ['전화', 'text'], ['이메일', 'text'], ['#메모'], ['비고', 'area']],
   계약: [['#기본 정보'], ['현장id', 'site', 1], ['계약명', 'text', 1], ['연도', 'num'], ['계약일', 'date'], ['상태', 'sel:진행중,완료,종료,취소'], ['VAT기준', 'sel:별도,포함'],
-    ['#계약 금액 (원)'], ['공급가', 'money'], ['부가세', 'money'], ['계약금', 'money'], ['이월수금', 'money'], ['미수금', 'money'], ['종합보고서구분', 'sel:,별도,포함'], ['종합보고서금액', 'money'],
+    ['#계약 금액 (원)'], ['공급가', 'money'], ['부가세', 'money'], ['계약금', 'money'], ['이월수금', 'money'], ['미수금', 'money'], ['종합보고서구분', 'sel:,별도,포함,해당없음'], ['종합보고서금액', 'money'],
     ['#계약 당사자'], ['발주처id', 'partner'], ['실제입금처id', 'partner'], ['시공사id', 'partner'], ['#기간 · 메모'], ['준공예정일', 'date'], ['완료일', 'date'], ['비고', 'area'],
     ['#입금 관리'], ['입금비고', 'text', 0, 'full'], ['기존수금', 'money'], ['기존미입금', 'money']],
   점검: [['#점검 대상'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['위치', 'text'], ['시기', 'text'],
     ['#일정'], ['예정일', 'date'], ['점검일', 'date'], ['작성완료일', 'date'], ['발송일', 'date'], ['#기타'], ['비고', 'area'], ['!보고서 상태는 따로 관리됩니다 — 작성 완료일: 보고서를 다 쓰고 저장한 날 (검토·발송 상태는 바뀌지 않음) · 검토: 보고서 검토 관리의 회신 결과 · 시공사 발송: 발송일. 보고서 기한(점검일 + 30일)은 자동 계산됩니다.']],
   청구: [['#세금계산서'], ['계약id', 'contract', 1, 'full'], ['발행일', 'date'], ['청구액', 'money'], ['품명', 'text', 0, 'full'], ['#입금'], ['입금일', 'date'], ['입금자', 'text'], ['#기타'], ['연결점검', 'text'], ['계약외', 'money'], ['할증', 'money'], ['비고', 'area'], ['분할입금', 'text', 0, 'full'], ['!수금액 · 공급가 · 부가세는 엑셀과 같이 청구액과 입금일로 자동 계산됩니다.']],
   종합: [['#대상 (용역 완료 계약)'], ['계약id', 'contract', 1, 'full'], ['#요청'], ['요청일', 'date', 1], ['요청자', 'text'], ['#진행'], ['상태', 'sel:미작성,작성 중,제출 완료'], ['작성일', 'date'], ['제출일', 'date'], ['#기타'], ['비고', 'area'], ['!종합보고서는 계약마다 1회이며, 정기점검 보고서(작성·검토·시공사 발송)와 따로 관리됩니다. 제출처는 그 계약의 시공사로 자동 기록됩니다. 제출일을 넣으면 「제출 완료」, 작성일만 넣으면 「작성 중」으로 맞춰집니다.']],
-  자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
-    ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청,회신대기,수신완료,취소'], ['검토', 'area'], ['비고', 'area']],
-  메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,서류 발송,자료 요청,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
-    ['#회신'], ['회신필요', 'sel:,예,아니오'], ['회신상태', 'sel:,회신대기,회신받음,회신불필요'], ['회신일', 'date'], ['회신첨부', 'text'], ['회신내용', 'area'], ['비고', 'area']],
+  자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,이메일,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,보완 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
+    ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청중,일부수신,수신완료,보완요청,요청,회신대기,취소'], ['검토', 'area'], ['비고', 'area']],
+  메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,계산서·청구서,자료 요청,점검 일정 안내,서류 발송,내부검토,회신·답장,견적서,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
+    ['#회신'], ['회신필요', 'sel:,예,아니요,아니오'], ['회신상태', 'sel:,회신대기,회신받음,회신불필요'], ['회신일', 'date'], ['회신첨부', 'text'], ['회신내용', 'area'], ['비고', 'area']],
   검토: [['#검토 요청'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['회차', 'text'], ['요청일', 'date', 1], ['검토자', 'text'], ['제목', 'text', 0, 'full'],
     ['#검토 결과'], ['상태', 'sel:검토중,수정요청,검토완료'], ['회신일', 'date'], ['의견', 'area'], ['조치', 'area'], ['재발송일', 'date'], ['비고', 'area']],
   일지: [['#업무'], ['날짜', 'date', 1], ['현장', 'text'], ['구분', 'sel:,입찰 확인,보고서 작성,계산서·청구,통화·연락,점검 준비,현장점검,자료 요청·수신,검토 요청·회신,업무 지원,이동·출장,회의·교육,행정·기타'], ['상태', 'sel:완료,진행중,이월,예정'], ['내용', 'area', 1], ['후속', 'text', 0, 'full'], ['비고', 'text', 0, 'full']],
   택배: [['#발송'], ['현장id', 'site', 1, 'full'], ['발송일', 'date', 1], ['항목', 'text'], ['받는사람', 'text'], ['주소', 'text', 0, 'full'], ['비고', 'text', 0, 'full']],
+  외주: [['#외주 계산서'], ['계약id', 'contract', 1, 'full'], ['업체id', 'partner', 1], ['계산서일', 'date'], ['점검일', 'date'], ['내용', 'text', 0, 'full'],
+    ['#금액 (VAT 포함)'], ['청구금액', 'money', 1], ['지급금액', 'money'], ['지급일', 'date'], ['#기타'], ['연결점검', 'text', 0, 'full'], ['비고', 'area'], ['!미지급액 · 공급가 · 부가세 · 상태는 엑셀 「외주관리」와 같이 청구금액과 지급금액으로 자동 계산됩니다.']],
+  단가: [['#회차별 단가'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['단가', 'money'], ['횟수', 'num'], ['회차', 'text', 0, 'full'], ['메모', 'text', 0, 'full'], ['!점검항목(공정)마다 회당 단가를 한 번 적으면 그 공정의 모든 회차(예: 지보공1차·2차)에 같은 단가가 쓰입니다. VAT 별도 계약은 공급가로 적습니다 (엑셀 「회차별 단가」와 같음).']],
   연락: [['#연락 내용'], ['현장id', 'site', 1, 'full'], ['연락일', 'date', 1], ['방법', 'sel:전화,문자,방문,메일,기타'], ['담당자', 'text'], ['공정', 'text'], ['메모', 'area'],
     ['#다음 일정'], ['예상점검', 'text'], ['예상시기', 'date'], ['다음연락', 'date'], ['#기타'], ['비고', 'area']],
 };
-const FLABEL2 = { 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
-const FLABEL = { 작성일: '작성일', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+const FLABEL2 = { 외주: { 업체id: '외주업체', 점검일: '점검일 (작업일)', 내용: '작업내용 (점검 구분)', 연결점검: '연결 점검 (쉼표로 구분)', 계약id: '용역 (현장)' }, 단가: { 항목: '점검항목 (공정 · 차수 뺀 이름)', 단가: '회당 단가 (원)', 회차: '해당 회차', 횟수: '횟수' }, 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
+const FLABEL = { 계산서일: '계산서 일자', 청구금액: '청구금액 (VAT 포함)', 지급금액: '지급금액', 지급일: '지급일', 메모: '메모', 작성일: '작성일', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
 // ---- 현장 · 계약 고르기: 진행 중 / 완료로 나눠 보여 줌 (이름 옆 상태 표시 없음)
 function siteActive(L) { const a = {}, has = {}; L.contracts.forEach((c) => { has[c.현장id] = 1; if (c.상태 === '진행중') a[c.현장id] = 1; }); return (id) => !!a[id] || !has[id]; }
 function pickList(L, kind, st) {
@@ -1026,16 +1203,18 @@ async function openForm(t, row, onSaved) {
     const v = row[k] == null ? '' : row[k], lab = `${esc((FLABEL2[t] || {})[k] || FLABEL[k] || k)}${req ? ' <b>*</b>' : ''}`;
     let input;
     if (type === 'area') { input = `<textarea class="inp" name="${k}">${esc(v)}</textarea>`; cls = 'full'; }
+    else if (type === 'date' && v !== '' && !/^\d{4}-\d\d-\d\d$/.test(String(v))) input = `<input class="inp" name="${k}" value="${esc(v)}" title="날짜가 아닌 값이 적혀 있어 글자 그대로 둡니다">`; // 엑셀에 날짜 대신 글자가 적힌 칸은 그대로 보존
     else if (type === 'date') input = `<input class="inp" type="date" name="${k}" value="${esc(v)}">`;
     else if (type === 'num' || type === 'money') input = `<input class="inp" inputmode="numeric" name="${k}" value="${v === '' ? '' : type === 'money' ? won(v) : v}" data-num="1">`;
-    else if (type.startsWith('sel:')) input = `<select class="inp" name="${k}">${type.slice(4).split(',').map((o) => `<option ${o === v ? 'selected' : ''} value="${esc(o)}">${esc(o || '(없음)')}</option>`).join('')}</select>`;
+    else if (type.startsWith('sel:')) { const os = type.slice(4).split(','), sv = String(v); if (sv !== '' && os.indexOf(sv) < 0) os.push(sv); if (sv === '' && row.id && os.indexOf('') < 0) os.unshift(''); // 비어 있던 기존 값은 빈 채로 (첫 선택지로 바뀌지 않게) // 목록에 없는 기존 값(엑셀에서 온 값 등)도 선택된 채로 남겨 저장해도 바뀌지 않게
+      input = `<select class="inp" name="${k}">${os.map((o) => `<option ${o === sv ? 'selected' : ''} value="${esc(o)}">${esc(o || '(없음)')}</option>`).join('')}</select>`; }
     else if (type === 'site') input = cpick(L, 'site', v, `name="${k}"`);
     else if (type === 'partner') input = `<select class="inp" name="${k}"><option value="">(없음)</option>${opt(L.partners, v)}</select>`;
     else if (type === 'contract') input = cpick(L, 'contract', v, `name="${k}"`);
     else input = `<input class="inp" name="${k}" value="${esc(v)}">`;
     return `<label class="${cls || ''}"><span>${lab}</span>${input}</label>`;
   };
-  const m = modal(`${row.id ? '수정' : '새로 등록'} · ${{ 청구: '청구(계산서)', 연락: '연락기록', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배 발송' }[t] || t}`, `<p class="req"><b>*</b> 표시는 꼭 입력하는 항목입니다.</p><form class="fg" id="ff">${f.map(field).join('')}</form>`,
+  const m = modal(`${row.id ? '수정' : '새로 등록'} · ${{ 청구: '청구(계산서)', 연락: '연락기록', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배 발송', 외주: '외주', 단가: '회차별 단가' }[t] || t}`, `<p class="req"><b>*</b> 표시는 꼭 입력하는 항목입니다.</p><form class="fg" id="ff">${f.map(field).join('')}</form>`,
     `${row.id && t !== '계약' && t !== '청구' || row.id && can('관리자') ? `<button class="btn dan" id="fdel" type="button">삭제</button>` : ''}<span class="msg" id="fmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="fsave">저장</button>`, t === '계약');
   bindCpick(m, L);
   $$('[data-num]', m).forEach((i) => (i.onblur = () => { const n = String(i.value).replace(/[^\d.-]/g, ''); if (n !== '' && i.name !== '연도') i.value = won(n); }));
@@ -1175,7 +1354,7 @@ function bindCommon(root) {
   $$('[data-go]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go(b.dataset.go, b.dataset.fst ? { st: b.dataset.fst } : undefined); }));
   $$('tr[data-final]', root).forEach((b) => (b.onclick = () => go('finals', { id: b.dataset.final })));
   $$('[data-site]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (b.dataset.site) go('sites', { id: b.dataset.site }); }));
-  $$('[data-contract]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go('contracts', { id: b.dataset.contract }); }));
+  $$('[data-contract]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go('contracts', { id: b.dataset.contract }); })); // 완료된 계약이면 「완료 용역」으로 자동 이동
   $$('[data-partner]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); if (b.dataset.partner) go('partners', { id: b.dataset.partner }); }));
   bindHist(root);
 }
@@ -1222,7 +1401,7 @@ async function siteDetail(el, id, tab) {
   if (!r.site) { el.innerHTML = '<div class="empty">현장을 찾지 못했습니다</div>'; return; }
   const s = r.site, c0 = r.contracts[0] || {};
   tab = tab || 'info';
-  const tabs = [['info', '개요'], ['items', `점검 ${r.items.length}`], ['contact', `연락 ${r.contacts.length}`], ['req', `자료 ${(r.requests || []).length + (r.mails || []).length}`], ['money', '수금'], ['photo', '사진'], ['contract', `계약 ${r.contracts.length}`], ['docs', `문서 ${r.docs.length}`]];
+  const tabs = [['info', '개요'], ['items', `점검 ${r.items.length}`], ['contact', `연락 ${r.contacts.length}`], ['req', `자료 ${(r.requests || []).length + (r.mails || []).length}`], ['money', '실적'], ['photo', '사진'], ['contract', `계약 ${r.contracts.length}`], ['docs', `문서 ${r.docs.length}`]];
   const money = r.contracts.reduce((a, c) => ({ 계약금: a.계약금 + c.계약금, 수금: a.수금 + c.수금, 대기: a.대기 + c.대기 }), { 계약금: 0, 수금: 0, 대기: 0 });
   const left = Math.max(0, money.계약금 - money.수금 - money.대기);
   const itemDate = (x) => x.점검일 || x.예정일 || '';
@@ -1237,10 +1416,16 @@ async function siteDetail(el, id, tab) {
     contact: () => `<div class="sec" style="display:flex;justify-content:flex-end">${editBtn('연락', ic('plus', 14) + ' 연락 기록 추가', 'sm', 'id="addT"')}</div><div class="sec">${timeline(r.contacts.map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} · ${c.담당자 || ''}`, c: c.다음연락 && c.다음연락 <= today() ? 'w' : '', h: `${c.공정 ? `<div class="sub">현재 공정: ${esc(c.공정)}</div>` : ''}<div class="pre">${esc(c.메모)}</div>${c.다음연락 ? `<div class="sub">다음 연락 ${esc(c.다음연락)}</div>` : ''} ${editBtn('연락', '수정', 'sm ghost', `data-et="${esc(c.id)}"`)}` }))) || '<div class="sub">연락 기록 없음</div>'}</div>`,
     req: () => `<div class="sec"><h3>자료요청 ${(r.requests || []).length}건</h3>${timeline((r.requests || []).map((q) => ({ c: q.받음 ? 'g' : q.기한남음 != null && q.기한남음 < 0 ? 'r' : 'w', d: `${q.요청일} · ${q.방법 || ''}`, tag: reqTag(q), h: `<a href="#" data-q="${esc(q.id)}">${esc(String(q.자료).replace(/\n/g, ' ').slice(0, 70))}</a>` }))) || '<div class="sub">없음</div>'}</div>
       <div class="sec"><h3>보낸 메일 ${(r.mails || []).length}건</h3>${timeline((r.mails || []).map((x) => ({ c: x.회신대기 ? 'w' : 'g', d: x.보낸날, tag: mailTag(x), h: `<a href="#" data-mm="${esc(x.id)}">${esc(x.제목)}</a>` }))) || '<div class="sub">없음</div>'}</div>`,
-    money: () => `<div class="sec"><div class="money3"><div><span>계약금</span><b>${won(money.계약금)}</b></div><div><span>수금</span><b>${won(money.수금)}</b></div><div><span>남은 금액</span><b>${won(money.계약금 - money.수금)}</b></div></div><div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div>
-      <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금</span><span><i style="background:var(--prog)"></i>입금 대기</span><span><i style="background:var(--line)"></i>아직 청구 전</span></div></div>
+    money: () => { const P = sitePerf(r);
+      return `<div class="sec"><h3>점검 실적</h3><div class="kpi4"><div><span>점검 건수</span><b>${P.점검}<small>건</small></b></div><div><span>현장 방문</span><b>${P.방문}<small>회</small></b></div><div><span>보고서 발송</span><b>${P.발송}<small>건</small></b></div><div><span>등록된 점검</span><b>${r.items.length}<small>회차</small></b></div></div></div>
+      <div class="sec"><h3>계약 · 발행 · 입금</h3><div class="kpi4 m"><div><span>계약금액</span><b>${won(money.계약금)}</b></div><div><span>발행금액</span><b>${won(P.발행)}</b></div><div><span>입금 누적</span><b class="ok">${won(P.누적)}</b></div><div title="발행한 계산서 중 아직 입금되지 않은 금액"><span>미수금</span><b class="${P.미수 ? 'bad' : ''}">${won(P.미수)}</b></div></div>
+        <div style="margin-top:8px">${hbar([['입금', P.누적, 'var(--done)'], ['미수금', P.미수, 'var(--prog)'], ['청구 전', Math.max(0, money.계약금 - P.누적 - P.미수), 'var(--line)']])}</div>
+        <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>입금 ${won(P.누적)}</span><span><i style="background:var(--prog)"></i>미수금 ${won(P.미수)}</span><span><i style="background:var(--line)"></i>계약 잔액 ${won(Math.max(0, money.계약금 - P.누적))}</span>${P.계약외 ? `<span>계약 외 ${won(P.계약외)}</span>` : ''}</div>
+        ${r.contracts.length > 1 ? `<div class="tbox mt"><table class="mini"><thead><tr><th>계약</th><th class="num">계약금액</th><th class="num">발행</th><th class="num">입금</th><th class="num">미수금</th></tr></thead><tbody>${P.by.map((x) => `<tr><td><a href="#" data-contract="${esc(x.id)}">${esc(x.연도 || '')} · ${esc(x.계약명)}</a></td><td class="num">${won(x.계약금)}</td><td class="num">${won(x.발행)}</td><td class="num">${won(x.누적)}</td><td class="num ${x.미수 ? 'bad' : ''}">${x.미수 ? won(x.미수) : '<span class="muted">—</span>'}</td></tr>`).join('')}</tbody></table></div>` : ''}</div>
+      <div class="sec"><h3>입금 내역 ${P.list.length}건</h3><div class="tbox"><table class="mini paylist"><thead><tr><th class="date">입금일</th><th>내용</th><th class="num">입금액</th><th class="num">누적</th></tr></thead><tbody>${P.list.map((x) => `<tr><td class="date ${x.d ? '' : 'sub'}">${esc(x.d || '날짜 없음')}</td><td>${esc(x.t)}${x.tag ? ` <span class="tag ${x.tc || 'plain'}">${esc(x.tag)}</span>` : ''}</td><td class="num">${won(x.a)}</td><td class="num">${x.out ? '<span class="muted">별도</span>' : won(x.cum)}</td></tr>`).join('') || '<tr><td colspan="4" class="sub">입금 기록이 없습니다</td></tr>'}</tbody>${P.list.length ? `<tfoot><tr><td>합계</td><td>${P.계약외 ? `계약 외 ${won(P.계약외)}원은 누적에서 뺌` : ''}</td><td class="num">${won(P.누적 + P.계약외)}</td><td class="num">${won(P.누적)}</td></tr></tfoot>` : ''}</table></div>
+        <p class="sub" style="margin:6px 0 0">분할 입금은 회차마다 따로 적고, 입금일이 없는 줄(이월 수금 · 계약 외)도 빠짐없이 보여 줍니다. 입금 누적 = 이월 수금 + 입금된 계산서 + 분할 입금.</p></div>
       <div class="sec"><h3>계산서 · 입금</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : 't', d: `${b.발행일 || '발행 없음'}`, tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span>` }))) || '<div class="sub">없음</div>'}</div>
-      <div class="sec"><button class="btn sm" id="mkTS">거래명세서 만들기</button></div>`,
+      <div class="sec"><button class="btn sm" id="mkTS">거래명세서 만들기</button></div>`; },
     photo: () => `<div class="sec"><div class="note info" style="margin:0 0 8px">현장사진은 사진대지 웹앱 코드를 받은 뒤 이 자리에 회차별 갤러리로 연결합니다.</div><div class="gallery">${'<div></div>'.repeat(8)}</div></div>`,
     contract: () => r.contracts.map((c) => `<div class="sec" style="cursor:pointer" data-contract="${esc(c.id)}"><div style="display:flex;gap:8px;align-items:center">${stTag(c.상태)}<b style="flex:1">${esc(c.계약명)}</b><span class="sub">${c.연도} · 계약일 ${esc(c.계약일 || '—')}</span></div>
       <div class="dbar" style="margin-top:6px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="sub">수금 ${pct(c.수금률)} · ${won(c.수금)} / ${won(c.계약금)}원</span></div></div>`).join('') || '<div class="empty">계약 없음</div>',
@@ -1280,32 +1465,58 @@ async function siteDetail(el, id, tab) {
   bindCommon(el);
 }
 
+// 현장 실적·입금: 점검 건수(점검일) · 방문(같은 날 같은 용역 1회) · 발송(발송일) · 발행 · 입금 내역(분할 입금 포함) — 엑셀 진행현황보고 「월별 실적」과 같은 기준
+function sitePerf(r) {
+  const visit = {}; let 점검 = 0, 방문 = 0, 발송 = 0;
+  r.items.forEach((x) => { if (x.점검일) { 점검++; const k = x.점검일 + '|' + x.계약id; if (!visit[k]) { visit[k] = 1; 방문++; } } if (/^\d{4}-\d\d-\d\d/.test(String(x.발송일 || ''))) 발송++; });
+  const parts = (s) => String(s || '').split(/\s*,\s*/).map((x) => { const m = x.match(/^(\d{4}-\d\d-\d\d):(-?\d+)$/); return m ? { d: m[1], a: +m[2] } : null; }).filter(Boolean);
+  const list = [], by = {};
+  r.contracts.forEach((c) => { by[c.id] = { id: c.id, 계약명: c.계약명, 연도: c.연도, 계약금: c.계약금, 발행: 0, 누적: c.이월수금 || 0, 미수: 0 }; if (c.이월수금) list.push({ d: '', t: `이월 수금 (이전 관리분) · ${c.계약명}`, a: c.이월수금, tag: '이월' }); });
+  let 계약외 = 0;
+  r.invoices.forEach((b) => {
+    const C = by[b.계약id] || (by[b.계약id] = { id: b.계약id, 계약명: '', 계약금: 0, 발행: 0, 누적: 0, 미수: 0 }), ps = parts(b.분할입금), psum = ps.reduce((a, p) => a + p.a, 0);
+    if (b.발행일) C.발행 += b.청구액;
+    const label = b.품명 || '입금';
+    if (b.입금일) { ps.forEach((p, i) => list.push({ d: p.d, t: `${label} · 분할 ${i + 1}회`, a: p.a })); const rest = b.수금액 - psum; if (rest) list.push({ d: b.입금일, t: ps.length ? `${label} · 잔금 (완납)` : label, a: rest, tag: b.발행일 ? '' : '발행 없이 입금' }); C.누적 += b.수금액; }
+    else { ps.forEach((p, i) => list.push({ d: p.d, t: `${label} · 분할 ${i + 1}회 (완납 전)`, a: p.a, tag: '분할', tc: 'w' })); C.누적 += psum; if (b.발행일) C.미수 += Math.max(0, b.청구액 - b.수금액 - psum); }
+    if (b.계약외) { 계약외 += b.계약외; list.push({ d: b.입금일 || b.발행일 || '', t: `${b.품명 || '계약 외 금액'}`, a: b.계약외, tag: '계약 외', tc: 't', out: 1 }); }
+  });
+  list.sort((a, b) => (a.d ? 1 : 0) - (b.d ? 1 : 0) || String(a.d).localeCompare(String(b.d)));
+  let cum = 0; list.forEach((x) => { if (!x.out) cum += x.a; x.cum = cum; });
+  const B = Object.values(by).filter((x) => x.계약명);
+  return { 점검, 방문, 발송, 발행: B.reduce((a, x) => a + x.발행, 0), 누적: B.reduce((a, x) => a + x.누적, 0), 미수: B.reduce((a, x) => a + x.미수, 0), 계약외, list, by: B };
+}
 // ---------- 계약·용역
+// 진행 용역(계약·용역 관리) · 완료 용역: 같은 화면을 두 메뉴로 나눠 씀 (자료는 하나, 상태로만 나눔)
 PAGES.contracts = async (m, p) => {
   const r = await api('contracts', {}, { cache: true });
-  const st = S.conF = S.conF || { y: '', s: '', q: '', pg: 0 };
-  const years = [...new Set(r.contracts.map((c) => c.연도))].sort((a, b) => b - a);
-  const yAsc = years.slice().reverse();
+  const doneMode = S.page === 'done';
+  if (p.id) { const c0 = r.contracts.find((x) => x.id === p.id); if (c0 && (c0.상태 !== '진행중') !== doneMode) { const t = doneMode ? 'contracts' : 'done'; try { history.replaceState(history.state, '', '#' + t + '?id=' + encodeURIComponent(p.id)); } catch (e) {} setTimeout(() => go(t, p, true)); return; } }
+  const st = doneMode ? (S.doneF = S.doneF || { y: '', s: '', q: '', pg: 0 }) : (S.conF = S.conF || { y: '', s: '', q: '', pg: 0 });
+  const pool = r.contracts.filter((c) => (c.상태 !== '진행중') === doneMode);
+  const years = [...new Set(pool.map((c) => c.연도))].sort((a, b) => b - a);
+  const yAsc = [...new Set(r.contracts.map((c) => c.연도))].sort((a, b) => a - b);
   const draw = () => {
-    const rows = r.contracts.filter((c) => (!st.y || String(c.연도) === st.y) && (!st.s || c.상태 === st.s) && (!st.q || norm(c.계약명 + c.발주처 + c.시공사 + c.id).includes(norm(st.q))));
+    const rows = pool.filter((c) => (!st.y || String(c.연도) === st.y) && (!doneMode || !st.s || c.상태 === st.s) && (!st.q || norm(c.계약명 + c.발주처 + c.시공사 + c.id).includes(norm(st.q))));
     S._conRows = rows;
     const sum = rows.reduce((a, c) => [a[0] + c.공급가, a[1] + c.계약금, a[2] + c.수금, a[3] + c.대기], [0, 0, 0, 0]);
-    $('#sl').innerHTML = `<div><span>${st.y ? st.y + '년 ' : ''}${st.s || '전체'} 계약</span><b>${rows.length}<small>건</small></b></div><div><span>공급가 합계 (VAT 별도)</span><b>${won(sum[0])}</b></div><div><span>계약금 합계 (VAT 포함)</span><b>${won(sum[1])}</b></div><div><span>수금</span><b class="ok">${won(sum[2])}<small>${sum[1] ? Math.round(sum[2] / sum[1] * 100) : 0}%</small></b></div><div><span>입금 대기</span><b class="${sum[3] ? 'warn' : ''}">${won(sum[3])}</b></div><div><span>남은 금액</span><b>${won(sum[1] - sum[2])}</b></div>`;
+    $('#sl').innerHTML = `<div><span>${st.y ? st.y + '년 ' : ''}${doneMode ? (st.s ? st.s + ' ' : '완료 ') + '용역' : '진행 중 계약'}</span><b>${rows.length}<small>건</small></b></div><div><span>공급가 합계 (VAT 별도)</span><b>${won(sum[0])}</b></div><div><span>계약금 합계 (VAT 포함)</span><b>${won(sum[1])}</b></div><div><span>수금</span><b class="ok">${won(sum[2])}<small>${sum[1] ? Math.round(sum[2] / sum[1] * 100) : 0}%</small></b></div><div><span>입금 대기</span><b class="${sum[3] ? 'warn' : ''}">${won(sum[3])}</b></div><div><span>남은 금액</span><b>${won(sum[1] - sum[2])}</b></div>`;
     const per = 50; if (st.pg * per >= rows.length) st.pg = 0;
     $('#tb').innerHTML = rows.slice(st.pg * per, st.pg * per + per).map((c) => `<tr class="click ${c.id === p.id ? 'sel' : ''}" data-id="${c.id}"><td style="min-width:230px"><div class="t1">${esc(c.계약명)}</div><div class="t2">${esc(c.id.slice(1))}${c.발주처 ? ' · ' + esc(c.발주처) : ''}</div></td><td class="nw date opt2">${c.계약일 ? esc(c.계약일) : '<span class="muted">—</span>'}</td><td class="num opt">${won(c.공급가)}</td><td class="num">${won(c.계약금)}</td><td class="nw"><span class="dbar" style="min-width:150px"><span class="b"><i style="width:${Math.min(100, c.수금률 * 100)}%;background:var(--done)"></i></span><span class="num" style="min-width:70px">${won(c.수금)}</span></span></td><td class="num opt">${c.대기 ? won(c.대기) : '<span class="muted">—</span>'}</td><td class="nw opt"><span class="prog"><i style="width:${c.점검 ? c.제출 / c.점검 * 100 : 0}%"></i></span><span class="sub">${c.제출}/${c.점검}</span></td><td>${stTag(c.상태)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
     $('#tf').innerHTML = `<tr><td colspan="2">${rows.length}건 합계</td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td class="num">${won(sum[3])}</td><td colspan="2"></td></tr>`;
     $('#pg').innerHTML = pager(rows.length, st.pg, per, 'con');
     $('#cnt').textContent = rows.length + '건';
-    $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go('contracts', { id: tr.dataset.id })));
+    $$('#tb tr[data-id]').forEach((tr) => (tr.onclick = () => go(S.page, { id: tr.dataset.id })));
     $$('[data-pg]', m).forEach((b) => (b.onclick = () => { st.pg = +b.dataset.pg.split(':')[1]; draw(); }));
   };
   const yv = (f) => yAsc.map((y) => r.contracts.filter((c) => c.연도 === y).reduce((a, c) => a + c[f], 0));
-  const noDay = r.contracts.filter((c) => !c.계약일);
-  m.innerHTML = head('계약·용역 관리', `${noDay.length && can(WR.계약) && !excelLocked() ? `<button class="btn" id="cdb">계약일 미입력 ${noDay.length}건</button>` : ''}<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('계약', ic('plus', 15) + ' 계약 등록', 'pri', 'id="add"')}`) + lockNote('계약') + `
+  const noDay = pool.filter((c) => !c.계약일);
+  m.innerHTML = head(doneMode ? '완료 용역' : '계약·용역 관리', `${noDay.length && can(WR.계약) && !excelLocked() ? `<button class="btn" id="cdb">계약일 미입력 ${noDay.length}건</button>` : ''}<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${doneMode ? '' : editBtn('계약', ic('plus', 15) + ' 계약 등록', 'pri', 'id="add"')}`) + lockNote('계약') +
+  (doneMode ? `<div class="note info">끝난 용역입니다. 계약·점검·입금·보고서 자료와 이력은 그대로 보관되고, 추가 입금·종합보고서 같은 사후 업무는 여기서 처리합니다. 진행 중 현황(진행 현장·할 일)에는 세지 않고, 연도별 계약·수금 누계에는 포함됩니다.</div>` : '') + `
   <div class="grid2" style="grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);margin-bottom:12px"><div class="sumline g3" id="sl" style="margin:0;align-self:start"></div>
   <section class="panel"><div class="ph"><h2>연도별 계약 규모</h2><span class="sub">계약금 · 수금</span></div><div class="chart">${barChart({ w: 380, height: 130, vals: true, fmt: () => '', labels: yAsc.map(String), series: [{ name: '계약금', color: '#526779', values: yv('계약금') }, { name: '수금', color: '#82968A', values: yv('수금') }] })}</div></section></div>
   <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${years.map((y) => `<option ${st.y === String(y) ? 'selected' : ''}>${y}</option>`).join('')}</select>
-  <div class="seg" role="group" aria-label="상태">${['', '진행중', '완료', '종료', '취소'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x ? (x === '진행중' ? '진행 중' : x) : '전체'}</button>`).join('')}</div>
+  ${doneMode ? `<div class="seg" role="group" aria-label="상태">${['', '완료', '종료', '취소'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x || '전체'}</button>`).join('')}</div>` : ''}
   <input class="inp" id="q" type="search" placeholder="계약명·발주처·번호" value="${esc(st.q)}" style="width:220px"><span class="sub">공급가 VAT 별도 · 계약금·수금 VAT 포함</span><span class="cnt" id="cnt"></span></div>
   <div class="split ${p.id ? '' : 'nodetail'}"><section class="panel"><div class="tbox"><table><thead><tr><th>계약 · 발주처(계약자)</th><th class="date opt2">계약일</th><th class="num opt">공급가</th><th class="num">계약금</th><th>수금</th><th class="num opt">입금 대기</th><th class="opt">점검 제출</th><th>상태</th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></div><div id="pg"></div></section>
   <section class="panel detail ${p.id ? '' : 'hide'}" id="det"></section></div>`;
@@ -1313,36 +1524,124 @@ PAGES.contracts = async (m, p) => {
   $('#y').onchange = (e) => { st.y = e.target.value; st.pg = 0; draw(); };
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; st.pg = 0; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
   $('#q').oninput = (e) => { st.q = e.target.value; st.pg = 0; draw(); };
-  $('#add').onclick = () => openForm('계약', { 연도: new Date().getFullYear(), 상태: '진행중', VAT기준: '별도' }, (row) => go('contracts', { id: row.id }));
+  if ($('#add')) $('#add').onclick = () => openForm('계약', { 연도: new Date().getFullYear(), 상태: '진행중', VAT기준: '별도' }, (row) => go('contracts', { id: row.id }));
   if ($('#cdb')) $('#cdb').onclick = () => cdayBulk(noDay);
-  $('#xl').onclick = () => exportXlsx('계약목록', [['계약', [['번호', '연도', '계약명', '발주처', '시공사', '계약일', '공급가', '부가세', '계약금', '수금', '입금 대기', '잔여', '점검', '제출', '상태']].concat(S._conRows.map((c) => [c.id.slice(1), c.연도, c.계약명, c.발주처, c.시공사, c.계약일, c.공급가, c.부가세, c.계약금, c.수금, c.대기, c.잔여, c.점검, c.제출, c.상태]))]]);
-  if (p.id) contractDetail($('#det'), p.id);
+  $('#xl').onclick = () => exportXlsx(doneMode ? '완료용역' : '계약목록', [['계약', [['번호', '연도', '계약명', '발주처', '시공사', '계약일', '공급가', '부가세', '계약금', '수금', '입금 대기', '잔여', '점검', '제출', '상태']].concat(S._conRows.map((c) => [c.id.slice(1), c.연도, c.계약명, c.발주처, c.시공사, c.계약일, c.공급가, c.부가세, c.계약금, c.수금, c.대기, c.잔여, c.점검, c.제출, c.상태]))]]);
+  if (p.id) contractDetail($('#det'), p.id, p.calc);
 };
-async function contractDetail(el, id) {
+PAGES.done = (m, p) => PAGES.contracts(m, p); // 완료 용역
+async function contractDetail(el, id, openCalc) {
   el.innerHTML = '<div class="empty">불러오는 중…</div>';
   const r = await api('contract', { id }, { cache: true }), c = r.contract;
   if (!c) { el.innerHTML = '<div class="empty">계약을 찾지 못했습니다</div>'; return; }
   const reload = () => { invalidate(); contractDetail(el, id); };
   const left = Math.max(0, c.계약금 - c.수금 - c.대기);
   el.innerHTML = `<div class="dhead"><div class="sub">${esc(c.id.slice(1))} · ${c.연도}년${c.용역코드 ? ' · 용역코드 ' + esc(c.용역코드) : ''}</div><h2>${esc(c.계약명)}</h2><div style="margin-top:4px">${stTag(c.상태)}</div>
-    <div class="acts">${editBtn('계약', '계약 수정', 'sm', 'id="editC"')}${editBtn('청구', '청구·입금 등록', 'sm', 'id="addB"')}<button class="btn sm" id="mkTS">거래명세서</button><button class="btn sm" data-site="${esc(c.현장id)}">현장 보기</button>${histBtn('계약', c.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
+    <div class="acts">${editBtn('계약', '계약 수정', 'sm', 'id="editC"')}${editBtn('청구', c.상태 === '진행중' ? '청구·입금 등록' : '추가 입금 등록', 'sm', 'id="addB"')}<button class="btn sm" id="mkTS">거래명세서</button><button class="btn sm" data-site="${esc(c.현장id)}">현장 보기</button>${c.상태 === '진행중' ? '' : `<button class="btn sm" id="goFinal">종합보고서${r.final ? ' · ' + esc(r.final.상태) : ''}</button>`}${editBtn('계약', c.상태 === '진행중' ? '완료 처리' : '진행으로 복원', 'sm', 'id="setSt" data-eh=""')}${histBtn('계약', c.id)}</div><button class="tbtn x" id="closeD" aria-label="닫기">${ic('x', 18)}</button></div>
+    ${c.상태지정 ? `<div class="note" style="margin:8px 0 0">직접 ${c.상태지정 === '완료' ? '완료 처리' : '진행으로 복원'}한 용역입니다 (수금 기준 자동 판정 대신 이 상태를 유지). ${can(WR.계약) && !excelLocked() ? '<a href="#" id="stAuto">자동 판정으로 되돌리기</a>' : ''}</div>` : ''}
     <div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(c.계약금)}</b></div><div><span>수금 ${pct(c.수금률)}</span><b class="ok">${won(c.수금)}</b></div><div><span>남은 금액</span><b>${won(c.잔여)}</b></div></div>
       <div style="margin-top:6px">${hbar([['수금', c.수금, 'var(--done)'], ['입금 대기', c.대기, 'var(--prog)'], ['청구 전', left, 'var(--line)']])}</div>
       <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금 ${won(c.수금)}</span><span><i style="background:var(--prog)"></i>입금 대기 ${won(c.대기)}</span><span><i style="background:var(--line)"></i>청구 전 ${won(left)}</span></div></div>
     <div class="sec"><h3>청구 · 입금 ${r.invoices.length}건</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : b.발행일 ? 't' : '', d: b.발행일 ? `${b.발행일} 발행` : '발행일 없음', tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span> ${editBtn('청구', '수정', 'sm ghost', `data-eb="${esc(b.id)}"`)}` }))) || '<div class="sub">아직 청구 없음</div>'}</div>
     <div class="sec"><h3>점검 회차 ${r.items.length}건</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${esc(md(x.점검일) || '')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="sec" id="upSec">${upSection(c, r)}</div>
     <div class="sec"><h3>금액 상세</h3><dl class="kv"><dt>공급가 (VAT 별도)</dt><dd>${won(c.공급가)}원</dd><dt>부가세</dt><dd>${won(c.부가세)}원</dd><dt>계약금 (VAT 포함)</dt><dd><b>${won(c.계약금)}원</b></dd>
       <dt>수금</dt><dd>${won(c.수금)}원${c.이월수금 ? ` <span class="sub">이월 ${won(c.이월수금)} 포함</span>` : ''}</dd>${c.미수금 ? `<dt>미수금</dt><dd class="bad">${won(c.미수금)}원</dd>` : ''}
       ${c.종합보고서구분 ? `<dt>종합보고서</dt><dd>${esc(c.종합보고서구분)} ${c.종합보고서금액 ? won(c.종합보고서금액) + '원' : ''}</dd>` : ''}<dt>VAT 기준</dt><dd>${esc(c.VAT기준 || '-')}</dd></dl></div>
     <div class="sec"><h3>당사자 · 기간</h3><dl class="kv"><dt>발주처(계약자)</dt><dd><a href="#" data-partner="${esc(c.발주처.id || '')}">${esc(c.발주처.거래처명 || '-')}</a> <span class="sub">${esc(c.발주처.사업자번호 || '')}</span></dd>
       ${c.실제입금처.id ? `<dt>실제 입금처</dt><dd><a href="#" data-partner="${esc(c.실제입금처.id)}">${esc(c.실제입금처.거래처명)}</a></dd>` : ''}<dt>시공사</dt><dd>${esc(c.시공사.거래처명 || c.발주처.거래처명 || '-')}</dd>
       <dt>계약일</dt><dd>${cdayCell(c)}</dd><dt>준공 예정</dt><dd>${esc(c.준공예정일 || '—')}</dd><dt>완료일</dt><dd>${esc(c.완료일 || '—')}</dd>${c.비고 ? `<dt>비고</dt><dd class="pre">${esc(c.비고)}</dd>` : ''}</dl></div>`;
-  $('#closeD', el).onclick = () => go('contracts');
+  $('#closeD', el).onclick = () => go(S.page === 'done' ? 'done' : 'contracts');
   $('#editC', el).onclick = () => openForm('계약', Object.assign({}, c, { 발주처id: c.발주처.id || '', 실제입금처id: c.실제입금처.id || '', 시공사id: c.시공사.id || '' }), () => { invalidate(); render(); });
   $('#addB', el).onclick = () => openForm('청구', { 계약id: id, 발행일: today() }, reload);
   $$('[data-eb]', el).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), reload)));
   $('#mkTS', el).onclick = () => go('statement', { contract: id });
+  const setSt = async (v, msg) => { if (!(await ask({ title: msg[0], msg: msg[1], ok: msg[0] }))) return;
+    const row = { id, 상태지정: v }; if (v) row.상태 = v; if (v === '완료' && !c.완료일) row.완료일 = today();
+    try { const out = await api('save', { t: '계약', row, ver: c.버전 }); if (out.ok === false) throw new Error(out.msg); invalidate(); LK = null; toast(msg[2]); go(v === '진행중' ? 'contracts' : v === '완료' ? 'done' : S.page, { id }); } catch (e) { toast(e.message, true); } };
+  if ($('#setSt', el)) $('#setSt', el).onclick = () => (c.상태 === '진행중'
+    ? setSt('완료', ['완료 처리', `「${c.계약명}」을(를) 완료 용역으로 옮깁니다.\n자료·이력은 그대로 남고, 완료 용역 메뉴에서 추가 입금·종합보고서를 계속 관리할 수 있습니다.\n진행 중 현황에서는 빠집니다.`, '완료 용역으로 옮겼습니다'])
+    : setSt('진행중', ['진행으로 복원', `「${c.계약명}」을(를) 다시 진행 중 용역으로 돌립니다.\n자료는 그대로입니다.`, '진행 중으로 복원했습니다']));
+  if ($('#stAuto', el)) $('#stAuto', el).onclick = (e) => { e.preventDefault(); setSt('', ['자동 판정으로 되돌리기', '직접 정한 상태를 지우고, 엑셀과 같이 수금 기준(계약금을 다 받으면 완료)으로 상태를 정합니다.', '자동 판정으로 되돌렸습니다']); };
+  if ($('#goFinal', el)) $('#goFinal', el).onclick = () => (r.final ? go('finals', { id: r.final.id }) : openForm('종합', { 계약id: id, 요청일: today(), 상태: '미작성' }, (row) => { invalidate(); if (row) go('finals', { id: row.id }); }));
+  bindUp(el, c, r, reload);
+  if (openCalc && $('#upCalc', el)) $('#upCalc', el).click();
   bindCommon(el);
+}
+// ---- 회차별 단가 (계약 상세): 저장된 단가 · 지금 점검 횟수 · 계약금으로 다시 계산한 값 비교
+function upCompare(c, r) {
+  const L = UP.load(c, r.items), res = UP.calc(L.amt, L.rows, L.vat), P = r.prices || [];
+  const find = (it) => P.find((u) => norm(UP.procKey(u.항목)) === norm(UP.procKey(it))) || P.find((u) => norm(u.항목) === norm(it));
+  const rows = L.rows.map((x, i) => { const u = find(x.공정); return Object.assign({}, x, { 계산: res.ok ? res.prices[i] : '', 저장: u ? u.단가 : null, 저장횟수: u ? u.횟수 : null, u }); });
+  P.forEach((u) => { if (!rows.some((x) => x.u === u)) rows.push({ 공정: u.항목, 횟수: 0, 차수: [], 계산: '', 저장: u.단가, 저장횟수: u.횟수, u, 점검없음: true }); });
+  const stored = P.reduce((a, u) => a + (u.단가 === '' ? 0 : Number(u.단가) * (Number(u.횟수) || 0)), 0), blanks = P.filter((u) => u.단가 === '').length;
+  const same = P.length && res.ok && rows.every((x) => !x.u || x.u.단가 === '' || Number(x.u.단가) === x.계산);
+  let why = '';
+  if (!P.length) why = '아직 저장된 회차별 단가가 없습니다.';
+  else if (same) why = blanks ? `입력된 단가는 계산 결과와 같습니다 (단가 빈 칸 ${blanks}개).` : '저장된 단가가 계약금 계산 결과와 같습니다.';
+  else if (stored === L.amt) why = '저장 단가 합계는 나눌 금액과 같고, 공정별 배분만 다릅니다 (엑셀에서 비중을 바꾸거나 50원 단위 공정을 다르게 정한 값).';
+  else why = `저장 단가 합계가 나눌 금액과 ${won(Math.abs(stored - L.amt))}원 ${stored > L.amt ? '많습니다' : '적습니다'}${blanks ? ` — 단가 빈 칸 ${blanks}개` : ''}${rows.some((x) => x.u && x.저장횟수 !== x.횟수) ? ' · 저장 횟수가 지금 점검 횟수와 다른 공정 있음' : ''}${blanks ? '' : ' (직접 입력한 단가)'}.`;
+  return { L, res, rows, stored, blanks, same, why };
+}
+function upSection(c, r) {
+  const k = upCompare(c, r), P = r.prices || [];
+  return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">회차별 단가 ${P.length}개</h3>${editBtn('단가', '계약금으로 단가 계산', 'sm', 'id="upCalc"')}${editBtn('단가', ic('plus', 14) + ' 단가 추가', 'sm ghost', 'id="upAdd"')}</div>
+    <table class="mini uptab"><thead><tr><th>점검항목 (공정)</th><th class="num">횟수</th><th class="num">회당 단가</th><th class="num">계산 단가 · 차액</th></tr></thead><tbody>
+    ${k.rows.map((x) => { const sv = x.저장 == null || x.저장 === '' ? null : Number(x.저장), d = sv != null && x.계산 !== '' ? sv - x.계산 : null, n = x.u ? Number(x.u.횟수) || 0 : x.횟수, ok = x.u && can(WR.단가) && !excelLocked();
+      return `<tr><td>${ok ? `<a href="#" data-eu="${esc(x.u.id)}" title="단가 수정">${esc(x.공정)}</a>` : esc(x.공정)}${x.점검없음 ? ' <span class="tag plain">점검 없음</span>' : ''}${x.u && x.저장횟수 !== x.횟수 && !x.점검없음 ? ` <span class="tag w" title="저장된 횟수 ${x.저장횟수} · 지금 점검 ${x.횟수}회">점검 ${x.횟수}회</span>` : ''}</td><td class="num">${n}</td><td class="num">${sv == null ? `<span class="muted">${x.u ? '빈 칸' : '미저장'}</span>` : `<b>${won(sv)}</b>`}</td><td class="num sub">${x.계산 === '' ? '—' : won(x.계산)}${d ? ` <span class="warn">(${d > 0 ? '+' : ''}${won(d)})</span>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="4" class="sub">점검과 단가가 없습니다</td></tr>'}</tbody>
+    <tfoot><tr><td colspan="2">저장 합계 (단가×횟수)</td><td class="num">${won(k.stored)}</td><td class="num ${k.stored !== k.L.amt && P.length ? 'warn' : 'sub'}">나눌 ${won(k.L.amt)}${P.length && k.stored !== k.L.amt ? ` (${k.stored - k.L.amt > 0 ? '+' : ''}${won(k.stored - k.L.amt)})` : ''}</td></tr></tfoot></table>
+    <p class="sub" style="margin:6px 0 0">${esc(k.why)} ${c.VAT기준 === '별도' ? 'VAT 별도 계약 → 단가는 공급가.' : 'VAT 포함 계약 → 단가는 VAT 포함 금액.'}${k.L.note ? ' ' + esc(k.L.note) : ''}</p>`;
+}
+function bindUp(el, c, r, reload) {
+  if ($('#upAdd', el)) $('#upAdd', el).onclick = () => openForm('단가', { 계약id: c.id }, reload);
+  $$('[data-eu]', el).forEach((b) => (b.onclick = () => openForm('단가', (r.prices || []).find((u) => u.id === b.dataset.eu), reload)));
+  if ($('#upCalc', el)) $('#upCalc', el).onclick = () => upModal(c, r, reload);
+}
+/** 계약금 → 공정별 회당 단가 계산기 (엑셀 「계약용 자동단가」와 같은 입력 · 같은 계산) */
+function upModal(c, r, onSaved) {
+  const L = UP.load(c, r.items); let amt = L.amt; const rows = L.rows.map((x) => Object.assign({}, x)); let res = null;
+  const P = r.prices || [], find = (it) => P.find((u) => norm(UP.procKey(u.항목)) === norm(UP.procKey(it))) || P.find((u) => norm(u.항목) === norm(it));
+  const d = modal('계약금 → 공정별 회당 단가', `<div class="upcalc"><dl class="kv"><dt>계약</dt><dd><b>${esc(c.계약명)}</b></dd><dt>계약금 (VAT 포함)</dt><dd>${won(L.incl)}원</dd><dt>VAT 기준</dt><dd>${esc(L.vat)}${L.vat === '별도' ? ' — 공급가를 나눕니다 (부가세는 합계에 따로)' : ''}</dd>${L.note ? `<dt>종합보고서</dt><dd>${esc(L.note.replace(/^종합보고서:\s*/, ''))}</dd>` : ''}</dl>
+    <label class="upamt"><span>나눌 금액 (원) <b>*</b></span><input class="inp num" id="upA" inputmode="numeric" value="${amt ? won(amt) : ''}"></label>
+    <div class="tbox mt"><table class="mini uptab"><thead><tr><th>공정</th><th class="num">횟수</th><th class="num">비중</th><th class="num">회당 단가</th><th class="num">배분 금액</th><th class="num">저장된 단가</th><th>차수</th></tr></thead><tbody id="upB"></tbody><tfoot id="upF"></tfoot></table></div>
+    <div class="note info pre" id="upM" style="margin:10px 0 0"></div>
+    <p class="sub" style="margin:6px 0 0">횟수 · 비중을 고치면 바로 다시 계산합니다. 비중 1이 기본이며, 2로 두면 그 공정 단가가 다른 공정의 약 2배가 됩니다. 횟수 0인 줄은 나누기에서 뺍니다.</p></div>`,
+    `<button class="btn" id="upReset">다시 불러오기</button><span class="msg" id="upMsg"></span><button class="btn" data-close>닫기</button>${editBtn('단가', '회차별 단가에 저장', 'pri', 'id="upSave"')}`, true);
+  const draw = () => {
+    res = UP.calc(amt, rows, L.vat);
+    let tn = 0, ta = 0;
+    $('#upB', d).innerHTML = rows.map((x, i) => { const pr = res.ok ? res.prices[i] : '', n = Number(x.횟수) || 0, a = pr !== '' ? pr * n + (res.extraIdx === i ? res.extra : 0) : 0, u = find(x.공정); tn += n; ta += a;
+      return `<tr><td>${esc(x.공정)}${x.메모 ? `<div class="sub">${esc(x.메모)}</div>` : ''}</td><td class="num"><input class="inp num" data-n="${i}" value="${esc(x.횟수)}" inputmode="numeric" aria-label="${esc(x.공정)} 횟수"></td><td class="num"><input class="inp num" data-w="${i}" value="${esc(x.비중)}" inputmode="decimal" aria-label="${esc(x.공정)} 비중"></td><td class="num"><b>${pr === '' ? '—' : won(pr)}</b></td><td class="num">${a ? won(a) : '—'}${res.extraIdx === i ? `<div class="sub">1회 ${won(res.oneAmt)}</div>` : ''}</td><td class="num ${u && u.단가 !== '' && pr !== '' && Number(u.단가) !== pr ? 'warn' : 'sub'}">${u ? (u.단가 === '' ? '빈 칸' : won(u.단가)) : '—'}</td><td class="sub">${esc((x.차수 || []).join(', '))}</td></tr>`; }).join('') || '<tr><td colspan="7" class="sub">이 계약에 점검이 없습니다 → 단가 추가로 직접 넣으세요.</td></tr>';
+    $('#upF', d).innerHTML = `<tr><td>합계</td><td class="num">${tn}회</td><td></td><td></td><td class="num"><b>${won(ta)}</b></td><td></td><td class="${res.ok && ta === amt ? 'ok' : 'bad'}">${res.ok ? (ta === amt ? '나눌 금액과 일치' : '차액 ' + won(ta - amt)) : ''}</td></tr>`;
+    $('#upM', d).textContent = res.msg; $('#upM', d).className = 'note pre ' + (res.ok ? 'info' : '');
+    $$('[data-n]', d).forEach((inp) => (inp.onchange = () => { rows[+inp.dataset.n].횟수 = inp.value.replace(/[^\d]/g, '') === '' ? '' : +inp.value.replace(/[^\d]/g, ''); draw(); }));
+    $$('[data-w]', d).forEach((inp) => (inp.onchange = () => { rows[+inp.dataset.w].비중 = +inp.value || 1; draw(); }));
+  };
+  $('#upA', d).onchange = () => { amt = Number(String($('#upA', d).value).replace(/[^\d]/g, '')) || 0; $('#upA', d).value = amt ? won(amt) : ''; draw(); };
+  $('#upReset', d).onclick = () => { d.remove(); upModal(c, r, onSaved); };
+  draw();
+  if ($('#upSave', d)) $('#upSave', d).onclick = async () => {
+    if (!res || !res.ok) return toast('계산이 끝난 뒤 저장할 수 있습니다', true);
+    const list = rows.map((x, i) => ({ x, pr: res.prices[i] })).filter((o) => o.pr !== '');
+    const diff = list.filter((o) => { const u = find(o.x.공정); return u && u.단가 !== '' && Number(u.단가) !== o.pr; });
+    let mode = 'all';
+    if (diff.length) {
+      const q = modal('회차별 단가에 저장', `<p style="margin:0 0 8px">이미 다른 단가가 적힌 점검항목이 ${diff.length}개 있습니다.</p><ul class="sub" style="margin:0 0 4px;padding-left:18px">${diff.slice(0, 8).map((o) => `<li>${esc(o.x.공정)} : ${won(find(o.x.공정).단가)} → ${won(o.pr)}</li>`).join('')}${diff.length > 8 ? '<li>…</li>' : ''}</ul>`,
+        '<button class="btn" data-close>취소</button><button class="btn" id="qBlank">빈 칸만 채우기</button><button class="btn pri" id="qAll">새 단가로 모두 바꾸기</button>');
+      mode = await new Promise((ok) => { $('#qAll', q).onclick = () => { q.remove(); ok('all'); }; $('#qBlank', q).onclick = () => { q.remove(); ok('blank'); }; $$('[data-close]', q).forEach((b) => (b.onclick = () => { q.remove(); ok(''); })); });
+      if (!mode) return;
+    } else if (!(await ask({ title: '회차별 단가에 저장', msg: `공정 ${list.length}개의 회당 단가를 이 계약의 회차별 단가에 저장합니다.${L.vat === '별도' ? '\nVAT 별도 계약이라 공급가로 저장합니다.' : ''}`, ok: '저장' }))) return;
+    const b = $('#upSave', d); b.disabled = true; let n = 0;
+    try {
+      for (const o of list) {
+        const u = find(o.x.공정); if (u && mode === 'blank' && u.단가 !== '') continue;
+        const row = u ? { id: u.id, 단가: String(o.pr), 횟수: o.x.횟수, 회차: (o.x.차수 || []).join(', ') } : { 계약id: c.id, 항목: o.x.공정, 단가: String(o.pr), 횟수: o.x.횟수, 회차: (o.x.차수 || []).join(', ') };
+        b.textContent = `저장 중… ${n + 1}`;
+        const out = await api('save', { t: '단가', row, ver: u ? u.버전 : undefined }, { quiet: true }); if (out.ok === false) throw new Error(out.msg); n++;
+      }
+      d.remove(); invalidate(); toast(`회차별 단가 ${n}개를 저장했습니다${L.vat === '별도' ? ' (공급가)' : ''}`); onSaved && onSaved();
+    } catch (e) { b.disabled = false; b.textContent = '회차별 단가에 저장'; $('#upMsg', d).textContent = e.message; }
+  };
 }
 
 // ---------- 점검 일정
@@ -1532,7 +1831,9 @@ PAGES.statement = async (m, p) => {
   if (doc.계약id && !doc.거래처id) {
     const r = await api('contract', { id: doc.계약id }, { cache: true }); const c = r.contract;
     if (c) { doc.거래처id = c.실제입금처.id || c.발주처.id || ''; doc.현장id = c.현장id; doc.현장명 = c.현장명; const waiting = r.invoices.filter((b) => !b.입금일 && b.발행일).slice(-1)[0];
-      if (waiting && !p.doc) { doc.일자 = waiting.발행일; doc.lines = String(waiting.품명).split(/\s*,\s*/).filter(Boolean).map((n, i, a) => ({ 품명: n, 단위: '회', 수량: 1, 단가: Math.round(waiting.청구액 / 1.1 / a.length), VAT: '별도' })); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원에서 불러옴 (단가는 확인 후 고치세요)`; } }
+      if (waiting && !p.doc) { doc.일자 = waiting.발행일; doc.lines = String(waiting.품명).split(/\s*,\s*/).filter(Boolean).map((n, i, a) => ({ 품명: n, 단위: '회', 수량: 1, 단가: Math.round(waiting.청구액 / 1.1 / a.length), VAT: '별도' })); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원에서 불러옴 (단가는 확인 후 고치세요)`;
+        const PP = r.prices || [], pOf = (it) => { const u = PP.find((x) => norm(UP.procKey(x.항목)) === norm(UP.procKey(it))) || PP.find((x) => norm(x.항목) === norm(it)); return u && u.단가 !== '' ? Number(u.단가) : ''; };
+        if (doc.lines.length && doc.lines.every((l) => pOf(l.품명) !== '')) { const vat = c.VAT기준 === '별도' ? '별도' : '포함'; doc.lines.forEach((l) => { l.단가 = pOf(l.품명); l.VAT = vat; }); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원의 점검 회차를 불러오고, 단가는 회차별 단가에서 넣었습니다 (VAT ${vat})`; } } }
   }
   const issued = doc.상태 === '발행';
   const pOf = (id) => L.partners.find((x) => x.id === id) || {};
@@ -1561,14 +1862,24 @@ PAGES.statement = async (m, p) => {
       <label>발행일자<input class="inp" type="date" id="dt" value="${esc(doc.일자)}" ${issued ? 'disabled' : ''}></label>
       <label>현장명 (명세서 표시)<input class="inp" id="sn" value="${esc(doc.현장명 || '')}" ${issued ? 'disabled' : ''}></label></div></div>
     <div class="sec"><h3>품목 (최대 26줄)</h3><div class="tbox"><table class="items"><thead><tr><th>품명</th><th>단위</th><th>수량</th><th>단가</th><th>VAT</th><th class="num">공급가액</th><th class="num">세액</th><th></th></tr></thead><tbody id="lines">${doc.lines.map(lineRow).join('')}</tbody></table></div>
-      ${issued ? '' : '<button class="btn sm" id="addL" style="margin-top:6px">줄 추가</button>'}
+      ${issued ? '<p class="sub" style="margin:6px 0 0">발행된 명세서는 저장된 금액 그대로 보관됩니다 (회차별 단가가 바뀌어도 바뀌지 않음).</p>' : '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn sm" id="addL">줄 추가</button><button class="btn sm" id="addR">점검 회차로 품목 넣기</button></div>'}
       <div id="tot" class="totbox"></div>
       <p class="sub" style="margin:6px 0 0">VAT 별도: 공급가액 = 수량×단가, 세액 = 공급가액×0.1 반올림 · VAT 포함: 공급가액 = 수량×단가÷1.1 반올림, 세액 = 나머지 (엑셀 거래명세서와 같은 계산)</p></div>
     <div class="sec"><h3>기타 사항</h3><textarea class="inp" id="etc" ${issued ? 'disabled' : ''}>${esc(doc.기타사항)}</textarea><p class="sub" style="margin:4px 0 0">공급자 칸·기본 문구·직인은 통합관리 엑셀 「거래명세서」 시트에서 가져오며, 직인은 「시스템 설정」에서 등록합니다.</p></div>
     <div class="sec" id="smsg" style="color:var(--bad)"></div>
   </section><section class="paper"><div class="xs-fit"><div class="xs-wrap" id="sheet"></div></div></section></div>`;
+  // 회차별 단가: 계약을 고르면 그 계약의 점검 · 단가를 받아 둠 (엑셀 회차단가_찾기와 같게: 공정 이름 → 점검항목 그대로 순서로 찾음)
+  const PR = S._stmtP = S._stmtP || {};
+  const loadP = async (cid) => { if (!cid) return null; if (!PR[cid]) PR[cid] = api('contract', { id: cid }, { cache: true }).then((x) => ({ c: x.contract, items: x.items, prices: x.prices || [] })).catch(() => null); return PR[cid]; };
+  const priceOf = (P, it) => { const u = P.prices.find((x) => norm(UP.procKey(x.항목)) === norm(UP.procKey(it))) || P.prices.find((x) => norm(x.항목) === norm(it)); return u && u.단가 !== '' ? Number(u.단가) : ''; };
+  const vatOf = (P) => (P.c && P.c.VAT기준 === '별도' ? '별도' : '포함');
   const bindLines = () => {
     $$('#lines tr').forEach((tr) => { const i = +tr.dataset.i; $$('[data-f]', tr).forEach((inp) => (inp.oninput = inp.onchange = () => { let v = inp.value; if (inp.dataset.f === '단가') v = v.replace(/[^\d]/g, ''); doc.lines[i][inp.dataset.f] = v; draw(); })); });
+    $$('#lines [data-f="품명"]').forEach((inp) => inp.addEventListener('change', async () => { // 품명이 그 계약의 점검항목이면 단가가 비어 있을 때 회차별 단가를 넣음
+      const i = +inp.closest('tr').dataset.i, l = doc.lines[i]; if (!l || String(l.단가) !== '' || !doc.계약id) return;
+      const P = await loadP(doc.계약id); if (!P) return; const pr = priceOf(P, l.품명); if (pr === '') return;
+      l.단가 = pr; l.VAT = vatOf(P); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); toast(`회차별 단가 ${won(pr)}원 (${l.VAT === '별도' ? 'VAT 별도 · 공급가' : 'VAT 포함'})`);
+    }));
     $$('[data-rm]').forEach((b) => (b.onclick = () => { doc.lines.splice(+b.dataset.rm, 1); if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); }));
     $$('#lines [data-f="단가"]').forEach((i) => (i.onblur = () => { if (i.value) i.value = won(i.value.replace(/[^\d]/g, '')); }));
   };
@@ -1576,6 +1887,23 @@ PAGES.statement = async (m, p) => {
   bindLines(); draw();
   if (!issued) {
     $('#addL').onclick = () => { if (doc.lines.length >= 26) return toast('최대 26줄입니다', 1); doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); };
+    $('#addR').onclick = async () => {
+      if (!doc.계약id) return toast('먼저 계약(현장)을 고르세요', true);
+      const P = await loadP(doc.계약id); if (!P) return toast('계약 자료를 불러오지 못했습니다', true);
+      const have = doc.lines.map((l) => norm(l.품명)), vat = vatOf(P);
+      const d = modal('점검 회차로 품목 넣기', `<p class="sub" style="margin:0 0 8px">${esc(P.c.계약명)} · VAT ${vat === '별도' ? '별도 (단가 = 공급가)' : '포함'} · 고른 회차마다 1줄씩 들어가고, 단가는 회차별 단가에서 자동으로 넣습니다.</p>
+        <div class="tbox"><table class="mini"><thead><tr><th></th><th>점검 회차</th><th>점검일</th><th>단계</th><th class="num">회당 단가</th></tr></thead><tbody>${P.items.map((x, i) => { const pr = priceOf(P, x.항목); return `<tr><td><input type="checkbox" data-pi="${i}" ${have.includes(norm(x.항목)) ? 'disabled' : ''} aria-label="${esc(x.항목)}"></td><td>${esc(x.항목)}${have.includes(norm(x.항목)) ? ' <span class="tag plain">이미 있음</span>' : ''}</td><td class="sub nw">${esc(x.점검일 || '—')}</td><td>${stageTag(x.단계)}</td><td class="num">${pr === '' ? '<span class="tag w">단가 없음</span>' : won(pr)}</td></tr>`; }).join('') || '<tr><td colspan="5" class="sub">이 계약에 점검이 없습니다</td></tr>'}</tbody></table></div>`,
+        '<button class="btn" data-close>취소</button><button class="btn pri" id="piok">고른 회차 넣기</button>', true);
+      $('#piok', d).onclick = () => {
+        const pick = $$('[data-pi]:checked', d).map((b) => P.items[+b.dataset.pi]); if (!pick.length) return toast('회차를 고르세요', true);
+        doc.lines = doc.lines.filter((l) => String(l.품명 || '').trim());
+        if (doc.lines.length + pick.length > 26) return toast(`최대 26줄입니다 (지금 ${doc.lines.length}줄)`, true);
+        pick.forEach((x) => doc.lines.push({ 품명: x.항목, 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
+        if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' });
+        d.remove(); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw();
+        const miss = pick.filter((x) => priceOf(P, x.항목) === '').length; toast(`${pick.length}줄을 넣었습니다${miss ? ` · 단가 없는 ${miss}줄은 직접 입력하세요` : ''}`, !!miss);
+      };
+    };
     $('#pt').onchange = (e) => { doc.거래처id = e.target.value; draw(); };
     $('#ct').onchange = (e) => { doc.계약id = e.target.value; const c = L.contracts.find((x) => x.id === doc.계약id); if (c) { doc.현장id = c.현장id; doc.현장명 = c.n; $('#sn').value = c.n; } draw(); };
     $('#dt').onchange = (e) => { doc.일자 = e.target.value; draw(); };
@@ -1620,11 +1948,83 @@ PAGES.sales = async (m) => {
   const best = months.reduce((b, k) => (V(k).청구 > V(b).청구 ? k : b), months[0]);
   m.innerHTML = head('매출 현황', `<select class="inp" id="y" style="width:auto">${ys.map((y) => `<option ${y === st ? 'selected' : ''}>${y}</option>`).join('')}</select>`) + `
   <div class="sumline"><div><span>${st}년 청구 (VAT 포함)</span><b>${won(tot[0])}<small>원 · ${tot[2]}건</small></b></div><div><span>그중 수금</span><b class="ok">${won(tot[1])}<small>${tot[0] ? Math.round(tot[1] / tot[0] * 100) : 0}%</small></b></div><div><span>미입금</span><b class="${tot[0] - tot[1] ? 'warn' : ''}">${won(tot[0] - tot[1])}</b></div><div><span>${prevY}년 청구</span><b>${won(prevTot)}${prevTot ? `<small>${tot[0] >= prevTot ? '+' : ''}${Math.round((tot[0] - prevTot) / prevTot * 100)}%</small>` : ''}</b></div><div><span>가장 많은 달</span><b>${+best.slice(5)}월<small>${won(V(best).청구)}원</small></b></div></div>
+  <section class="panel"><div class="ph"><h2>월별 실적</h2><span class="sub">완료된 용역 포함 · 점검일 · 발송일 · 발행일 · 입금일 기준 (엑셀 진행현황보고 「월별 실적」과 같은 기준)</span></div><div class="tbox"><table class="perf"><thead><tr><th>월</th><th class="num">점검 건수</th><th class="num">현장 방문</th><th class="num">보고서 발송</th><th class="num">청구 금액</th><th class="num">입금 금액</th></tr></thead><tbody>
+  ${months.map((k) => { const v = (r.perf || {})[k] || {}; const z = (n, f) => (n ? (f ? won(n) : n) : '<span class="muted">—</span>'); return `<tr class="${k === today().slice(0, 7) ? 'cur' : ''}"><td>${+k.slice(5)}월</td><td class="num">${z(v.점검)}</td><td class="num">${z(v.방문)}</td><td class="num">${z(v.발송)}</td><td class="num">${z(v.청구, 1)}</td><td class="num">${z(v.입금, 1)}</td></tr>`; }).join('')}</tbody>
+  <tfoot>${(() => { const t = months.reduce((a, k) => { const v = (r.perf || {})[k] || {}; return [a[0] + (v.점검 || 0), a[1] + (v.방문 || 0), a[2] + (v.발송 || 0), a[3] + (v.청구 || 0), a[4] + (v.입금 || 0)]; }, [0, 0, 0, 0, 0]); return `<tr><td>${st}년</td><td class="num">${t[0]}</td><td class="num">${t[1]}</td><td class="num">${t[2]}</td><td class="num">${won(t[3])}</td><td class="num">${won(t[4])}</td></tr>`; })()}</tfoot></table></div></section>
   <section class="panel"><div class="ph"><h2>월별 청구</h2><span class="sub">세금계산서 발행 기준 · 막대 위 숫자 단위 만원</span></div><div class="chart">${barChart({ w: 900, height: 170, vals: true, fmt: () => '', valFmt: (v) => Math.round(v / 1e4).toLocaleString('ko-KR'), labels: months.map((k) => +k.slice(5) + '월'), series: [{ name: '청구', color: '#526779', values: months.map((k) => V(k).청구) }, { name: '그중 수금', color: '#82968A', values: months.map((k) => V(k).수금) }] })}</div></section>
   <section class="panel"><div class="tbox"><table><thead><tr><th>월</th><th class="num">발행 건수</th><th class="num">청구액 (VAT 포함)</th><th class="num">그중 수금</th><th class="num">미입금</th><th class="num">수금률</th></tr></thead><tbody>
   ${months.map((k) => { const v = V(k); return `<tr><td>${+k.slice(5)}월</td><td class="num sub">${v.건수 || '—'}</td><td class="num">${v.청구 ? won(v.청구) : '<span class="muted">—</span>'}</td><td class="num">${v.수금 ? won(v.수금) : '<span class="muted">—</span>'}</td><td class="num ${v.청구 - v.수금 > 0 ? 'warn' : ''}">${v.청구 - v.수금 > 0 ? won(v.청구 - v.수금) : '<span class="muted">—</span>'}</td><td class="num sub">${v.청구 ? Math.round(v.수금 / v.청구 * 100) + '%' : ''}</td></tr>`; }).join('')}
   </tbody><tfoot><tr><td>${st}년</td><td class="num">${tot[2]}</td><td class="num">${won(tot[0])}</td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[0] - tot[1])}</td><td class="num">${tot[0] ? Math.round(tot[1] / tot[0] * 100) + '%' : ''}</td></tr></tfoot></table></div></section>`;
   $('#y').onchange = (e) => { S.salesY = e.target.value; render(); };
+};
+// ---------- 회차별 단가 (현장별 · 공정별 조회 · 관리) — 엑셀 「회차별 단가」 시트
+PAGES.prices = async (m) => {
+  const r = await api('prices', {}, { cache: true });
+  const st = S.prF = S.prF || { s: '진행', q: '', k: '', blank: false };
+  const procs = [...new Set(r.prices.map((u) => UP.procKey(u.항목)))].sort((a, b) => a.localeCompare(b, 'ko'));
+  const draw = () => {
+    const rows = r.prices.filter((u) => (st.s === '전체' || (st.s === '진행') === (u.상태 === '진행중')) && (!st.k || UP.procKey(u.항목) === st.k) && (!st.blank || u.단가 === '') && (!st.q || norm(u.현장명 + u.계약명 + u.항목 + u.메모).includes(norm(st.q))));
+    S._prRows = rows;
+    const g = {}, order = []; rows.forEach((u) => { if (!g[u.계약id]) { g[u.계약id] = []; order.push(u.계약id); } g[u.계약id].push(u); });
+    $('#sl').innerHTML = `<div><span>점검항목</span><b>${rows.length}<small>개 · 용역 ${order.length}곳</small></b></div><div><span>단가 입력</span><b class="ok">${rows.filter((u) => u.단가 !== '').length}<small>개</small></b></div><div><span>단가 비어 있음</span><b class="${rows.some((u) => u.단가 === '') ? 'warn' : ''}">${rows.filter((u) => u.단가 === '').length}<small>개</small></b></div><div><span>금액 합계 (단가×횟수)</span><b>${won(rows.reduce((a, u) => a + u.금액, 0))}<small>원</small></b></div>`;
+    $('#tb').innerHTML = order.map((cid) => { const L2 = g[cid], f = L2[0];
+      return `<tr class="grp"><td colspan="8"><a href="#" data-contract="${esc(cid)}"><b>${esc(f.현장명)}</b></a> <span class="sub">${esc(f.연도 || '')} · ${esc(f.상태 === '진행중' ? '진행 중' : f.상태 || '-')} · VAT ${esc(f.VAT)} · ${L2.length}개 · 합계 ${won(L2.reduce((a, u) => a + u.금액, 0))}원</span></td></tr>` +
+        L2.map((u) => `<tr><td>${esc(u.항목)}</td><td class="num">${u.단가 === '' ? '<span class="tag w">빈 칸</span>' : `<b>${won(u.단가)}</b>`}</td><td class="num">${u.횟수 || 0}</td><td class="sub tc"><div class="t2" title="${esc(u.회차)}">${esc(u.회차 || '—')}</div></td><td class="num">${u.금액 ? won(u.금액) : '<span class="muted">—</span>'}</td><td class="c">${u.점검수 !== (u.횟수 || 0) ? `<span class="tag w" title="지금 점검: ${esc(u.점검회차)}">점검 ${u.점검수}회</span>` : `<span class="sub">${u.점검수}회</span>`}</td><td class="sub">${esc(u.메모 || '')}</td><td class="act">${editBtn('단가', '수정', 'sm', `data-eu="${esc(u.id)}"`)}</td></tr>`).join(''); }).join('') || '<tr><td colspan="8" class="empty">조건에 맞는 단가가 없습니다</td></tr>';
+    $('#cnt').textContent = rows.length + '개';
+    bindCommon($('#tb'));
+    $$('[data-eu]', m).forEach((b) => (b.onclick = () => openForm('단가', r.prices.find((u) => u.id === b.dataset.eu), () => { invalidate(); render(); })));
+  };
+  m.innerHTML = head('회차별 단가', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('단가', ic('plus', 15) + ' 단가 추가', 'pri', 'id="add"')}`) + lockNote('회차별 단가') + `
+  <div class="sumline" id="sl"></div>
+  <div class="note info">점검항목(공정)마다 회당 단가를 한 번 적으면 그 공정의 모든 회차에 같은 단가가 쓰입니다. 계약금으로 단가를 다시 나누려면 계약 상세의 <b>「계약금으로 단가 계산」</b>을 쓰세요. 거래명세서에서 점검 회차를 고르면 이 단가가 자동으로 들어갑니다.</div>
+  <div class="filters"><div class="seg" role="group" aria-label="용역 상태">${['진행', '완료', '전체'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x === '진행' ? '진행 중' : x}</button>`).join('')}</div>
+    <select class="inp" id="k"><option value="">공정 전체</option>${procs.map((k) => `<option ${st.k === k ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select>
+    <label class="chk"><input type="checkbox" id="bl" ${st.blank ? 'checked' : ''}> 단가 빈 칸만</label>
+    <input class="inp" id="q" type="search" placeholder="현장·점검항목·메모" value="${esc(st.q)}" style="width:200px"><span class="cnt" id="cnt"></span></div>
+  <section class="panel tbox"><table class="uplist"><thead><tr><th>점검항목</th><th class="num">회당 단가</th><th class="num">횟수</th><th>해당 회차</th><th class="num">금액</th><th class="c">지금 점검</th><th>메모</th><th class="act"></th></tr></thead><tbody id="tb"></tbody></table></section>`;
+  draw();
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  $('#k').onchange = (e) => { st.k = e.target.value; draw(); };
+  $('#bl').onchange = (e) => { st.blank = e.target.checked; draw(); };
+  $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
+  if ($('#add')) $('#add').onclick = () => openForm('단가', {}, () => { invalidate(); render(); });
+  $('#xl').onclick = () => exportXlsx('회차별단가', [['회차별 단가', [['용역명', '점검항목', '회당 단가', '횟수', '해당 회차', '금액', 'VAT 기준', '메모', '용역 상태']].concat(S._prRows.map((u) => [u.계약명, u.항목, u.단가, u.횟수, u.회차, u.금액, u.VAT, u.메모, u.상태]))]]);
+};
+// ---------- 외주 관리 — 엑셀 「외주관리」 시트 (계산서 · 지급)
+PAGES.outsource = async (m) => {
+  const r = await api('outsource', {}, { cache: true });
+  const st = S.osF = S.osF || { y: '', v: '', s: '', q: '' };
+  const ys = [...new Set(r.outsource.map((o) => o.연도).filter(Boolean))].sort().reverse(), vs = [...new Set(r.outsource.map((o) => o.업체).filter(Boolean))].sort();
+  const Y = today().slice(0, 4);
+  const draw = () => {
+    const rows = r.outsource.filter((o) => (!st.y || o.연도 === st.y) && (!st.v || o.업체 === st.v) && (!st.s || o.상태 === st.s) && (!st.q || norm(o.현장명 + o.업체 + o.내용 + o.비고 + o.연결점검).includes(norm(st.q))));
+    S._osRows = rows;
+    const sum = rows.reduce((a, o) => [a[0] + o.청구금액, a[1] + o.지급금액, a[2] + o.미지급, a[3] + o.공급가], [0, 0, 0, 0]);
+    $('#sl').innerHTML = `<div><span>외주 내역</span><b>${rows.length}<small>건</small></b></div><div><span>청구금액 합계 (VAT 포함)</span><b>${won(sum[0])}<small>원</small></b></div><div><span>지급 합계</span><b class="ok">${won(sum[1])}<small>원</small></b></div><div><span>미지급</span><b class="${sum[2] ? 'bad' : ''}">${won(sum[2])}<small>원</small></b></div><div><span>공급가 합계</span><b>${won(sum[3])}<small>원</small></b></div>`;
+    $('#tb').innerHTML = rows.map((o) => `<tr><td class="date sub">${esc(o.계산서일 || '—')}</td><td class="tc"><div class="t1" title="${esc(o.현장명)}">${o.현장id ? `<a href="#" data-site="${esc(o.현장id)}">${esc(o.현장명)}</a>` : esc(o.현장명)}</div><div class="t2" title="${esc(o.내용)}">${esc(o.업체)}${o.내용 ? ' · ' + esc(o.내용) : ''}</div></td><td class="num">${won(o.청구금액)}</td><td class="num">${o.지급금액 ? won(o.지급금액) : '<span class="muted">—</span>'}</td><td class="date sub">${esc(o.지급일 || '—')}</td><td class="num ${o.미지급 ? 'bad' : ''}">${o.미지급 ? won(o.미지급) : '<span class="muted">—</span>'}</td><td class="c"><span class="tag ${o.상태 === '지급 완료' ? 'g' : o.상태 === '일부 지급' ? 'w' : o.상태 === '지급 대기' ? 'r' : ''}">${esc(o.상태)}</span></td><td class="act">${editBtn('외주', '수정', 'sm', `data-eo="${esc(o.id)}"`)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">조건에 맞는 외주 내역이 없습니다</td></tr>';
+    $('#tf').innerHTML = `<tr><td>합계 ${rows.length}건</td><td></td><td class="num">${won(sum[0])}</td><td class="num">${won(sum[1])}</td><td></td><td class="num">${won(sum[2])}</td><td colspan="2"></td></tr>`;
+    const agg = (key) => { const o = {}; rows.forEach((x) => { const k = x[key] || '(미입력)', a = o[k] = o[k] || { n: 0, 청구: 0, 지급: 0, 미지급: 0, 올해: 0, id: x.현장id }; a.n++; a.청구 += x.청구금액; a.지급 += x.지급금액; a.미지급 += x.미지급; if (x.연도 === Y) a.올해 += x.청구금액; }); return Object.entries(o).sort((a, b) => b[1].청구 - a[1].청구); };
+    $('#bySite').innerHTML = agg('현장명').map(([k, a]) => `<tr><td class="tc"><div class="t1" title="${esc(k)}">${a.id ? `<a href="#" data-site="${esc(a.id)}">${esc(k)}</a>` : esc(k)}</div></td><td class="num">${a.n}</td><td class="num">${won(a.청구)}</td><td class="num ${a.미지급 ? 'bad' : ''}">${a.미지급 ? won(a.미지급) : '<span class="muted">—</span>'}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>';
+    $('#byVen').innerHTML = agg('업체').map(([k, a]) => `<tr><td class="tc"><div class="t1" title="${esc(k)}">${esc(k)}</div></td><td class="num">${a.n}</td><td class="num">${won(a.청구)}</td><td class="num">${a.올해 ? won(a.올해) : '<span class="muted">—</span>'}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>';
+    bindCommon(m);
+    $$('[data-eo]', m).forEach((b) => (b.onclick = () => openForm('외주', r.outsource.find((o) => o.id === b.dataset.eo), () => { invalidate(); render(); })));
+  };
+  m.innerHTML = head('외주 관리', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${editBtn('외주', ic('plus', 15) + ' 외주 등록', 'pri', 'id="add"')}`) + lockNote('외주') + `
+  <div class="sumline" id="sl"></div>
+  <div class="filters"><select class="inp" id="y"><option value="">전체 연도</option>${ys.map((y) => `<option ${st.y === y ? 'selected' : ''}>${y}</option>`).join('')}</select>
+    <select class="inp" id="v"><option value="">업체 전체</option>${vs.map((v) => `<option ${st.v === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>
+    <div class="seg" role="group" aria-label="지급 상태">${['', '지급 대기', '일부 지급', '지급 완료'].map((x) => `<button data-s="${x}" class="${st.s === x ? 'on' : ''}">${x || '전체'}</button>`).join('')}</div>
+    <input class="inp" id="q" type="search" placeholder="현장·업체·작업내용" value="${esc(st.q)}" style="width:200px"><span class="sub">금액은 VAT 포함</span></div>
+  <div class="grid2 osgrid"><section class="panel tbox"><table><thead><tr><th class="date">계산서일</th><th>현장 · 업체 · 작업내용</th><th class="num">청구금액</th><th class="num">지급금액</th><th class="date">지급일</th><th class="num">미지급</th><th class="c">상태</th><th class="act"></th></tr></thead><tbody id="tb"></tbody><tfoot id="tf"></tfoot></table></section>
+  <div><section class="panel"><div class="ph"><h2>현장별 합계</h2></div><div class="tbox"><table class="mini"><thead><tr><th>현장</th><th class="num">건수</th><th class="num">청구금액</th><th class="num">미지급</th></tr></thead><tbody id="bySite"></tbody></table></div></section>
+  <section class="panel" style="margin-top:12px"><div class="ph"><h2>업체별 합계</h2></div><div class="tbox"><table class="mini"><thead><tr><th>업체</th><th class="num">건수</th><th class="num">청구금액</th><th class="num">${Y}년</th></tr></thead><tbody id="byVen"></tbody></table></div></section></div></div>`;
+  draw();
+  $('#y').onchange = (e) => { st.y = e.target.value; draw(); };
+  $('#v').onchange = (e) => { st.v = e.target.value; draw(); };
+  $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
+  if ($('#add')) $('#add').onclick = () => openForm('외주', { 계산서일: today() }, () => { invalidate(); render(); });
+  $('#xl').onclick = () => exportXlsx('외주관리', [['외주관리', [['계산서일자', '외주업체', '용역명(현장)', '점검일', '작업내용', '청구금액', '지급금액', '지급일', '비고', '연결 점검', '미지급액', '공급가', '부가세', '상태', '연도']].concat(S._osRows.map((o) => [o.계산서일, o.업체, o.현장명, o.점검일, o.내용, o.청구금액, o.지급금액, o.지급일, o.비고, o.연결점검, o.미지급, o.공급가, o.부가세, o.상태, o.연도]))]]);
 };
 PAGES.invoices = async (m) => {
   const r = await api('money', {}, { cache: true });
@@ -2389,7 +2789,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15f';
+const APP_VERSION = '2026-11-15g';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
