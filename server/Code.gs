@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-16c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-16d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -43,12 +43,14 @@ const SCHEMA = {
   외주: ['id', '계산서일', '업체id', '업체명', '계약id', '현장명', '점검일', '내용', '청구금액', '지급금액', '지급일', '비고', '연결점검'],
   // 회차별 단가 (엑셀 「회차별 단가」: 1줄 = 용역 1개의 점검항목(공정) 1개). VAT 별도 계약은 공급가로 저장 (엑셀과 같음)
   단가: ['id', '계약id', '계약명', '항목', '단가', '횟수', '회차', '메모'],
+  // 대시보드 메모장 (개인 메모 · 업무 자료와 연결하지 않음 · 엑셀에 쓰지 않음). 알림: 'Y' 이면 그 날짜에 대시보드에 표시
+  메모: ['id', '날짜', '내용', '알림', '작성자'],
 };
 const NUMCOLS = ['연도', 'No', '공급가', '부가세', '계약금', '종합보고서금액', '계약외', '할증', '이월수금', '미수금', '청구액', '수금액', '세액', '합계', '버전', '기존수금', '기존미입금', '차수', '청구금액', '지급금액', '횟수']; // 단가(회차별 단가)는 빈 칸과 0원을 구분해야 해서 글자로 보관
 const FROM_EXCEL = ['현장', '거래처', '계약', '점검', '청구', '연락', '자료요청', '메일', '검토', '일지', '택배', '외주', '단가'];   // 가져오기가 채우는 표
 const ROLE_RANK = { 조회: 0, 일반: 1, 관리자: 2 };
-const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반', 외주: '관리자', 단가: '관리자' };
-const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배', 종합: '종합보고서', 외주: '외주', 단가: '회차별 단가' };
+const WRITE_ROLE = { 현장: '일반', 거래처: '일반', 계약: '관리자', 점검: '일반', 청구: '관리자', 연락: '일반', 문서: '일반', 자료요청: '일반', 메일: '일반', 검토: '일반', 일지: '일반', 택배: '일반', 종합: '일반', 외주: '관리자', 단가: '관리자', 메모: '일반' };
+const LABEL = { 현장: '현장', 거래처: '거래처', 계약: '계약', 점검: '점검', 청구: '청구(계산서)', 연락: '연락기록', 문서: '문서', 자료요청: '자료요청', 메일: '메일', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배', 종합: '종합보고서', 외주: '외주', 단가: '회차별 단가', 메모: '메모' };
 
 // ===================== 진입 =====================
 function doGet(e) {
@@ -340,6 +342,9 @@ const ACTIONS = {
   journal: () => cached_('journal', () => ({ jobs: live_('일지').map(clean_).sort((a, b) => String(a.날짜).localeCompare(String(b.날짜))), year: +(setting_('일지연도') || new Date().getFullYear()) })),
   parcels: () => cached_('parcels', parcelsList_),
   prices: () => cached_('prices', pricesList_),
+  memos: (who) => ({ memos: memosOf_(who) }),
+  memoSave: (who, a) => memoSave_(who, a),
+  memoDel: (who, a) => memoSave_(who, { id: a.id, 삭제: 'Y' }),
   outsource: () => cached_('outsource', outsourceList_),
   report: () => cached_('report', report_),
   partners: () => cached_('partners', () => ({ partners: partnersList_() })),
@@ -423,7 +428,7 @@ function norm_(h, v) {
 function clean_(r) { const o = {}; for (const k in r) if (k !== '_row') o[k] = r[k]; return o; }
 function byId_(t) { const m = {}; live_(t).forEach((r) => { m[r.id] = r; }); return m; }
 function newId_(t) {
-  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K', 종합: 'F', 외주: 'O', 단가: 'U' }[t] || 'X';
+  const pre = { 현장: 'S', 거래처: 'P', 계약: 'C', 점검: 'I', 청구: 'B', 연락: 'T', 문서: 'D', 자료요청: 'Q', 메일: 'M', 검토: 'R', 일지: 'J', 택배: 'K', 종합: 'F', 외주: 'O', 단가: 'U', 메모: 'N' }[t] || 'X';
   return pre + 'W' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase();
 }
 let SET_ = null; // 한 번 실행하는 동안 설정 시트를 한 번만 읽음
@@ -456,7 +461,7 @@ function history_(t, id) {
 
 /** 한 줄 등록·수정·삭제: 권한 → 원본 잠금 → 버전 충돌 → 중복 → 기록 */
 function save_(who, t, row, ver, isDelete) {
-  if (!SCHEMA[t] || t === '문서' && !isDelete) throw new Error('이 표는 여기서 고칠 수 없습니다.');
+  if (!SCHEMA[t] || t === '문서' && !isDelete || t === '메모') throw new Error('이 표는 여기서 고칠 수 없습니다.');
   const needRole = isDelete && t !== '연락' ? '관리자' : WRITE_ROLE[t];
   need_(who, needRole);
   if (FROM_EXCEL.indexOf(t) >= 0 && (setting_('원본') || '엑셀') === '엑셀') throw new Error('지금은 엑셀이 원본이라 웹에서 고칠 수 없습니다. 엑셀에서 고친 뒤 「가져오기」를 하세요. (시스템관리 › 시스템 설정에서 원본을 웹으로 바꾸면 고칠 수 있습니다)');
@@ -932,7 +937,7 @@ function writeTable_(t, rows) {
 function restorePreview_(id) {
   const ss = SpreadsheetApp.openById(id), from = readTables_(ss), cur = readTables_(db_());
   const tables = {};
-  Object.keys(SCHEMA).forEach((t) => { tables[t] = Object.assign({ 지금: cur[t].filter((r) => r.삭제 !== 'Y').length, 백업: from[t].filter((r) => r.삭제 !== 'Y').length }, diff_(cur[t], from[t], SCHEMA[t])); });
+  Object.keys(SCHEMA).filter((t) => t !== '메모').forEach((t) => { tables[t] = Object.assign({ 지금: cur[t].filter((r) => r.삭제 !== 'Y').length, 백업: from[t].filter((r) => r.삭제 !== 'Y').length }, diff_(cur[t], from[t], SCHEMA[t])); });
   return { name: DriveApp.getFileById(id).getName(), tables };
 }
 function restoreCommit_(who, id) {
@@ -942,7 +947,7 @@ function restoreCommit_(who, id) {
     if (!/^업무관리DB_백업_/.test(name)) throw new Error('백업 파일이 아닙니다.');
     const from = readTables_(SpreadsheetApp.openById(id));
     const before = backup_('복구 직전', who.user.email);
-    Object.keys(SCHEMA).forEach((t) => writeTable_(t, from[t]));
+    Object.keys(SCHEMA).filter((t) => t !== '메모').forEach((t) => writeTable_(t, from[t])); // 개인 메모장은 복구 대상 아님 (최근 메모가 사라지지 않게)
     log_(who, '전체', name, '복구', null, { 백업: name, 복구직전백업: before.name });
     return { restored: name, safety: before.name };
   } finally { lock.releaseLock(); }
@@ -1041,6 +1046,38 @@ function importCommit_(who, key) {
     setSetting_('마지막 가져오기', now + ' · ' + who.user.email);
     log_(who, '전체', '엑셀', '가져오기', null, { 백업: safety.name });
     return { done: true, safety: safety.name, counts: counts_() };
+  } finally { lock.releaseLock(); }
+}
+
+// ===================== 대시보드 메모장 (개인 · 독립) =====================
+// 업무 자료가 아니라서 데이터 버전·엑셀 자동 저장·변경이력을 건드리지 않음 (자동 저장이 잦아도 다른 화면 캐시가 깨지지 않게)
+function memosOf_(who) {
+  return rows_('메모').filter((r) => !r.삭제 && r.작성자 === who.user.email).map((r) => ({ id: r.id, 날짜: r.날짜, 내용: r.내용, 알림: r.알림 === 'Y' ? 'Y' : '', 수정일: r.수정일, 버전: r.버전 }))
+    .sort((a, b) => String(b.날짜).localeCompare(String(a.날짜)) || String(a.id).localeCompare(String(b.id)));
+}
+function memoSave_(who, a) {
+  need_(who, '일반');
+  const del = a.삭제 === 'Y';
+  if (!del) {
+    if ('날짜' in a && !/^\d{4}-\d\d-\d\d$/.test(String(a.날짜))) return { ok: false, msg: '날짜를 고르세요.' };
+    if ('내용' in a && String(a.내용).length > 4000) return { ok: false, msg: '메모는 4,000자까지 쓸 수 있습니다.' };
+  }
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    TBL_ = {}; ensureCols_('메모');
+    const cols = SCHEMA.메모.concat(META), sh = db_().getSheetByName('메모');
+    const cur = a.id ? rows_('메모').find((r) => r.id === a.id) : null;
+    if (a.id && (!cur || cur.삭제)) return { ok: false, msg: '메모를 찾지 못했습니다. 새로고침해 보세요.' };
+    if (cur && cur.작성자 !== who.user.email) return { ok: false, msg: '내 메모만 고칠 수 있습니다.' };
+    const next = cur ? clean_(cur) : { id: newId_('메모'), 날짜: today_(), 내용: '', 알림: '', 작성자: who.user.email };
+    if (!del) ['날짜', '내용'].forEach((k) => { if (k in a) next[k] = String(a[k] == null ? '' : a[k]); });
+    if ('알림' in a) next.알림 = a.알림 === 'Y' || a.알림 === true ? 'Y' : '';
+    if (!cur && !String(next.내용).trim()) return { ok: false, msg: '메모 내용을 입력하세요.' };
+    next.버전 = (cur ? cur.버전 : 0) + 1; next.수정일 = fmtT_(new Date()); next.수정자 = who.user.email; next.삭제 = del ? 'Y' : '';
+    const vals = [cols.map((c) => (next[c] == null ? '' : next[c]))];
+    if (cur) sh.getRange(cur._row, 1, 1, cols.length).setNumberFormat('@').setValues(vals); else sh.appendRow(vals[0]);
+    delete TBL_['메모'];
+    return { ok: true, memo: { id: next.id, 날짜: next.날짜, 내용: next.내용, 알림: next.알림, 수정일: next.수정일, 버전: next.버전 } };
   } finally { lock.releaseLock(); }
 }
 

@@ -668,6 +668,23 @@ table.pdays th,table.pdays td,table.pdays th.num,table.pdays td.num{text-align:c
 @media (max-width:760px){table.pdays{width:100%;font-size:14px}table.pdays th,table.pdays td{padding:7px 8px;height:auto;white-space:nowrap}table.pdays th:first-child,table.pdays td:first-child{padding-left:16px}table.pdays th:last-child,table.pdays td:last-child{padding-right:16px}} /* 휴대폰: 카드로 바꾸지 않고 연도×월 표 그대로 (한눈에 비교) */
 .paylist td.date{white-space:nowrap}
 @media (max-width:760px){.kpi4{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi4 div:nth-child(3){border-left:0}.kpi4 div:nth-child(n+3){border-top:1px solid var(--line2)}.upamt input{width:100%}.uptab input.inp{width:56px}}
+/* 대시보드 메모장 */
+.memobox .sec{padding-top:10px}
+.mi-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mi-date{display:flex;align-items:center;gap:4px;min-width:0}.mi-step{padding:0 6px;min-width:30px}.mi-date .inp{width:150px}
+.mi-new{margin-top:10px}.mi-new textarea{width:100%;resize:vertical;min-height:58px}
+.mi-nb{display:flex;align-items:center;gap:10px;margin-top:6px}.mi-nb .sub{flex:1;min-width:0}
+.mi-list{margin-top:12px;border-top:1px solid var(--line2)}
+.mi-day{font-size:12px;color:var(--sub);font-weight:600;padding:10px 0 2px}.mi-day.today{color:var(--ink)}
+.memo-it{padding:8px 0;border-bottom:1px solid var(--line2)}.memo-it:last-child{border-bottom:0}
+.mi-h{display:flex;align-items:center;gap:10px;margin-bottom:5px;min-width:0}.mi-h .mi-st{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px}
+.mi-h .mi-d{width:140px;height:28px;padding:2px 6px}
+.mi-t{width:100%;resize:vertical;min-height:44px;line-height:1.5}
+.mi-empty{padding:12px 0}
+.memoalert{border-left:3px solid var(--warn,#B7791F);margin-bottom:12px}.memoalert h2{display:flex;align-items:center;gap:6px}
+.mal{display:flex;align-items:flex-start;gap:12px;padding:6px 0;border-bottom:1px solid var(--line2)}.mal:last-child{border-bottom:0}
+.mal-t{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+@media (max-width:760px){.mi-date .inp{width:140px}.mi-bar .seg{width:100%}.mi-bar .seg button{flex:1}.mal{flex-direction:column;gap:4px}}
 </style>
 </head>
 <body>
@@ -813,7 +830,7 @@ const WD = '일월화수목금토';
 function toast(m, err) { let box = document.getElementById('toasts'); if (!box) { box = document.createElement('div'); box.id = 'toasts'; box.setAttribute('aria-live', 'polite'); document.body.appendChild(box); } const d = document.createElement('div'); d.className = 'toast' + (err ? ' err' : ''); d.textContent = m; box.appendChild(d); setTimeout(() => d.remove(), err ? 5000 : 2600); }
 function ic(n, s) {
   s = s || 16;
-  const P = { search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', bell: '<path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/>', down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', out: '<path d="M10 5H5v14h5M15 8l4 4-4 4M19 12H9"/>', print: '<path d="M7 9V4h10v5M7 17H5v-6h14v6h-2M7 14h10v6H7z"/>', back: '<path d="M15 5l-7 7 7 7"/>', home: '<path d="M4 11l8-7 8 7v9H4z"/>', site: '<path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 10h16M9 3v4M15 3v4"/>', won: '<path d="M4 7l3 11 3-8h4l3 8 3-11M3 11h18M3 14h18"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>' };
+  const P = { search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', bell: '<path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/>', down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M6 6l12 12M18 6L6 18"/>', out: '<path d="M10 5H5v14h5M15 8l4 4-4 4M19 12H9"/>', print: '<path d="M7 9V4h10v5M7 17H5v-6h14v6h-2M7 14h10v6H7z"/>', back: '<path d="M15 5l-7 7 7 7"/>', chevL: '<path d="M15 5l-7 7 7 7"/>', chevR: '<path d="M9 5l7 7-7 7"/>', home: '<path d="M4 11l8-7 8 7v9H4z"/>', site: '<path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/>', cal: '<rect x="4" y="5" width="16" height="15" rx="1"/><path d="M4 10h16M9 3v4M15 3v4"/>', won: '<path d="M4 7l3 11 3-8h4l3 8 3-11M3 11h18M3 14h18"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>' };
   return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ''}</svg>`;
 }
 const stTag = (s) => `<span class="tag ${s === '진행중' ? 't' : s === '완료' ? 'g' : /취소/.test(s) ? 'r' : ''}">${esc(s === '진행중' ? '진행 중' : s || '-')}</span>`;
@@ -1315,6 +1332,7 @@ PAGES.home = async (m) => {
     <button data-go="collect"><span>입금 대기</span><b>${won(k.입금대기)}<small>원 · ${k.입금대기건}건</small></b></button>
     <button data-go="sales"><span>이번 달 청구</span><b>${won(thisM.청구)}<small>원 · ${thisM.건수}건</small></b></button>
   </div>
+  <div id="memoAlert"></div>
   <div class="grid2"><div class="col">
     <section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">기한 7일 이내 · 연락일 지남 · 자료·메일 회신 지연</span><a href="#todo" data-go="todo">전체 보기</a></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
     <section class="panel"><div class="ph"><h2>보고서 제출 기한</h2><span class="sub">작성 중 ${k.작성중}건${k.작성완료 ? ` · 작성 완료(검토·발송 전) ${k.작성완료}건` : ''} · 기한 가까운 순</span></div><div class="tbox">
@@ -1327,6 +1345,7 @@ PAGES.home = async (m) => {
     <section class="panel"><div class="ph"><h2>입금 대기 계산서</h2><span class="sub">발행 후 경과일 순 · VAT 포함</span><a href="#invoices" data-go="invoices">세금계산서</a></div><div class="tbox"><table><thead><tr><th>현장 · 품명</th><th>발행일</th><th class="num">미입금</th><th>경과</th></tr></thead><tbody>
       ${r.waitInv.map((b) => `<tr class="click" data-site="${esc(b.현장id)}"><td><div class="t1">${esc(b.현장명)}${subN(b.입금자 || b.발주처)}</div><div class="t2">${esc(b.품명)}</div></td><td class="nw sub">${esc(b.발행일)}</td><td class="num">${won(b.미입금)}</td><td><span class="tag ${b.경과 > 30 ? 'r' : b.경과 > 14 ? 'w' : 'plain'}">${b.경과}일</span></td></tr>`).join('') || '<tr><td colspan="4" class="empty">없음</td></tr>'}</tbody></table></div></section>
   </div><div class="col">
+    ${can('일반') ? `<details class="panel fold memobox" id="memoBox" ${pref.get('memoOpen', false) ? 'open' : ''}><summary class="ph"><h2>메모장</h2><span class="sub" id="memoSum"></span><i class="chev" aria-hidden="true"></i></summary><div class="sec" id="memoBody"><div class="sub">불러오는 중…</div></div></details>` : ''}
     <section class="panel"><div class="ph"><h2>이번 주 일정</h2><span class="sub">${md(r.week.from)} – ${md(r.week.to)}</span><a href="#schedule" data-go="schedule">달력</a></div>
       <div class="agenda">${agenda.map((x) => `<div class="dgrp ${x.d === r.today ? 'today' : ''}"><div class="dl"><b>${+x.d.slice(8)}</b>${WD[new Date(x.d + 'T00:00:00').getDay()]}${x.d === r.today ? ' · 오늘' : ''}</div><div class="its">${x.ev.map((e) => `<button class="ai ${e.done ? 'done' : ''}" data-site="${esc(e.현장id)}"><span class="k kc k-${e.k}">${esc(KCOL[e.k])}</span><span class="an">${esc(e.현장)} <span class="sub">${esc(e.t || '')}</span></span></button>`).join('') || '<div class="sub" style="padding:3px 0">일정 없음</div>'}</div></div>`).join('')}</div></section>
     <section class="panel"><div class="ph"><h2>월별 청구 · 수금</h2><span class="sub">최근 12개월 · 계산서 발행월 기준 · VAT 포함</span><a href="#sales" data-go="sales">매출 현황</a></div><div class="tbox"><table><thead><tr><th>월</th><th class="num">건수</th><th class="num">청구</th><th class="num">그중 수금</th><th class="num">미입금</th></tr></thead><tbody>
@@ -1342,7 +1361,67 @@ PAGES.home = async (m) => {
   bindCommon(m);
   $('#rf').onclick = async () => { try { await api('refresh'); } catch (e) {} invalidate(); LK = null; render(); };
   if ($('#recentBox')) $('#recentBox').addEventListener('toggle', (e) => { S.recentOpen = e.target.open; }); // 처음엔 접힘, 펼친 상태는 이번 접속 동안 기억
+  if (can('일반')) memoPad(r.today);
 };
+// ===================== 대시보드 메모장 (개인 · 업무일지·일정·할 일과 연결하지 않음) =====================
+// 날짜 고르기 → 입력 → 저장. 글은 고치면 자동 저장. 알림 켠 메모는 그 날짜에 대시보드 위쪽에 표시 (알림 끄기 해도 메모는 남음)
+async function memoPad(today) {
+  const M = S.memo = S.memo || { date: today, view: 'day', list: null };
+  const box = $('#memoBox'), body = $('#memoBody'); if (!box || !body) return;
+  box.addEventListener('toggle', () => pref.set('memoOpen', box.open));
+  const tok = S._rtok, alive = () => tok === S._rtok && document.body.contains(body);
+  if (!M.list) { try { M.list = (await api('memos', {}, { quiet: true })).memos || []; } catch (e) { if (alive()) body.innerHTML = `<div class="sub">메모를 불러오지 못했습니다 · ${esc(e.message)}</div>`; return; } }
+  if (!alive()) return;
+  const WDN = (d) => WD[new Date(d + 'T00:00:00').getDay()];
+  const sortL = () => M.list.sort((a, b) => String(b.날짜).localeCompare(String(a.날짜)) || String(a.id).localeCompare(String(b.id)));
+  const timers = {};
+  const save = async (m, patch, st) => {
+    if (st) st.textContent = '저장 중…';
+    try { const o = await api('memoSave', Object.assign({ id: m.id }, patch), { quiet: true }); if (o.ok === false) throw new Error(o.msg); Object.assign(m, o.memo); if (st) st.textContent = '저장됨'; return true; }
+    catch (e) { if (st) st.textContent = '저장 안 됨 · ' + e.message; else toast(e.message, true); return false; }
+  };
+  const alerts = () => { // 오늘 날짜 + 알림 켠 메모
+    const el = $('#memoAlert'); if (!el) return;
+    const L = M.list.filter((m) => m.알림 === 'Y' && m.날짜 === today);
+    el.innerHTML = L.length ? `<section class="panel memoalert" role="status"><div class="ph"><h2>${ic('bell', 15)} 오늘 메모 알림 ${L.length}건</h2></div><div class="sec">${L.map((m) => `<div class="mal"><div class="mal-t">${esc(m.내용)}</div><label class="chk"><input type="checkbox" data-aoff="${esc(m.id)}"> 알림 끄기</label></div>`).join('')}</div></section>` : '';
+    $$('[data-aoff]', el).forEach((c) => (c.onchange = async () => { const m = M.list.find((x) => x.id === c.dataset.aoff); c.disabled = true; if (await save(m, { 알림: '' })) { toast('알림을 껐습니다 (메모는 그대로)'); alerts(); draw(); } else c.disabled = false; }));
+  };
+  const item = (m) => `<div class="memo-it" data-mid="${esc(m.id)}"><div class="mi-h">${M.view === 'all' ? `<input class="inp mi-d" type="date" data-mdt value="${esc(m.날짜)}" aria-label="메모 날짜">` : ''}<label class="chk"><input type="checkbox" data-mal ${m.알림 === 'Y' ? 'checked' : ''}> 알림</label><span class="mi-st sub" aria-live="polite"></span><button class="btn sm ghost" data-mdel>삭제</button></div>
+    <textarea class="inp mi-t" data-mt rows="${Math.min(8, Math.max(2, String(m.내용).split('\n').length))}" aria-label="메모 내용">${esc(m.내용)}</textarea></div>`;
+  const draw = () => {
+    sortL();
+    const day = M.list.filter((m) => m.날짜 === M.date), todayN = M.list.filter((m) => m.날짜 === today).length;
+    $('#memoSum').textContent = `오늘 ${todayN}개 · 전체 ${M.list.length}개`;
+    let listH;
+    if (M.view === 'day') listH = day.length ? day.map(item).join('') : `<div class="sub mi-empty">${M.date === today ? '오늘' : esc(M.date)} 메모가 없습니다</div>`;
+    else { const g = {}; M.list.forEach((m) => { (g[m.날짜] = g[m.날짜] || []).push(m); }); listH = Object.keys(g).sort().reverse().map((d) => `<div class="mi-day ${d === today ? 'today' : ''}">${esc(d)} (${WDN(d)})${d === today ? ' · 오늘' : d > today ? ' · 예정' : ''}</div>${g[d].map(item).join('')}`).join('') || '<div class="sub mi-empty">메모가 없습니다</div>'; }
+    body.innerHTML = `<div class="mi-bar"><div class="mi-date"><button class="btn sm ghost mi-step" data-mstep="-1" aria-label="전날">${ic('chevL', 16)}</button><input class="inp" type="date" id="mDate" value="${esc(M.date)}" aria-label="날짜"><button class="btn sm ghost mi-step" data-mstep="1" aria-label="다음날">${ic('chevR', 16)}</button>${M.date !== today ? '<button class="btn sm ghost" id="mToday">오늘</button>' : ''}</div>
+      <div class="seg" role="group" aria-label="보기"><button data-mv="day" class="${M.view === 'day' ? 'on' : ''}">이 날짜</button><button data-mv="all" class="${M.view === 'all' ? 'on' : ''}">전체 메모</button></div></div>
+      <div class="mi-new"><textarea class="inp" id="mText" rows="2" placeholder="${esc(M.date)} (${WDN(M.date)}) 메모 입력"></textarea><div class="mi-nb"><label class="chk"><input type="checkbox" id="mAl"> 이 날짜에 알림</label><span class="sub" id="mMsg"></span><button class="btn pri sm" id="mAdd">저장</button></div></div>
+      <div class="mi-list">${listH}</div>`;
+    $('#mDate', body).onchange = (e) => { if (e.target.value) { M.date = e.target.value; draw(); } };
+    $$('[data-mstep]', body).forEach((b) => (b.onclick = () => { const d = new Date(M.date + 'T00:00:00'); d.setDate(d.getDate() + +b.dataset.mstep); M.date = isoD(d); draw(); }));
+    if ($('#mToday', body)) $('#mToday', body).onclick = () => { M.date = today; draw(); };
+    $$('[data-mv]', body).forEach((b) => (b.onclick = () => { M.view = b.dataset.mv; draw(); }));
+    $('#mAdd', body).onclick = async () => {
+      const t = $('#mText', body).value; if (!t.trim()) { $('#mMsg', body).textContent = '메모 내용을 입력하세요'; return; }
+      const b = $('#mAdd', body); b.disabled = true;
+      try { const o = await api('memoSave', { 날짜: M.date, 내용: t, 알림: $('#mAl', body).checked ? 'Y' : '' }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.push(o.memo); draw(); alerts(); toast('메모를 저장했습니다'); }
+      catch (e) { b.disabled = false; $('#mMsg', body).textContent = e.message; }
+    };
+    $$('.memo-it', body).forEach((el) => {
+      const m = M.list.find((x) => x.id === el.dataset.mid), st = $('.mi-st', el), ta = $('[data-mt]', el);
+      const flush = () => { clearTimeout(timers[m.id]); if (ta.value !== m.내용) { const v = ta.value; if (!v.trim()) { st.textContent = '빈 메모는 저장하지 않습니다 (지우려면 삭제)'; return; } save(m, { 내용: v }, st).then(() => alerts()); } };
+      ta.oninput = () => { st.textContent = '입력 중…'; ta.rows = Math.min(8, Math.max(2, ta.value.split('\n').length)); clearTimeout(timers[m.id]); timers[m.id] = setTimeout(flush, 900); };
+      ta.onblur = flush;
+      $('[data-mal]', el).onchange = async (e) => { if (await save(m, { 알림: e.target.checked ? 'Y' : '' }, st)) alerts(); else e.target.checked = !e.target.checked; };
+      if ($('[data-mdt]', el)) $('[data-mdt]', el).onchange = async (e) => { if (!e.target.value) return; if (await save(m, { 날짜: e.target.value }, st)) { alerts(); setTimeout(draw, 400); } };
+      $('[data-mdel]', el).onclick = async () => { if (!(await ask({ title: '메모 삭제', msg: `이 메모를 삭제합니다.\n${String(m.내용).slice(0, 60)}`, ok: '삭제' }))) return;
+        try { const o = await api('memoDel', { id: m.id }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.splice(M.list.indexOf(m), 1); draw(); alerts(); toast('메모를 삭제했습니다'); } catch (e) { toast(e.message, true); } };
+    });
+  };
+  draw(); alerts();
+}
 function todoTable(r) {
   const B = r.builder || {};
   const rows = [].concat(
@@ -2887,7 +2966,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16h';
+const APP_VERSION = '2026-11-16i';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
