@@ -681,10 +681,10 @@ table.pdays th,table.pdays td,table.pdays th.num,table.pdays td.num{text-align:c
 .mi-h .mi-d{width:140px;height:28px;padding:2px 6px}
 .mi-t{width:100%;resize:vertical;min-height:44px;line-height:1.5}
 .mi-empty{padding:12px 0}
-.memoalert{border-left:3px solid var(--warn,#B7791F);margin-bottom:12px}.memoalert h2{display:flex;align-items:center;gap:6px}
-.mal{display:flex;align-items:flex-start;gap:12px;padding:6px 0;border-bottom:1px solid var(--line2)}.mal:last-child{border-bottom:0}
+.mpopm .mbox{max-width:480px}.mpop .mal-t{font-size:14px;line-height:1.55}
+.mal{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--line2)}.mal:last-child{border-bottom:0}
 .mal-t{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
-@media (max-width:760px){.mi-date .inp{width:140px}.mi-bar .seg{width:100%}.mi-bar .seg button{flex:1}.mal{flex-direction:column;gap:4px}}
+@media (max-width:760px){.modal.mpopm{padding:16px;align-items:center}.modal.mpopm .mbox{min-height:0;max-height:85vh;max-height:85dvh;border-radius:8px;overflow:hidden}.modal.mpopm .mb{flex:1 1 auto;overflow:auto}.mi-date .inp{width:140px}.mi-bar .seg{width:100%}.mi-bar .seg button{flex:1}.mal{flex-direction:column;gap:4px}}
 </style>
 </head>
 <body>
@@ -1332,7 +1332,6 @@ PAGES.home = async (m) => {
     <button data-go="collect"><span>입금 대기</span><b>${won(k.입금대기)}<small>원 · ${k.입금대기건}건</small></b></button>
     <button data-go="sales"><span>이번 달 청구</span><b>${won(thisM.청구)}<small>원 · ${thisM.건수}건</small></b></button>
   </div>
-  <div id="memoAlert"></div>
   <div class="grid2"><div class="col">
     <section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">기한 7일 이내 · 연락일 지남 · 자료·메일 회신 지연</span><a href="#todo" data-go="todo">전체 보기</a></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
     <section class="panel"><div class="ph"><h2>보고서 제출 기한</h2><span class="sub">작성 중 ${k.작성중}건${k.작성완료 ? ` · 작성 완료(검토·발송 전) ${k.작성완료}건` : ''} · 기한 가까운 순</span></div><div class="tbox">
@@ -1380,11 +1379,18 @@ async function memoPad(today) {
     try { const o = await api('memoSave', Object.assign({ id: m.id }, patch), { quiet: true }); if (o.ok === false) throw new Error(o.msg); Object.assign(m, o.memo); if (st) st.textContent = '저장됨'; return true; }
     catch (e) { if (st) st.textContent = '저장 안 됨 · ' + e.message; else toast(e.message, true); return false; }
   };
-  const alerts = () => { // 오늘 날짜 + 알림 켠 메모
-    const el = $('#memoAlert'); if (!el) return;
-    const L = M.list.filter((m) => m.알림 === 'Y' && m.날짜 === today);
-    el.innerHTML = L.length ? `<section class="panel memoalert" role="status"><div class="ph"><h2>${ic('bell', 15)} 오늘 메모 알림 ${L.length}건</h2></div><div class="sec">${L.map((m) => `<div class="mal"><div class="mal-t">${esc(m.내용)}</div><label class="chk"><input type="checkbox" data-aoff="${esc(m.id)}"> 알림 끄기</label></div>`).join('')}</div></section>` : '';
-    $$('[data-aoff]', el).forEach((c) => (c.onchange = async () => { const m = M.list.find((x) => x.id === c.dataset.aoff); c.disabled = true; if (await save(m, { 알림: '' })) { toast('알림을 껐습니다 (메모는 그대로)'); alerts(); draw(); } else c.disabled = false; }));
+  const alerts = (force) => { // 오늘 날짜 + 알림 켠 메모 → 팝업 (이번 접속에서 「닫기」 한 메모는 다시 띄우지 않음)
+    const seen = S.memoSeen = S.memoSeen || {}, L = M.list.filter((m) => m.알림 === 'Y' && m.날짜 === today);
+    const open = $('#memoPop'); if (open) { if (!L.length) open.remove(); return; }
+    const show = L.filter((m) => force || !seen[m.id]); if (!show.length || !alive()) return;
+    const d = modal(`오늘 메모 알림 ${show.length}건`, `<div class="mpop">${show.map((m) => `<div class="mal"><div class="mal-t">${esc(m.내용)}</div><label class="chk"><input type="checkbox" data-aoff="${esc(m.id)}"> 알림 끄기</label></div>`).join('')}</div><p class="sub" style="margin:10px 0 0">「알림 끄기」를 하면 이 메모 알림이 다시 뜨지 않습니다. 메모는 메모장에 그대로 남습니다.</p>`,
+      '<button class="btn pri" data-close>확인</button>');
+    d.id = 'memoPop'; d.classList.add('mpopm');
+    const done = () => show.forEach((m) => { seen[m.id] = 1; });
+    $$('[data-close]', d).forEach((b) => b.addEventListener('click', done));
+    d.addEventListener('click', (e) => { if (e.target === d) done(); });
+    $$('[data-aoff]', d).forEach((c) => (c.onchange = async () => { const m = M.list.find((x) => x.id === c.dataset.aoff); c.disabled = true;
+      if (await save(m, { 알림: c.checked ? '' : 'Y' })) { toast(c.checked ? '알림을 껐습니다 (메모는 그대로)' : '알림을 다시 켰습니다'); draw(); } c.disabled = false; }));
   };
   const item = (m) => `<div class="memo-it" data-mid="${esc(m.id)}"><div class="mi-h">${M.view === 'all' ? `<input class="inp mi-d" type="date" data-mdt value="${esc(m.날짜)}" aria-label="메모 날짜">` : ''}<label class="chk"><input type="checkbox" data-mal ${m.알림 === 'Y' ? 'checked' : ''}> 알림</label><span class="mi-st sub" aria-live="polite"></span><button class="btn sm ghost" data-mdel>삭제</button></div>
     <textarea class="inp mi-t" data-mt rows="${Math.min(8, Math.max(2, String(m.내용).split('\n').length))}" aria-label="메모 내용">${esc(m.내용)}</textarea></div>`;
@@ -1406,18 +1412,18 @@ async function memoPad(today) {
     $('#mAdd', body).onclick = async () => {
       const t = $('#mText', body).value; if (!t.trim()) { $('#mMsg', body).textContent = '메모 내용을 입력하세요'; return; }
       const b = $('#mAdd', body); b.disabled = true;
-      try { const o = await api('memoSave', { 날짜: M.date, 내용: t, 알림: $('#mAl', body).checked ? 'Y' : '' }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.push(o.memo); draw(); alerts(); toast('메모를 저장했습니다'); }
+      try { const o = await api('memoSave', { 날짜: M.date, 내용: t, 알림: $('#mAl', body).checked ? 'Y' : '' }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.push(o.memo); (S.memoSeen = S.memoSeen || {})[o.memo.id] = 1; draw(); toast('메모를 저장했습니다'); }
       catch (e) { b.disabled = false; $('#mMsg', body).textContent = e.message; }
     };
     $$('.memo-it', body).forEach((el) => {
       const m = M.list.find((x) => x.id === el.dataset.mid), st = $('.mi-st', el), ta = $('[data-mt]', el);
-      const flush = () => { clearTimeout(timers[m.id]); if (ta.value !== m.내용) { const v = ta.value; if (!v.trim()) { st.textContent = '빈 메모는 저장하지 않습니다 (지우려면 삭제)'; return; } save(m, { 내용: v }, st).then(() => alerts()); } };
+      const flush = () => { clearTimeout(timers[m.id]); if (ta.value !== m.내용) { const v = ta.value; if (!v.trim()) { st.textContent = '빈 메모는 저장하지 않습니다 (지우려면 삭제)'; return; } save(m, { 내용: v }, st); } };
       ta.oninput = () => { st.textContent = '입력 중…'; ta.rows = Math.min(8, Math.max(2, ta.value.split('\n').length)); clearTimeout(timers[m.id]); timers[m.id] = setTimeout(flush, 900); };
       ta.onblur = flush;
-      $('[data-mal]', el).onchange = async (e) => { if (await save(m, { 알림: e.target.checked ? 'Y' : '' }, st)) alerts(); else e.target.checked = !e.target.checked; };
-      if ($('[data-mdt]', el)) $('[data-mdt]', el).onchange = async (e) => { if (!e.target.value) return; if (await save(m, { 날짜: e.target.value }, st)) { alerts(); setTimeout(draw, 400); } };
+      $('[data-mal]', el).onchange = async (e) => { if (await save(m, { 알림: e.target.checked ? 'Y' : '' }, st)) (S.memoSeen = S.memoSeen || {})[m.id] = 1; else e.target.checked = !e.target.checked; };
+      if ($('[data-mdt]', el)) $('[data-mdt]', el).onchange = async (e) => { if (!e.target.value) return; if (await save(m, { 날짜: e.target.value }, st)) { (S.memoSeen = S.memoSeen || {})[m.id] = 1; setTimeout(draw, 400); } };
       $('[data-mdel]', el).onclick = async () => { if (!(await ask({ title: '메모 삭제', msg: `이 메모를 삭제합니다.\n${String(m.내용).slice(0, 60)}`, ok: '삭제' }))) return;
-        try { const o = await api('memoDel', { id: m.id }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.splice(M.list.indexOf(m), 1); draw(); alerts(); toast('메모를 삭제했습니다'); } catch (e) { toast(e.message, true); } };
+        try { const o = await api('memoDel', { id: m.id }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); M.list.splice(M.list.indexOf(m), 1); draw(); toast('메모를 삭제했습니다'); } catch (e) { toast(e.message, true); } };
     });
   };
   draw(); alerts();
@@ -2966,7 +2972,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16i';
+const APP_VERSION = '2026-11-16j';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
