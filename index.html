@@ -662,6 +662,7 @@ table.uplist td.tc{max-width:240px}table.uplist td.tc .t2{white-space:nowrap;ove
 @media (max-width:1365px){.osgrid{grid-template-columns:minmax(0,1fr)}}
 table.perf tr.cur td,table.pdays td.cur{background:#FFFBEA}
 table.pdays tfoot tr.sub td{font-weight:400;color:var(--sub)}
+table.pdays th,table.pdays td,table.pdays th.num,table.pdays td.num{text-align:center!important}
 @media (max-width:760px){table.pdays{width:100%;font-size:14px}table.pdays th,table.pdays td{padding:7px 8px;height:auto;white-space:nowrap}table.pdays th:first-child,table.pdays td:first-child{padding-left:16px}table.pdays th:last-child,table.pdays td:last-child{padding-right:16px}} /* 휴대폰: 카드로 바꾸지 않고 연도×월 표 그대로 (한눈에 비교) */
 .paylist td.date{white-space:nowrap}
 @media (max-width:760px){.kpi4{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi4 div:nth-child(3){border-left:0}.kpi4 div:nth-child(n+3){border-top:1px solid var(--line2)}.upamt input{width:100%}.uptab input.inp{width:56px}}
@@ -2818,7 +2819,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16c';
+const APP_VERSION = '2026-11-16d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
