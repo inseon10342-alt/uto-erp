@@ -1162,10 +1162,10 @@ const FORMS = {
     ['#일정'], ['예정일', 'date'], ['점검일', 'date'], ['작성완료일', 'date'], ['발송일', 'date'], ['#기타'], ['비고', 'area'], ['!보고서 상태는 따로 관리됩니다 — 작성 완료일: 보고서를 다 쓰고 저장한 날 (검토·발송 상태는 바뀌지 않음) · 검토: 보고서 검토 관리의 회신 결과 · 시공사 발송: 발송일. 보고서 기한(점검일 + 30일)은 자동 계산됩니다.']],
   청구: [['#세금계산서'], ['계약id', 'contract', 1, 'full'], ['발행일', 'date'], ['청구액', 'money'], ['품명', 'text', 0, 'full'], ['#입금'], ['입금일', 'date'], ['입금자', 'text'], ['#기타'], ['연결점검', 'text'], ['계약외', 'money'], ['할증', 'money'], ['비고', 'area'], ['분할입금', 'text', 0, 'full'], ['!수금액 · 공급가 · 부가세는 엑셀과 같이 청구액과 입금일로 자동 계산됩니다.']],
   종합: [['#대상 (용역 완료 계약)'], ['계약id', 'contract', 1, 'full'], ['#요청'], ['요청일', 'date', 1], ['요청자', 'text'], ['#진행'], ['상태', 'sel:미작성,작성 중,제출 완료'], ['작성일', 'date'], ['제출일', 'date'], ['#기타'], ['비고', 'area'], ['!종합보고서는 계약마다 1회이며, 정기점검 보고서(작성·검토·시공사 발송)와 따로 관리됩니다. 제출처는 그 계약의 시공사로 자동 기록됩니다. 제출일을 넣으면 「제출 완료」, 작성일만 넣으면 「작성 중」으로 맞춰집니다.']],
-  자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,이메일,메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,보완 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
-    ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청중,일부수신,수신완료,보완요청,요청,회신대기,취소'], ['검토', 'area'], ['비고', 'area']],
+  자료요청: [['#요청'], ['현장id', 'site', 1, 'full'], ['요청일', 'date', 1], ['방법', 'sel:전화,문자,이메일,카톡,방문,기타'], ['담당자', 'text'], ['항목', 'text'], ['구분', 'sel:,점검 전 요청,점검 후 요청,추가 요청,보완 요청,재요청'], ['기한', 'date'], ['자료', 'area'],
+    ['#수신'], ['수신일', 'date'], ['상태', 'sel:요청중,일부수신,수신완료,보완요청,회신대기,취소'], ['검토', 'area'], ['비고', 'area']],
   메일: [['#보낸 메일'], ['현장id', 'site', 1, 'full'], ['보낸날', 'date', 1], ['구분', 'sel:,보고서 발송,계산서·청구서,자료 요청,점검 일정 안내,서류 발송,내부검토,회신·답장,견적서,기타'], ['항목', 'text'], ['받는사람', 'text'], ['이메일', 'text'], ['제목', 'text', 1, 'full'], ['첨부', 'text', 0, 'full'], ['내용', 'area'],
-    ['#회신'], ['회신필요', 'sel:,예,아니요,아니오'], ['회신상태', 'sel:,회신대기,회신받음,회신불필요'], ['회신일', 'date'], ['회신첨부', 'text'], ['회신내용', 'area'], ['비고', 'area']],
+    ['#회신'], ['회신필요', 'sel:,예,아니요'], ['회신상태', 'sel:,회신대기,회신받음,회신불필요'], ['회신일', 'date'], ['회신첨부', 'text'], ['회신내용', 'area'], ['비고', 'area']],
   검토: [['#검토 요청'], ['계약id', 'contract', 1, 'full'], ['항목', 'text', 1], ['회차', 'text'], ['요청일', 'date', 1], ['검토자', 'text'], ['제목', 'text', 0, 'full'],
     ['#검토 결과'], ['상태', 'sel:검토중,수정요청,검토완료'], ['회신일', 'date'], ['의견', 'area'], ['조치', 'area'], ['재발송일', 'date'], ['비고', 'area']],
   일지: [['#업무'], ['날짜', 'date', 1], ['현장', 'text'], ['구분', 'sel:,입찰 확인,보고서 작성,계산서·청구,통화·연락,점검 준비,현장점검,자료 요청·수신,검토 요청·회신,업무 지원,이동·출장,회의·교육,행정·기타'], ['상태', 'sel:완료,진행중,이월,예정'], ['내용', 'area', 1], ['후속', 'text', 0, 'full'], ['비고', 'text', 0, 'full']],
@@ -1840,7 +1840,7 @@ PAGES.requests = async (m, p) => {
   $$('[data-t]', m).forEach((b) => (b.onclick = () => { st.tab = b.dataset.t; if (b.dataset.s2) st.s = b.dataset.s2; render(); }));
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
   $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
-  $('#add').onclick = () => openForm(st.tab === 'req' ? '자료요청' : '메일', st.tab === 'req' ? { 요청일: today(), 상태: '요청' } : { 보낸날: today() }, reload);
+  $('#add').onclick = () => openForm(st.tab === 'req' ? '자료요청' : '메일', st.tab === 'req' ? { 요청일: today(), 상태: '요청중' } : { 보낸날: today() }, reload);
   $('#xl').onclick = () => exportXlsx('자료요청_메일', [['자료요청', [['NO', '현장', '요청일', '방법', '담당자', '점검항목', '구분', '요청 자료', '회신 기한', '수신일', '상태', '검토']].concat(r.requests.map((q) => [q.NO, q.현장명, q.요청일, q.방법, q.담당자, q.항목, q.구분, q.자료, q.기한, q.수신일, q.상태, q.검토]))], ['메일', [['NO', '현장', '구분', '점검항목', '받는 사람', '이메일', '보낸 날짜', '제목', '첨부', '회신 필요', '회신 상태', '회신일', '회신 내용']].concat(r.mails.map((x) => [x.NO, x.현장명, x.구분, x.항목, x.받는사람, x.이메일, x.보낸날, x.제목, x.첨부, x.회신필요, x.회신상태, x.회신일, x.회신내용]))]]);
 };
 
@@ -2879,7 +2879,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16f';
+const APP_VERSION = '2026-11-16g';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
