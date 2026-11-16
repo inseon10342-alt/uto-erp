@@ -769,7 +769,15 @@ async function api(action, arg, opt) {
     } finally { if (!opt.quiet) { S.busy--; busyBar(); } }
   })();
   if (opt.cache) { S.cache[key] = { t: Date.now(), p }; p.catch(() => { if (S.cache[key] && S.cache[key].p === p) delete S.cache[key]; }); }
-  return p;
+  return stale(p, opt, action);
+}
+// 화면을 빨리 바꾸면 앞 화면의 조회 결과가 늦게 도착해 새 화면에 섞여 그려지던 문제 방지:
+// 조회를 부른 뒤 다른 화면으로 넘어갔으면 그 결과는 앞 화면에 넘기지 않음 (조용히 멈춤 · 저장 요청은 해당 없음)
+function stale(p, opt, action) {
+  if (!opt.cache || action === 'lookups') return p;
+  const tok = S._rtok;
+  const hold = () => new Promise(() => {});
+  return p.then((r) => (tok !== S._rtok ? hold() : r), (e) => (tok !== S._rtok ? hold() : Promise.reject(e)));
 }
 // 로그인 직후 자주 여는 화면 자료를 미리 받아 둠
 function prefetch() { ['dash', 'sites', 'contracts', 'money', 'contacts', 'partners', 'lookups', 'requests'].forEach((a) => api(a, {}, { cache: true, quiet: true }).catch(() => {})); }
@@ -2879,7 +2887,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16g';
+const APP_VERSION = '2026-11-16h';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
