@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-16a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-16b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -189,7 +189,7 @@ function dataVer_() { return P.getProperty('DATA_VER') || '0'; }
 function bumpVer_() { P.setProperty('DATA_VER', Date.now().toString(36)); }
 function cached_(name, fn) {
   const C = CacheService.getScriptCache();
-  const raw = 'r|' + dataVer_() + '|' + today_() + '|' + name;
+  const raw = 'r|' + SERVER_VERSION + '|' + dataVer_() + '|' + today_() + '|' + name; // 서버를 새로 올리면 예전 계산 결과를 쓰지 않음
   const key = 'r:' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, raw, Utilities.Charset.UTF_8));
   try {
     const head = C.get(key);
