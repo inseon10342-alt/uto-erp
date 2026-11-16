@@ -2489,6 +2489,8 @@ async function finalDetail(id) {
   const x = r.list.find((y) => y.id === id); if (!x) return toast('요청을 찾지 못했습니다', true);
   const rounds = r.list.filter((y) => y.계약id === x.계약id).sort((a, b) => a.차수 - b.차수);
   const latest = rounds[rounds.length - 1], ed = can(WR.종합);
+  // 지금 회신을 기다리는 내부 검토 (검토 중 · 고쳐서 다시 보낸 수정 요청)
+  const rvOpen = (x.검토 || []).slice().sort((a, b) => (+a.회차 || 0) - (+b.회차 || 0)).filter((v) => v.상태 !== '검토완료' && !(v.상태 === '수정요청' && !v.재발송일)).pop() || null;
   let items = [];
   try { const sd = await api('site', { id: x.현장id }, { cache: true }); items = (sd.items || []).filter((i) => i.계약id === x.계약id).sort((a, b) => String(a.점검일 || a.예정일 || '9').localeCompare(String(b.점검일 || b.예정일 || '9'))); } catch (e) {}
   const fileRows = (y) => (y.파일 || []).map((f) => `<li><span class="fn">${esc(f.n)}</span><span class="sub">${esc(f.구분 || '')} · ${fsize(f.s || 0)} · ${esc(f.d || '')}</span><button class="btn sm" data-dl="${esc(y.id)}|${esc(f.id)}">받기</button>${ed ? `<button class="btn sm ghost" data-fdel="${esc(y.id)}|${esc(f.id)}">삭제</button>` : ''}</li>`).join('') || '<li class="sub">첨부 없음</li>';
@@ -2504,7 +2506,8 @@ async function finalDetail(id) {
       <label class="btn">${'파일 첨부 (HWP·PDF)'}<input type="file" id="fUp" accept=".hwp,.hwpx,.pdf" multiple hidden></label>
       <select class="inp" id="fKind" style="width:auto"><option>작성본</option><option>제출본</option><option>참고</option></select></div><div class="sub" id="fMsg" style="margin-top:6px"></div>` : ''}
     <h3 class="fh">내부 검토 ${rvTagF(x.검토상태)} <span class="sub">보고서 검토 관리에 「종합보고서」로 기록됩니다</span></h3>
-    ${(x.검토 || []).length ? `<div class="tbox"><table class="mini"><thead><tr><th>회차</th><th>요청일</th><th>검토자</th><th>결과</th><th>회신일</th><th>의견</th><th></th></tr></thead><tbody>${x.검토.map((v) => `<tr><td class="nw">${esc(v.회차 || '')}회차</td><td class="nw">${esc(v.요청일 || '—')}</td><td>${esc(v.검토자 || '—')}</td><td>${rvTagF(v.상태 === '수정요청' ? '수정요청' : v.상태 || '검토중')}</td><td class="nw">${esc(v.회신일 || '—')}</td><td class="sub">${esc(String(v.의견 || '').slice(0, 60))}</td><td>${ed ? `<button class="btn sm ghost" data-rv="${esc(v.id)}">회신 기록</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="sub">아직 내부 검토를 요청하지 않았습니다.</div>'}
+    ${(x.검토 || []).length ? `<div class="tbox"><table class="mini"><thead><tr><th>회차</th><th>요청일</th><th>검토자</th><th>결과</th><th>회신일</th><th>의견</th><th></th></tr></thead><tbody>${x.검토.map((v) => `<tr><td class="nw">${esc(v.회차 || '')}회차</td><td class="nw">${esc(v.요청일 || '—')}</td><td>${esc(v.검토자 || '—')}</td><td>${rvTagF(v.상태 === '수정요청' ? '수정요청' : v.상태 || '검토중')}</td><td class="nw">${esc(v.회신일 || '—')}</td><td class="sub">${esc(String(v.의견 || '').slice(0, 60))}</td><td>${ed ? `<button class="btn sm" data-rv="${esc(v.id)}">결과 입력</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="sub">아직 내부 검토를 요청하지 않았습니다.</div>'}
+    ${ed && rvOpen ? `<div class="factions"><button class="btn pri" id="fRvDone">검토 완료 처리</button><button class="btn" id="fRvFix">수정 요청 기록</button><span class="sub" style="align-self:center">${esc(rvOpen.회차 || '')}회차 · 요청 ${esc(rvOpen.요청일 || '')}${rvOpen.검토자 ? ' · ' + esc(rvOpen.검토자) : ''}</span></div>` : ''}
     ${ed && latest.상태 !== '제출 완료' && x.검토상태 !== '검토중' ? `<div class="factions"><button class="btn" id="fRv">${x.검토상태 === '수정요청' ? '고쳐서 다시 검토 요청' : x.검토상태 === '검토완료' ? '추가 검토 요청' : '내부 검토 요청'}</button></div>` : ''}
     <h3 class="fh">점검 이력 <span class="sub">이 계약의 정기점검 ${items.length}회 (자동 연결)</span></h3>
     <div class="tbox"><table class="mini"><thead><tr><th>점검항목</th><th>점검일</th><th>보고서 발송</th><th>단계</th></tr></thead><tbody>${items.map((i) => `<tr><td>${esc(i.항목)}</td><td class="nw">${esc(i.점검일 || (i.예정일 ? i.예정일 + ' (예정)' : '—'))}</td><td class="nw">${esc(i.발송일 || '—')}</td><td>${stageTag(i.단계)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">점검 이력 없음</td></tr>'}</tbody></table></div>`,
@@ -2534,6 +2537,18 @@ async function finalDetail(id) {
   if ($('#fStart', md)) $('#fStart', md).onclick = () => save({ 상태: '작성 중' });
   if ($('#fWrote', md)) $('#fWrote', md).onclick = async () => { const v = await dateAsk('작성일 기록', '종합보고서 작성일'); if (v) save({ 작성일: v.d, 상태: '작성 중' }); };
   if ($('#fRv', md)) $('#fRv', md).onclick = () => { const n = (x.검토 || []).reduce((a, v) => Math.max(a, +v.회차 || 0), 0); md.remove(); openForm('검토', { 계약id: x.계약id, 항목: '종합보고서', 회차: String(n + 1), 요청일: today(), 상태: '검토중', 제목: `[종합보고서] ${x.현장명}` }, () => { invalidate(); go('finals', { id }); }); };
+  const rvReply = (st) => {
+    const v = rvOpen, d = modal(st === '검토완료' ? '검토 완료 처리' : '수정 요청 기록', `<div class="fg"><label><span>회신일</span><input class="inp" type="date" id="rvd" value="${today()}"></label><label class="full"><span>${st === '검토완료' ? '의견 (선택)' : '수정 요청 내용'}</span><textarea class="inp" id="rvo" rows="3">${esc(v.의견 || '')}</textarea></label></div>`,
+      `<span class="msg" id="rvm"></span><button class="btn" data-close>취소</button><button class="btn pri" id="rvok">저장</button>`);
+    $('#rvok', d).onclick = async () => {
+      const dd = $('#rvd', d).value; if (!dd) { $('#rvm', d).textContent = '회신일을 입력하세요.'; return; }
+      $('#rvok', d).disabled = true;
+      try { const out = await api('save', { t: '검토', row: { id: v.id, 상태: st, 회신일: dd, 의견: $('#rvo', d).value }, ver: v.버전 }); if (out.ok === false) throw new Error(out.msg); d.remove(); toast(st === '검토완료' ? '내부 검토를 완료로 기록했습니다' : '수정 요청을 기록했습니다'); after(); }
+      catch (e) { $('#rvok', d).disabled = false; $('#rvm', d).textContent = e.message; }
+    };
+  };
+  if ($('#fRvDone', md)) $('#fRvDone', md).onclick = () => rvReply('검토완료');
+  if ($('#fRvFix', md)) $('#fRvFix', md).onclick = () => rvReply('수정요청');
   $$('[data-rv]', md).forEach((b) => (b.onclick = () => { const v = x.검토.find((z) => z.id === b.dataset.rv); md.remove(); openForm('검토', Object.assign({}, v, { 회신일: v.회신일 || today() }), () => { invalidate(); go('finals', { id }); }); }));
   if ($('#fSub', md)) $('#fSub', md).onclick = async () => { if (x.검토상태 !== '검토완료' && !(await ask({ title: '내부 검토 확인', msg: x.검토상태 ? `내부 검토가 아직 「${x.검토상태 === '수정요청' ? '수정 요청' : '검토 중'}」입니다. 그래도 시공사 제출 완료로 처리할까요?` : '내부 검토 기록이 없습니다. 그래도 시공사 제출 완료로 처리할까요?', ok: '제출 처리' }))) return; const v = await dateAsk('시공사 제출 완료', '제출일', `<p class="sub" style="margin:4px 0 0">제출처: <b>${esc(x.시공사 || '시공사 정보 없음')}</b> (계약의 시공사)</p>`); if (v) save({ 제출일: v.d, 작성일: latest.작성일 || v.d, 상태: '제출 완료' }); };
   $('#fUp', md).onchange = async (e) => {
@@ -2789,7 +2804,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-15g';
+const APP_VERSION = '2026-11-16a';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
