@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-16b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-16c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -519,6 +519,7 @@ function validate_(t, r, cur) {
     if (others.some((x) => x.현장id === r.현장id && key_(x.계약명) === key_(r.계약명) && x.연도 === r.연도)) return '같은 현장·계약명·연도의 계약이 이미 있습니다.';
   }
   if (t === '점검' && (!r.계약id || !r.항목)) return '계약과 점검항목을 입력하세요.';
+  if (t === '점검' && (!cur || key_(cur.항목) !== key_(r.항목) || cur.계약id !== r.계약id) && others.some((x) => x.계약id === r.계약id && key_(x.항목) === key_(r.항목))) return `이 계약에 「${r.항목}」 회차가 이미 있습니다. 회차 이름을 다르게 하거나 「회차 정리」에서 중복을 정리하세요.`;
   if (t === '점검' && r.작성완료일 && !r.점검일) return '보고서 작성 완료일은 점검일을 입력한 뒤에 넣을 수 있습니다.';
   if (t === '청구' && (!r.계약id || !(r.발행일 || r.입금일 || num_(r.계약외) || num_(r.할증)))) return '계약과 발행일(또는 입금일)을 입력하세요. (날짜 없는 줄은 계약 외 금액·할증분이 있을 때만 저장)';
   if (t === '외주' && !(r.업체명 || r.업체id)) return '외주업체를 입력하세요.';

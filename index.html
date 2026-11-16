@@ -662,6 +662,8 @@ table.uplist td.tc{max-width:240px}table.uplist td.tc .t2{white-space:nowrap;ove
 @media (max-width:1365px){.osgrid{grid-template-columns:minmax(0,1fr)}}
 table.perf tr.cur td,table.pdays td.cur{background:#FFFBEA}
 table.pdays tfoot tr.sub td{font-weight:400;color:var(--sub)}
+table.rndt tr.dup td{background:#FDF1F0}table.rndt input.inp{width:100%;min-width:110px;height:30px}
+@media (max-width:760px){table.rndt th,table.rndt td{padding:6px 6px}table.rndt td.act{width:1%}}
 table.pdays th,table.pdays td,table.pdays th.num,table.pdays td.num{text-align:center!important}
 @media (max-width:760px){table.pdays{width:100%;font-size:14px}table.pdays th,table.pdays td{padding:7px 8px;height:auto;white-space:nowrap}table.pdays th:first-child,table.pdays td:first-child{padding-left:16px}table.pdays th:last-child,table.pdays td:last-child{padding-right:16px}} /* 휴대폰: 카드로 바꾸지 않고 연도×월 표 그대로 (한눈에 비교) */
 .paylist td.date{white-space:nowrap}
@@ -1411,7 +1413,7 @@ async function siteDetail(el, id, tab) {
   const body = {
     info: () => `<div class="sec"><div class="money3"><div><span>계약금 (VAT 포함)</span><b>${won(money.계약금)}</b></div><div><span>수금 ${money.계약금 ? Math.round(money.수금 / money.계약금 * 100) : 0}%</span><b>${won(money.수금)}</b></div><div><span>입금 대기</span><b>${won(money.대기)}</b></div></div>
       <div style="margin-top:6px">${hbar([['수금', money.수금, 'var(--done)'], ['입금 대기', money.대기, 'var(--prog)'], ['남은 금액', left, 'var(--line)']])}</div></div>
-      <div class="sec"><h3>점검 회차별 진행</h3><table class="mini stp"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
+      <div class="sec"><div style="display:flex;align-items:center;gap:8px"><h3 style="margin:0;flex:1">점검 회차별 진행${rndIssues(r.items) ? ` <span class="tag r" title="${esc(rndIssues(r.items))}">회차 확인 필요</span>` : ''}</h3>${editBtn('점검', '회차 정리', 'sm ghost', 'id="rndFix"')}</div><table class="mini stp" style="margin-top:6px"><tbody>${rndSort(r.items).map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${x.남은날 != null ? dlTag(x.남은날) : esc(md(itemDate(x)))}</td></tr>`).join('') || '<tr><td class="sub">점검 없음</td></tr>'}</tbody></table></div>
       <div class="sec"><h3>현장 정보</h3><dl class="kv"><dt>주소</dt><dd>${esc(s.주소 || '-')}</dd><dt>관할구 · 규모</dt><dd>${esc([s.관할구, s.규모].filter(Boolean).join(' · ') || '-')}</dd>
       <dt>계약일</dt><dd>${r.contracts.length > 1 ? r.contracts.map((c) => `${esc(c.연도 || '')} · ${cdayCell(c)}`).join('<br>') : c0.id ? cdayCell(c0) : '—'}</dd><dt>발주처(계약자)</dt><dd>${esc(c0.발주처 || '-')}</dd><dt>시공사</dt><dd>${esc(c0.시공사 || '-')}</dd><dt>최근 담당자</dt><dd>${esc((r.contacts[0] || {}).담당자 || '-')}</dd>${s.비고 ? `<dt>비고</dt><dd class="pre">${esc(s.비고)}</dd>` : ''}</dl></div>
       ${r.contacts[0] ? `<div class="sec"><h3>최근 연락</h3>${timeline([{ d: `${r.contacts[0].연락일} · ${r.contacts[0].방법 || ''} · ${r.contacts[0].담당자 || ''}`, h: esc(r.contacts[0].메모 || r.contacts[0].공정 || '') }])}</div>` : ''}`,
@@ -1444,6 +1446,7 @@ async function siteDetail(el, id, tab) {
   const addT = () => openForm('연락', { 현장id: id, 연락일: today(), 방법: '전화' }, reload);
   $('#addT2', el).onclick = addT; if ($('#addT', el)) $('#addT', el).onclick = addT;
   if ($('#addI', el)) $('#addI', el).onclick = () => openForm('점검', { 계약id: (r.contracts.find((c) => c.상태 === '진행중') || r.contracts[0] || {}).id }, reload);
+  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal(r.contracts, r.items, reload);
   $$('[data-ei]', el).forEach((b) => (b.onclick = () => openForm('점검', r.items.find((x) => x.id === b.dataset.ei), reload)));
   // 보고서 작성 완료 표시·취소 — 작성완료일만 바꾸고 검토·발송 상태는 건드리지 않음
   const setW = async (b, id, v) => {
@@ -1468,6 +1471,62 @@ async function siteDetail(el, id, tab) {
   bindCommon(el);
 }
 
+// ---- 점검 회차: 공정별로 묶고 차수 순서로 보여 줌 (지보공1차·2차…). 중복·빠진 회차 확인과 정리
+const rndNo = (it) => { const m = String(it || '').match(/(\d+)\s*차\s*$/); return m ? +m[1] : null; };
+function rndSort(items) {
+  const first = {}; items.forEach((x, i) => { const k = (x.계약id || '') + '|' + UP.procKey(x.항목); if (!(k in first)) first[k] = i; });
+  return items.map((x, i) => ({ x, i })).sort((a, b) => { const ka = (a.x.계약id || '') + '|' + UP.procKey(a.x.항목), kb = (b.x.계약id || '') + '|' + UP.procKey(b.x.항목);
+    return first[ka] - first[kb] || (rndNo(a.x.항목) ?? 1e9) - (rndNo(b.x.항목) ?? 1e9) || a.i - b.i; }).map((o) => o.x);
+}
+function rndIssues(items) { // "비계2차 중복 · 해체3차 빠짐"
+  const by = {}, out = []; items.forEach((x) => { const k = (x.계약id || '') + '|' + UP.procKey(x.항목); (by[k] = by[k] || []).push(x); });
+  Object.values(by).forEach((L) => { const cnt = {}; L.forEach((x) => { const n = norm(x.항목); cnt[n] = (cnt[n] || 0) + 1; });
+    L.filter((x, i) => cnt[norm(x.항목)] > 1 && L.findIndex((y) => norm(y.항목) === norm(x.항목)) === i).forEach((x) => out.push(`${x.항목} ${cnt[norm(x.항목)]}개 (중복)`));
+    const ns = L.map((x) => rndNo(x.항목)).filter((n) => n != null), max = Math.max(0, ...ns), pk = UP.procKey(L[0].항목);
+    for (let n = 1; n < max; n++) if (!ns.includes(n)) out.push(`${pk}${n}차 빠짐`); });
+  return out.join(' · ');
+}
+/** 회차 정리: 이름 고치기 · 빈 회차 삭제 · 회차 추가 · 중복/빠진 회차 자동 정리 제안 */
+function rndModal(contracts, items, onDone) {
+  const live = contracts.filter((c) => c && c.id); if (!live.length) return toast('계약이 없습니다', true);
+  let cid = (live.find((c) => c.상태 === '진행중') || live[0]).id;
+  const empty = (x) => !x.점검일 && !x.발송일 && !x.작성완료일 && (!x.단계 || x.단계 === '점검 전');
+  const d = modal('점검 회차 정리', `<div id="rnd"></div>`, `<span class="msg" id="rnm"></span><button class="btn" data-close>닫기</button><button class="btn pri" id="rnSave">이름 바꾼 것 저장</button>`, true);
+  const draw = () => {
+    const L = rndSort(items.filter((x) => x.계약id === cid)), iss = rndIssues(L), cnt = {}; L.forEach((x) => { cnt[norm(x.항목)] = (cnt[norm(x.항목)] || 0) + 1; });
+    const dupEmpty = L.filter((x) => cnt[norm(x.항목)] > 1 && empty(x) && L.some((y) => y !== x && norm(y.항목) === norm(x.항목) && (!empty(y) || L.indexOf(y) < L.indexOf(x))));
+    const miss = (iss.match(/[^·]+? 빠짐/g) || []).map((t) => t.replace(' 빠짐', '').trim());
+    $('#rnd', d).innerHTML = `${live.length > 1 ? `<div class="seg" role="group" style="margin-bottom:10px">${live.map((c) => `<button data-rc="${esc(c.id)}" class="${c.id === cid ? 'on' : ''}">${esc(c.연도 || '')} ${esc(String(c.계약명).slice(0, 14))}</button>`).join('')}</div>` : ''}
+      ${iss ? `<div class="note" style="margin:0 0 10px"><b>확인 필요:</b> ${esc(iss)}${dupEmpty.length || miss.length ? `<div style="margin-top:6px"><button class="btn sm pri" id="rnAuto">자동 정리: ${[dupEmpty.length ? `진행 안 된 중복 ${dupEmpty.length}개 삭제` : '', miss.length ? `${miss.join(', ')} 추가` : ''].filter(Boolean).join(' · ')}</button></div>` : ''}</div>` : '<div class="note info" style="margin:0 0 10px">중복되거나 빠진 회차가 없습니다.</div>'}
+      <div class="tbox"><table class="mini rndt keep"><thead><tr><th>회차 이름</th><th>진행</th><th>점검일</th><th></th></tr></thead><tbody>${L.map((x) => `<tr class="${cnt[norm(x.항목)] > 1 ? 'dup' : ''}"><td><input class="inp" data-rn="${esc(x.id)}" value="${esc(x.항목)}" aria-label="회차 이름"></td><td>${stageTag(x.단계 || '점검 전')}</td><td class="sub nw" title="${esc(x.점검일 || x.예정일 || '')}">${esc(x.점검일 ? md(x.점검일) : x.예정일 ? md(x.예정일) + ' 예정' : '—')}</td><td class="act">${empty(x) && can('관리자') ? `<button class="btn sm ghost" data-rdel="${esc(x.id)}">삭제</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="4" class="sub">회차가 없습니다</td></tr>'}</tbody></table></div>
+      <div style="display:flex;gap:6px;margin-top:10px"><input class="inp" id="rnNew" placeholder="새 회차 이름 (예: 해체3차)" style="flex:1"><button class="btn" id="rnAdd">회차 추가</button></div>
+      <p class="sub" style="margin:8px 0 0">이름을 고친 뒤 「이름 바꾼 것 저장」을 누르세요. 삭제는 아직 진행되지 않은(점검일·발송 기록 없는) 회차만 할 수 있고, 변경 이력에 남아 복구할 수 있습니다. 같은 계약에 같은 이름의 회차는 새로 만들 수 없습니다.</p>`;
+    $$('[data-rc]', d).forEach((b) => (b.onclick = () => { cid = b.dataset.rc; draw(); }));
+    $$('[data-rdel]', d).forEach((b) => (b.onclick = async () => { const x = items.find((y) => y.id === b.dataset.rdel); if (!(await ask({ title: '회차 삭제', msg: `「${x.항목}」 회차를 삭제합니다.\n(진행 기록이 없는 회차 · 변경 이력에서 복구 가능)`, ok: '삭제' }))) return;
+      try { const o = await api('del', { t: '점검', id: x.id, ver: x.버전 }); if (o && o.ok === false) throw new Error(o.msg); items.splice(items.indexOf(x), 1); changed = 1; draw(); toast(`${x.항목} 삭제`); } catch (e) { toast(e.message, true); } }));
+    $('#rnAdd', d).onclick = () => add([$('#rnNew', d).value.trim()]);
+    if ($('#rnAuto', d)) $('#rnAuto', d).onclick = async () => {
+      if (!(await ask({ title: '회차 자동 정리', msg: [dupEmpty.length ? `삭제: ${dupEmpty.map((x) => x.항목).join(', ')} (진행 안 된 중복)` : '', miss.length ? `추가: ${miss.join(', ')}` : ''].filter(Boolean).join('\n'), ok: '정리' }))) return;
+      try { for (const x of dupEmpty) { const o = await api('del', { t: '점검', id: x.id, ver: x.버전 }, { quiet: true }); if (o && o.ok === false) throw new Error(o.msg); items.splice(items.indexOf(x), 1); } changed = 1; } catch (e) { draw(); return toast(e.message, true); }
+      await add(miss);
+    };
+  };
+  let changed = 0;
+  const add = async (names) => {
+    names = names.filter(Boolean); if (!names.length) return toast('회차 이름을 입력하세요', true);
+    try { for (const n of names) { const o = await api('save', { t: '점검', row: { 계약id: cid, 항목: n } }, { quiet: true }); if (o.ok === false) throw new Error(o.msg); items.push(Object.assign({ 계약id: cid, 항목: n, 단계: '점검 전' }, o.row || {}, { id: (o.row && o.row.id) || o.id, 버전: (o.row && o.row.버전) || 1 })); }
+      changed = 1; toast(`${names.join(', ')} 추가`); draw(); } catch (e) { toast(e.message, true); draw(); }
+  };
+  $('#rnSave', d).onclick = async () => {
+    const ch = $$('[data-rn]', d).map((i) => ({ x: items.find((y) => y.id === i.dataset.rn), v: i.value.trim() })).filter((o) => o.x && o.v && o.v !== o.x.항목);
+    if (!ch.length) { d.remove(); if (changed) onDone && onDone(); return; }
+    const b = $('#rnSave', d); b.disabled = true;
+    try { for (const o of ch) { const out = await api('save', { t: '점검', row: { id: o.x.id, 항목: o.v }, ver: o.x.버전 }, { quiet: true }); if (out.ok === false) throw new Error(`${o.x.항목} → ${o.v}: ${out.msg}`); o.x.항목 = o.v; o.x.버전 = (+o.x.버전 || 0) + 1; }
+      d.remove(); toast(`회차 이름 ${ch.length}개를 고쳤습니다`); onDone && onDone(); } catch (e) { b.disabled = false; $('#rnm', d).textContent = e.message; changed = 1; }
+  };
+  $$('[data-close]', d).forEach((b) => b.addEventListener('click', () => { if (changed) onDone && onDone(); }));
+  draw();
+}
 // 현장 실적·입금: 점검 건수(점검일) · 방문(같은 날 같은 용역 1회) · 발송(발송일) · 발행 · 입금 내역(분할 입금 포함) — 엑셀 진행현황보고 「월별 실적」과 같은 기준
 function sitePerf(r) {
   const visit = {}; let 점검 = 0, 방문 = 0, 발송 = 0;
@@ -1546,7 +1605,7 @@ async function contractDetail(el, id, openCalc) {
       <div style="margin-top:6px">${hbar([['수금', c.수금, 'var(--done)'], ['입금 대기', c.대기, 'var(--prog)'], ['청구 전', left, 'var(--line)']])}</div>
       <div class="legend" style="margin-top:6px"><span><i style="background:var(--done)"></i>수금 ${won(c.수금)}</span><span><i style="background:var(--prog)"></i>입금 대기 ${won(c.대기)}</span><span><i style="background:var(--line)"></i>청구 전 ${won(left)}</span></div></div>
     <div class="sec"><h3>청구 · 입금 ${r.invoices.length}건</h3>${timeline(r.invoices.map((b) => ({ c: b.입금일 ? 'g' : b.발행일 ? 't' : '', d: b.발행일 ? `${b.발행일} 발행` : '발행일 없음', tag: b.입금일 ? `<span class="tag g">입금 ${esc(md(b.입금일))}</span>` : b.발행일 ? '<span class="tag t">입금 대기</span>' : '', h: `${esc(b.품명)} <span class="num" style="float:right">${won(b.청구액)}</span> ${editBtn('청구', '수정', 'sm ghost', `data-eb="${esc(b.id)}"`)}` }))) || '<div class="sub">아직 청구 없음</div>'}</div>
-    <div class="sec"><h3>점검 회차 ${r.items.length}건</h3><table class="mini"><tbody>${r.items.map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${esc(md(x.점검일) || '')}</td></tr>`).join('')}</tbody></table></div>
+    <div class="sec"><div style="display:flex;align-items:center;gap:8px"><h3 style="margin:0;flex:1">점검 회차 ${r.items.length}건${rndIssues(r.items) ? ` <span class="tag r" title="${esc(rndIssues(r.items))}">회차 확인 필요</span>` : ''}</h3>${editBtn('점검', '회차 정리', 'sm ghost', 'id="rndFix"')}</div><table class="mini" style="margin-top:6px"><tbody>${rndSort(r.items).map((x) => `<tr><td style="width:96px">${esc(x.항목)}</td><td>${stepper(x.단계)}</td><td class="nw sub">${esc(md(x.점검일) || '')}</td></tr>`).join('')}</tbody></table></div>
     <div class="sec" id="upSec">${upSection(c, r)}</div>
     <div class="sec"><h3>금액 상세</h3><dl class="kv"><dt>공급가 (VAT 별도)</dt><dd>${won(c.공급가)}원</dd><dt>부가세</dt><dd>${won(c.부가세)}원</dd><dt>계약금 (VAT 포함)</dt><dd><b>${won(c.계약금)}원</b></dd>
       <dt>수금</dt><dd>${won(c.수금)}원${c.이월수금 ? ` <span class="sub">이월 ${won(c.이월수금)} 포함</span>` : ''}</dd>${c.미수금 ? `<dt>미수금</dt><dd class="bad">${won(c.미수금)}원</dd>` : ''}
@@ -1559,6 +1618,7 @@ async function contractDetail(el, id, openCalc) {
   $('#addB', el).onclick = () => openForm('청구', { 계약id: id, 발행일: today() }, reload);
   $$('[data-eb]', el).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), reload)));
   $('#mkTS', el).onclick = () => go('statement', { contract: id });
+  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal([c], r.items.map((x) => Object.assign({ 계약id: id }, x)), reload);
   const setSt = async (v, msg) => { if (!(await ask({ title: msg[0], msg: msg[1], ok: msg[0] }))) return;
     const row = { id, 상태지정: v }; if (v) row.상태 = v; if (v === '완료' && !c.완료일) row.완료일 = today();
     try { const out = await api('save', { t: '계약', row, ver: c.버전 }); if (out.ok === false) throw new Error(out.msg); invalidate(); LK = null; toast(msg[2]); go(v === '진행중' ? 'contracts' : v === '완료' ? 'done' : S.page, { id }); } catch (e) { toast(e.message, true); } };
@@ -2819,7 +2879,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16d';
+const APP_VERSION = '2026-11-16e';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
