@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-15g'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-16a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -668,9 +668,9 @@ function money_() {
   const monthly = {};
   invoices.forEach((b) => { const k = String(b.발행일).slice(0, 7); if (!k) return; const m = monthly[k] = monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; m.청구 += b.청구액; m.수금 += b.수금액; m.건수++; });
   // 월별 실적 (엑셀 진행현황보고 「월별 실적」과 같은 기준 · 완료된 용역 포함): 점검 건수(점검일) · 현장 방문(같은 날 같은 용역은 1회) · 보고서 발송(발송일) · 청구(발행일) · 입금(입금일 기준 수금액)
-  const perf = {}, P0 = (k) => (perf[k] = perf[k] || { 점검: 0, 방문: 0, 발송: 0, 청구: 0, 입금: 0, 계약외: 0 }), visit = {};
+  const perf = {}, P0 = (k) => (perf[k] = perf[k] || { 점검: 0, 방문: 0, 일수: 0, 발송: 0, 청구: 0, 입금: 0, 계약외: 0 }), visit = {}, dayz = {};
   live_('점검').forEach((x) => {
-    if (x.점검일) { const k = String(x.점검일).slice(0, 7); P0(k).점검++; const vk = x.점검일 + '|' + x.계약id; if (!visit[vk]) { visit[vk] = 1; perf[k].방문++; } }
+    if (x.점검일) { const k = String(x.점검일).slice(0, 7); P0(k).점검++; const vk = x.점검일 + '|' + x.계약id; if (!visit[vk]) { visit[vk] = 1; perf[k].방문++; } const dk = String(x.점검일).slice(0, 10); if (!dayz[dk]) { dayz[dk] = 1; perf[k].일수++; } } // 일수: 점검한 날짜 수 (같은 날 여러 현장도 1일)
     if (/^\d{4}-\d\d-\d\d/.test(String(x.발송일 || ''))) P0(String(x.발송일).slice(0, 7)).발송++;
   });
   live_('청구').forEach((b) => { if (b.발행일) P0(String(b.발행일).slice(0, 7)).청구 += b.청구액; if (b.입금일) P0(String(b.입금일).slice(0, 7)).입금 += b.수금액; });
