@@ -387,21 +387,21 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
   .seg{width:100%;overflow-x:auto}.seg button{flex:1;height:36px}
   .ph{padding:14px 16px 10px}
   /* 표 → 카드 목록 */
-  .tbox table:not(.items),.cardify{min-width:0!important}
-  .tbox table:not(.items) thead,.cardify thead{display:none}
-  .tbox table:not(.items) tr,.cardify tr{display:block;padding:14px 16px;border-bottom:1px solid var(--line2)}
-  .tbox table:not(.items) tbody tr:last-child{border-bottom:0}
-  .tbox table:not(.items) td,.cardify td{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border:0;text-align:right;min-height:0}
-  .tbox table:not(.items) td::before,.cardify td::before{content:attr(data-label);color:var(--sub);font-size:13px;text-align:left;flex:none;font-weight:400}
-  .tbox table:not(.items) td:first-child,.cardify td:first-child{display:block;text-align:left;padding-bottom:6px}
-  .tbox table:not(.items) td:first-child::before,.cardify td:first-child::before{display:none}
-  .tbox table:not(.items) td[data-label=""]::before{display:none}
-  .tbox table:not(.items) td .cv{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap;min-width:0}
-  .tbox table:not(.items) td:empty{display:none}
+  .tbox table:not(.items):not(.keep),.cardify{min-width:0!important}
+  .tbox table:not(.items):not(.keep) thead,.cardify thead{display:none}
+  .tbox table:not(.items):not(.keep) tr,.cardify tr{display:block;padding:14px 16px;border-bottom:1px solid var(--line2)}
+  .tbox table:not(.items):not(.keep) tbody tr:last-child{border-bottom:0}
+  .tbox table:not(.items):not(.keep) td,.cardify td{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border:0;text-align:right;min-height:0}
+  .tbox table:not(.items):not(.keep) td::before,.cardify td::before{content:attr(data-label);color:var(--sub);font-size:13px;text-align:left;flex:none;font-weight:400}
+  .tbox table:not(.items):not(.keep) td:first-child,.cardify td:first-child{display:block;text-align:left;padding-bottom:6px}
+  .tbox table:not(.items):not(.keep) td:first-child::before,.cardify td:first-child::before{display:none}
+  .tbox table:not(.items):not(.keep) td[data-label=""]::before{display:none}
+  .tbox table:not(.items):not(.keep) td .cv{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap;min-width:0}
+  .tbox table:not(.items):not(.keep) td:empty{display:none}
   tr.sel td:first-child{box-shadow:none}tr.sel{box-shadow:inset 3px 0 0 var(--pri)}
   tfoot tr{background:var(--bg2)}tfoot td{background:none}
   .mini td{padding:3px 0}
-  .tbox table:not(.items) td,.cardify td{height:auto} /* 카드 안 칸: 고정 높이 때문에 두 줄 제목이 아래 줄과 겹치던 것 */
+  .tbox table:not(.items):not(.keep) td,.cardify td{height:auto} /* 카드 안 칸: 고정 높이 때문에 두 줄 제목이 아래 줄과 겹치던 것 */
   .mini.stp tr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line2)}
   .mini.stp td{display:block;width:auto!important;height:auto;padding:0;border:0}
   .mini.stp td:nth-child(2){grid-column:1/-1;grid-row:2}
@@ -662,6 +662,7 @@ table.uplist td.tc{max-width:240px}table.uplist td.tc .t2{white-space:nowrap;ove
 @media (max-width:1365px){.osgrid{grid-template-columns:minmax(0,1fr)}}
 table.perf tr.cur td,table.pdays td.cur{background:#FFFBEA}
 table.pdays tfoot tr.sub td{font-weight:400;color:var(--sub)}
+@media (max-width:760px){table.pdays{width:100%;font-size:14px}table.pdays th,table.pdays td{padding:7px 8px;height:auto;white-space:nowrap}table.pdays th:first-child,table.pdays td:first-child{padding-left:16px}table.pdays th:last-child,table.pdays td:last-child{padding-right:16px}} /* 휴대폰: 카드로 바꾸지 않고 연도×월 표 그대로 (한눈에 비교) */
 .paylist td.date{white-space:nowrap}
 @media (max-width:760px){.kpi4{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi4 div:nth-child(3){border-left:0}.kpi4 div:nth-child(n+3){border-top:1px solid var(--line2)}.upamt input{width:100%}.uptab input.inp{width:56px}}
 </style>
@@ -2105,7 +2106,7 @@ PAGES.yearly = async (m) => {
       <tfoot><tr><td>연 합계</td>${py.map((y) => `<td class="num">${yt(y)}</td>`).join('')}</tr><tr class="sub"><td>월 평균</td>${py.map((y) => { const n = Array.from({ length: 12 }, (_, i) => `${y}-${p2(i + 1)}`).filter((k) => k <= curM && Object.keys(PF).some((x) => x <= k)).length; return `<td class="num">${n ? (Math.round(yt(y) / n * 10) / 10) : '—'}</td>`; }).join('')}</tr></tfoot>`;
     $$('[data-pk]', m).forEach((b) => b.classList.toggle('on', b.dataset.pk === pst.k));
   };
-  m.querySelector('.grid2').insertAdjacentHTML('beforebegin', `<section class="panel" style="margin-bottom:12px"><div class="ph"><h2>월별 점검 실적</h2><div class="seg" role="group" aria-label="보기">${Object.entries(MK).map(([k, t]) => `<button data-pk="${k}">${t}</button>`).join('')}</div><span class="sub">완료된 용역 포함 · 점검일 기준 · 점검일수 = 점검한 날짜 수 (같은 날 여러 현장도 1일) · 현장 방문 = 같은 날 같은 용역 1회</span></div><div class="tbox"><table class="perf pdays" id="pdT"></table></div></section>`);
+  m.querySelector('.grid2').insertAdjacentHTML('beforebegin', `<section class="panel" style="margin-bottom:12px"><div class="ph"><h2>월별 점검 실적</h2><div class="seg" role="group" aria-label="보기">${Object.entries(MK).map(([k, t]) => `<button data-pk="${k}">${t}</button>`).join('')}</div><span class="sub">완료된 용역 포함 · 점검일 기준 · 점검일수 = 점검한 날짜 수 (같은 날 여러 현장도 1일) · 현장 방문 = 같은 날 같은 용역 1회</span></div><div class="tbox"><table class="perf pdays keep" id="pdT"></table></div></section>`);
   pdraw();
   $$('[data-pk]', m).forEach((b) => (b.onclick = () => { pst.k = b.dataset.pk; pdraw(); }));
   $('#xl').onclick = () => exportXlsx('연도별실적', [['월별 점검', [['연도', '월', '점검일수', '점검 건수', '현장 방문']].concat(py.slice().reverse().flatMap((y) => Array.from({ length: 12 }, (_, i) => { const o = PF[`${y}-${p2(i + 1)}`] || {}; return [y, i + 1, o.일수 || 0, o.점검 || 0, o.방문 || 0]; })))], ['연도별', [['연도', '건수', '진행', '완료', '계약금액(VAT 별도)', 'VAT 포함', '수금']].concat(ys.map(([y, v]) => [y, v.건수, v.진행, v.완료, v.공급가, v.계약금, v.수금]))], ['발주처별', [['발주처', '건수', '계약금액(VAT 별도)']].concat(Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).map(([k, v]) => [k, v.n, v.amt]))]]);
@@ -2817,7 +2818,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-16b';
+const APP_VERSION = '2026-11-16c';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
