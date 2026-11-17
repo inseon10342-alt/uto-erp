@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-16d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-17a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -316,7 +316,7 @@ function finalGet_(who, a) {
   return { name: f.n, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
 }
 const ACTIONS = {
-  boot: (who) => (migrateG_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
+  boot: (who) => (migrateG_(who.user.email), fixApproved1117_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
   logout: (who) => { setDevice_(who.device.row, '해제', who.device.h); return {}; },
   dash: () => cached_('dash', dash_),
@@ -1081,6 +1081,39 @@ function memoSave_(who, a) {
   } finally { lock.releaseLock(); }
 }
 
+/** 1회 수정 (2026-11-17 데이터 검증 「확인 필요」 · 사용자 승인 2026-11-17 09:11~09:14)
+ *  ① 신사동 553-12 청구 B1BNM24C: 비고에 글로만 있던 분할 입금 2건 → 「분할입금」 칸 (금액·입금일·수금액은 그대로)
+ *  ② 논현동 91-7 점검 I2024-08-굴착1차+ (2025-07-02): 이름 굴착1차 → 굴착2차 (사용자 점검 목록 기준)
+ *  ③ 미아동 업무일지 2026-10-16 「현장 전화: 6층바닥타설」 중복 입력 1줄 삭제 표시 (같은 날 「6층 바닥타설」 줄은 남김)
+ *  ④ 청담동 59 점검 IWMWG8D3EJ2B: 이름 「지보공 1차」 → 「지보공1차」 (11-10 점검은 안 했음 → 지운 원래 줄은 그대로)
+ *  - 항목마다 지금 값이 검증 때와 같을 때만 고침 (그사이 고쳤으면 그 항목은 건너뜀) · 시작 전 DB 백업 1회 · 변경이력에 남김 · 한 번만 */
+function fixApproved1117_(by) {
+  if (/^done/.test(P.getProperty('FIX_1117') || '')) return null;
+  if ((setting_('원본') || '엑셀') !== '웹') return null;
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(2000)) return null;
+  try {
+    if (/^done/.test(P.getProperty('FIX_1117') || '')) return null;
+    TBL_ = {};
+    const who = { user: { email: by || '시스템' } }, find = (t, id) => rows_(t).find((r) => r.id === id && !r.삭제), res = [];
+    const b = find('청구', 'B1BNM24C'), WS = '2025-02-13:2912000, 2025-02-24:1456000';
+    const ok1 = b && !b.분할입금 && splitParts_(b.비고)[1] === WS && splitParts_(b.비고)[0] === '입금일 = 완납일' && b.청구액 === 4368000 && b.수금액 === partsSum_(WS);
+    const x2 = find('점검', 'I2024-08-굴착1차+'), ok2 = x2 && x2.항목 === '굴착1차' && x2.점검일 === '2025-07-02' && !rows_('점검').some((r) => !r.삭제 && r.계약id === 'C2024-08' && r.항목 === '굴착2차');
+    const j3 = find('일지', 'JUWH5V7'), j3k = find('일지', 'JJIUBEO'), ok3 = j3 && j3k && j3.날짜 === '2026-10-16' && j3.내용 === '현장 전화: 6층바닥타설' && j3k.내용 === '현장 전화: 6층 바닥타설';
+    const x4 = find('점검', 'IWMWG8D3EJ2B'), ok4 = x4 && x4.항목 === '지보공 1차' && !rows_('점검').some((r) => !r.삭제 && r.계약id === x4.계약id && r.항목 === '지보공1차');
+    if (!(ok1 || ok2 || ok3 || ok4)) { P.setProperty('FIX_1117', 'done:모두 건너뜀 (값이 검증 때와 다름 · 손대지 않음)'); return null; }
+    const safety = backup_('데이터 검증 승인 수정 직전', by || '시스템'), now = fmtT_(new Date());
+    const put = (t, r, ch, act) => { const before = clean_(r), ver = (r.버전 || 0) + 1; setSilent_(t, r.id, Object.assign({}, ch, { 버전: ver, 수정일: now, 수정자: '데이터 검증 수정(승인)' })); log_(who, t, r.id, act, before, Object.assign({}, before, ch, { 버전: ver, 수정일: now })); };
+    if (ok1) { put('청구', b, { 분할입금: WS, 비고: '입금일 = 완납일' }, '수정'); res.push('신사동 분할입금'); }
+    if (ok2) { put('점검', x2, { 항목: '굴착2차' }, '수정'); res.push('논현동 굴착2차'); }
+    if (ok3) { put('일지', j3, { 삭제: 'Y' }, '삭제'); res.push('미아동 일지 중복 삭제'); }
+    if (ok4) { put('점검', x4, { 항목: '지보공1차' }, '수정'); res.push('청담동 지보공1차'); }
+    derive_(true); bumpVer_(); markDirty_();
+    P.setProperty('FIX_1117', `done:${now} · ${res.join(' · ')}${[ok1, ok2, ok3, ok4].every(Boolean) ? '' : ' (일부 건너뜀)'} · 백업 ${safety.name}`);
+    setSetting_('데이터 검증 수정(11-17)', P.getProperty('FIX_1117').slice(5), '사용자 승인 1회 수정 결과 (자동)');
+    return res;
+  } catch (e) { P.setProperty('FIX_1117', 'err:' + e.message); return null; } finally { lock.releaseLock(); }
+}
+
 /** 1회 이관 (원본이 웹으로 전환된 뒤 추가된 표): 엑셀 「외주관리」·「회차별 단가」, 날짜 없는 계약 외 입금 줄
  *  - 이미 있는 자료는 고치지 않고, 빠진 줄만 넣음 · 넣기 전에 DB 백업 · 엑셀 줄 위치(연결 정보)도 함께 기억해 다음 엑셀 저장 때 줄이 겹치지 않게 함
  *  - 한 번 끝나면 스크립트 속성 MIG_G 에 결과를 남기고 다시 하지 않음 */
@@ -1562,7 +1595,7 @@ function xlVal_(k, v) {
 /** 자동 저장: 5분마다 돌며, 마지막 입력 뒤 2분이 지났으면 저장 */
 function exportTick() {
   if ((setting_('원본') || '엑셀') !== '웹') return;
-  try { ensureAll_(); migrateG_('자동'); } catch (e) {}
+  try { ensureAll_(); migrateG_('자동'); fixApproved1117_('자동'); } catch (e) {}
   const d = +(P.getProperty('EXPORT_DIRTY') || 0);
   if (!d || Date.now() - d < 2 * 60000) return;
   try {
