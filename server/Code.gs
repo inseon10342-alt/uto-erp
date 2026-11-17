@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-17a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-17b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -1107,7 +1107,7 @@ function fixApproved1117_(by) {
     if (ok2) { put('점검', x2, { 항목: '굴착2차' }, '수정'); res.push('논현동 굴착2차'); }
     if (ok3) { put('일지', j3, { 삭제: 'Y' }, '삭제'); res.push('미아동 일지 중복 삭제'); }
     if (ok4) { put('점검', x4, { 항목: '지보공1차' }, '수정'); res.push('청담동 지보공1차'); }
-    derive_(true); bumpVer_(); markDirty_();
+    bumpVer_(); markDirty_(); // 계산 칸(단계·기한·수금액)에 영향 없는 수정이라 다시 계산하지 않음 — 이 4줄만 엑셀에 저장됨
     P.setProperty('FIX_1117', `done:${now} · ${res.join(' · ')}${[ok1, ok2, ok3, ok4].every(Boolean) ? '' : ' (일부 건너뜀)'} · 백업 ${safety.name}`);
     setSetting_('데이터 검증 수정(11-17)', P.getProperty('FIX_1117').slice(5), '사용자 승인 1회 수정 결과 (자동)');
     return res;
