@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-17b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-17c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -588,7 +588,7 @@ function sitesList_() {
     const latest = cs[0] || {};
     return { id: s.id, 현장명: s.현장명, 관할구: s.관할구, 주소: s.주소, 규모: s.규모, 진행: active, 계약수: cs.length, 시공사: latest.시공사 || '', 발주처: latest.발주처 || '',
       점검: items.length, 완료: items.filter((x) => stageOf_(x) === '완료').length + (active ? 0 : 0), 작성중: items.filter((x) => stageOf_(x) === '보고서 작성중').length, 작성완료: items.filter((x) => stageOf_(x) === '보고서 작성 완료').length,
-      기한: writing[0] || '', 남은날: writing[0] ? dd_(writing[0], T) : null, 다음: next ? next.항목 : '', 다음시기: next ? next.시기 : '',
+      기한: writing[0] || '', 남은날: writing[0] ? dd_(writing[0], T) : null, 다음: next ? next.항목 : '', 다음계약id: next ? next.계약id : '', 다음시기: next ? next.시기 : '',
       계약금: money.계약금, 수금: money.수금, 대기: money.대기, 수금률: money.계약금 ? money.수금 / money.계약금 : 0, 최근연락: last ? last.연락일 : '', 버전: s.버전,
       단계목록: items.map((x) => [x.항목, stageOf_(x)]) };
   }).sort((a, b) => (b.진행 - a.진행) || ((a.남은날 == null ? 9999 : a.남은날) - (b.남은날 == null ? 9999 : b.남은날)) || a.현장명.localeCompare(b.현장명));
@@ -640,9 +640,9 @@ function schedule_(from, to) {
   const nm = (cid) => { const c = C[cid] || {}; return { 현장: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 종료: c.상태 && c.상태 !== '진행중' }; };
   live_('점검').forEach((x) => {
     const n = nm(x.계약id), st = stageOf_(x), done = st === '완료' || n.종료;
-    if (x.점검일) ev.push(Object.assign({ d: x.점검일, k: '점검', t: x.항목, id: x.id, done }, n));
-    else if (x.예정일) ev.push(Object.assign({ d: x.예정일, k: '예정', t: x.항목, id: x.id, done }, n));
-    if (isWriting_(st) && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목, id: x.id }, n));
+    if (x.점검일) ev.push(Object.assign({ d: x.점검일, k: '점검', t: x.항목, id: x.id, cid: x.계약id, done }, n));
+    else if (x.예정일) ev.push(Object.assign({ d: x.예정일, k: '예정', t: x.항목, id: x.id, cid: x.계약id, done }, n));
+    if (isWriting_(st) && x.기한) ev.push(Object.assign({ d: x.기한, k: '기한', t: x.항목, id: x.id, cid: x.계약id }, n));
   });
   const last = {};
   live_('연락').forEach((c) => { if (!last[c.현장id] || c.연락일 > last[c.현장id].연락일) last[c.현장id] = c; });
@@ -732,7 +732,7 @@ function dash_() {
   const insp = live_('점검'), C = byId_('계약'), S = byId_('현장');
   const Pn = byId_('거래처'), bname = (c) => ((Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '');
   const builder = {}; live_('계약').slice().sort((a, b) => a.연도 - b.연도).forEach((c) => { const n = bname(c); if (n) builder[c.현장id] = n; }); // 현장 → 시공사 (가장 최근 계약)
-  const writing = insp.filter((x) => isWriting_(stageOf_(x))).map((x) => { const c = C[x.계약id] || {}; return { 작성완료일: x.작성완료일 || '', 현장: (S[c.현장id] || {}).현장명 || '', 현장id: c.현장id, 시공사: bname(c), 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null, 비고: x.비고 }; })
+  const writing = insp.filter((x) => isWriting_(stageOf_(x))).map((x) => { const c = C[x.계약id] || {}; return { 작성완료일: x.작성완료일 || '', 계약id: x.계약id, 현장: (S[c.현장id] || {}).현장명 || '', 현장id: c.현장id, 시공사: bname(c), 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null, 비고: x.비고 }; })
     .sort((a, b) => (a.남은날 == null ? 9999 : a.남은날) - (b.남은날 == null ? 9999 : b.남은날));
   const mon = new Date(T + 'T00:00:00'); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
   const sun = new Date(mon.getTime() + 6 * 864e5);
@@ -761,7 +761,26 @@ function lookups_() {
     partners: live_('거래처').map((p) => ({ id: p.id, n: p.거래처명, biz: p.사업자번호, 대표자: p.대표자, 주소: p.주소, 업태: p.업태, 종목: p.종목 })).sort((a, b) => a.n.localeCompare(b.n)),
     contracts: contractList_().map((c) => ({ id: c.id, n: c.계약명, 연도: c.연도, 현장id: c.현장id, 상태: c.상태, 시공사: c.시공사 })),
     items: live_('점검').reduce((o, x) => { (o[x.계약id] = o[x.계약id] || []).push(x.항목); return o; }, {}),
-    company: company_() };
+    tw: towerNames_(), company: company_() };
+}
+// 타워크레인 점검 회차 표시명 (표시 전용 — 저장된 항목명은 그대로). 1차=설치, 마지막 회차=해체, 그 사이=인상.
+// 총 회차 = 회차별 단가의 계약 횟수와 등록된 최대 회차 중 큰 값 → 계약 횟수가 바뀌면 자동 반영
+function towerNames_() {
+  const reg = {}, cnt = {}, out = {};
+  live_('점검').forEach((x) => { const it = String(x.항목 || '').trim(); if (/^타워/.test(it)) (reg[x.계약id] = reg[x.계약id] || []).push(it); });
+  live_('단가').forEach((u) => { if (/^타워/.test(procKey_(u.항목)) && !/호기/.test(u.항목)) cnt[u.계약id] = (cnt[u.계약id] || 0) + (num_(u.횟수) || 0); });
+  Object.keys(reg).forEach((cid) => {
+    const its = reg[cid].filter((v, i, a) => a.indexOf(v) === i), m = {};
+    let max = 0;
+    its.forEach((it) => { const r = it.match(/^타워(?:크레인)?\s*(\d+)\s*차$/); if (r) { m[it] = +r[1]; max = Math.max(max, +r[1]); } });
+    const tear = its.filter((it) => !(it in m) && /^타워(?:크레인)?\s*(해체)$/.test(it));
+    tear.forEach((it, i) => { m[it] = max + 1 + i; });
+    const total = Math.max(cnt[cid] || 0, max + tear.length);
+    const o = {};
+    Object.keys(m).forEach((it) => { const n = m[it]; o[it] = '타워크레인 ' + n + '차 (' + (n === 1 ? '설치' : n >= total ? '해체' : '인상') + ')'; });
+    if (Object.keys(o).length) out[cid] = o;
+  });
+  return out;
 }
 function company_() {
   const get = (k, d) => setting_(k) || d;
