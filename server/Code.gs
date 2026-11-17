@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-17c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-17d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -316,7 +316,7 @@ function finalGet_(who, a) {
   return { name: f.n, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
 }
 const ACTIONS = {
-  boot: (who) => (migrateG_(who.user.email), fixApproved1117_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
+  boot: (who) => (migrateG_(who.user.email), fixApproved1117_(who.user.email), fixApproved1117b_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
   logout: (who) => { setDevice_(who.device.row, '해제', who.device.h); return {}; },
   dash: () => cached_('dash', dash_),
@@ -1133,6 +1133,26 @@ function fixApproved1117_(by) {
   } catch (e) { P.setProperty('FIX_1117', 'err:' + e.message); return null; } finally { lock.releaseLock(); }
 }
 
+// 사용자 승인(11-17): 논현동 91-7 「초기」(2026-04-22) → 「초기점검」 (다른 현장과 같은 이름 · 초기점검은 1회뿐). 1회만, 값이 그대로일 때만
+function fixApproved1117b_(by) {
+  if (/^done/.test(P.getProperty('FIX_1117B') || '')) return null;
+  if ((setting_('원본') || '엑셀') !== '웹') return null;
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(2000)) return null;
+  try {
+    if (/^done/.test(P.getProperty('FIX_1117B') || '')) return null;
+    TBL_ = {};
+    const x = rows_('점검').find((r) => r.id === 'I2024-08-초기' && !r.삭제);
+    const ok = x && x.항목 === '초기' && x.점검일 === '2026-04-22' && !rows_('점검').some((r) => !r.삭제 && r.계약id === x.계약id && r.항목 === '초기점검');
+    if (!ok) { P.setProperty('FIX_1117B', 'done:건너뜀 (값이 확인 때와 다름 · 손대지 않음)'); return null; }
+    const safety = backup_('초기점검 이름 수정 직전', by || '시스템'), now = fmtT_(new Date()), before = clean_(x), ver = (x.버전 || 0) + 1;
+    const ch = { 항목: '초기점검', 버전: ver, 수정일: now, 수정자: '데이터 검증 수정(승인)' };
+    setSilent_('점검', x.id, ch); log_({ user: { email: by || '시스템' } }, '점검', x.id, '수정', before, Object.assign({}, before, ch));
+    bumpVer_(); markDirty_();
+    P.setProperty('FIX_1117B', `done:${now} · 논현동 91-7 초기 → 초기점검 · 백업 ${safety.name}`);
+    return true;
+  } catch (e) { P.setProperty('FIX_1117B', 'err:' + e.message); return null; } finally { lock.releaseLock(); }
+}
+
 /** 1회 이관 (원본이 웹으로 전환된 뒤 추가된 표): 엑셀 「외주관리」·「회차별 단가」, 날짜 없는 계약 외 입금 줄
  *  - 이미 있는 자료는 고치지 않고, 빠진 줄만 넣음 · 넣기 전에 DB 백업 · 엑셀 줄 위치(연결 정보)도 함께 기억해 다음 엑셀 저장 때 줄이 겹치지 않게 함
  *  - 한 번 끝나면 스크립트 속성 MIG_G 에 결과를 남기고 다시 하지 않음 */
@@ -1614,7 +1634,7 @@ function xlVal_(k, v) {
 /** 자동 저장: 5분마다 돌며, 마지막 입력 뒤 2분이 지났으면 저장 */
 function exportTick() {
   if ((setting_('원본') || '엑셀') !== '웹') return;
-  try { ensureAll_(); migrateG_('자동'); fixApproved1117_('자동'); } catch (e) {}
+  try { ensureAll_(); migrateG_('자동'); fixApproved1117_('자동'); fixApproved1117b_('자동'); } catch (e) {}
   const d = +(P.getProperty('EXPORT_DIRTY') || 0);
   if (!d || Date.now() - d < 2 * 60000) return;
   try {
