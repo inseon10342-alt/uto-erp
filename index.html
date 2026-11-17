@@ -1389,11 +1389,11 @@ async function memoPad(today) {
     try { const o = await api('memoSave', Object.assign({ id: m.id }, patch), { quiet: true }); if (o.ok === false) throw new Error(o.msg); Object.assign(m, o.memo); if (st) st.textContent = '저장됨'; return true; }
     catch (e) { if (st) st.textContent = '저장 안 됨 · ' + e.message; else toast(e.message, true); return false; }
   };
-  const alerts = (force) => { // 오늘 날짜 + 알림 켠 메모 → 팝업 (이번 접속에서 「닫기」 한 메모는 다시 띄우지 않음)
-    const seen = S.memoSeen = S.memoSeen || {}, L = M.list.filter((m) => m.알림 === 'Y' && m.날짜 === today);
+  const alerts = (force) => { // 알림 켠 메모 중 날짜가 오늘이거나 지난 것 → 「확인」 체크할 때까지 팝업 (이번 접속에서 「닫기」 한 메모는 다시 띄우지 않음)
+    const seen = S.memoSeen = S.memoSeen || {}, L = M.list.filter((m) => m.알림 === 'Y' && m.날짜 && String(m.날짜) <= today).sort((a, b) => String(a.날짜).localeCompare(String(b.날짜)));
     const open = $('#memoPop'); if (open) { if (!L.length) open.remove(); return; }
     const show = L.filter((m) => force || !seen[m.id]); if (!show.length || !alive()) return;
-    const d = modal(`오늘 메모 알림 ${show.length}건`, `<div class="mpop">${show.map((m) => `<div class="mal"><div class="mal-t">${esc(m.내용)}</div><label class="chk"><input type="checkbox" data-aoff="${esc(m.id)}"> 확인</label></div>`).join('')}</div><p class="sub" style="margin:10px 0 0">「확인」을 체크하면 그 메모 알림이 꺼져 다시 뜨지 않습니다. 체크하지 않은 메모는 다음 접속 때 다시 알려 드립니다. 메모는 메모장에 그대로 남습니다.</p>`,
+    const d = modal(`메모 알림 ${show.length}건`, `<div class="mpop">${show.map((m) => `<div class="mal"><div class="mal-t">${m.날짜 !== today ? `<span class="tag w">${esc(String(m.날짜).slice(5).replace('-', '/'))}</span> ` : ''}${esc(m.내용)}</div><label class="chk"><input type="checkbox" data-aoff="${esc(m.id)}"> 확인</label></div>`).join('')}</div><p class="sub" style="margin:10px 0 0">「확인」을 체크하면 그 메모 알림이 꺼져 다시 뜨지 않습니다. 체크하지 않은 메모는 다음 접속 때 다시 알려 드립니다. 메모는 메모장에 그대로 남습니다.</p>`,
       '<button class="btn pri" data-close>닫기</button>');
     d.id = 'memoPop'; d.classList.add('mpopm');
     const done = () => show.forEach((m) => { seen[m.id] = 1; });
@@ -2982,7 +2982,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-17b';
+const APP_VERSION = '2026-11-17c';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
