@@ -631,7 +631,7 @@ h3.tsub{margin:0;padding:12px 14px 6px;font-size:12.5px;font-weight:700}h3.tsub 
 .rvc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;background:#fff;border:1px solid var(--line);border-radius:2px;padding:8px 10px;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
 .rvc:hover{border-color:var(--pri-m)}.rvc.on{border-color:var(--pri);box-shadow:inset 3px 0 0 var(--pri)}.rvc.pre{cursor:default}
 .rvc .t1{font-weight:600;font-size:12.5px;line-height:1.35}.rvc .nm2{margin:0;font-size:11.5px}.rvc .it{display:flex;align-items:center;gap:6px;margin-top:2px}.rvc .it b{font-weight:600}
-.rnd{font-size:11px;padding:0 5px;border:1px solid var(--line);border-radius:2px;color:var(--sub2)}.rvc .mt{font-size:11.5px;color:var(--sub2)}.rvc .tag{margin-top:3px}.rvc .btn{margin-top:4px}
+.rnd{font-size:11px;padding:0 5px;border:1px solid var(--line);border-radius:2px;color:var(--sub2)}.rvc .mt{font-size:11.5px;color:var(--sub2)}.rvc .tag{margin-top:3px}.rvc .btn{margin-top:4px}.rvc .rvbtns{display:flex;flex-wrap:wrap;gap:6px}
 .rvside{position:sticky;top:12px;max-height:calc(100vh - 90px);overflow:auto}
 .rvst{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub)}.rvst span{padding:2px 8px;border:1px solid var(--line2);border-radius:2px}.rvst span.on{font-weight:700;color:var(--ink)}.rvst span.on.t{background:var(--prog-l);border-color:var(--prog)}.rvst span.on.w{background:var(--warn-l);border-color:var(--warn)}.rvst span.on.g{background:var(--done-l);border-color:var(--done)}.rvst i{font-style:normal;color:#C2C7CC}
 .cpick{display:flex;flex-direction:column;gap:6px}.jsseg{display:inline-flex;vertical-align:middle;margin-left:6px}.jsseg button{height:22px;padding:0 7px;font-size:11.5px}.cpick .seg{align-self:flex-start}.seg button small{color:inherit;opacity:.7;font-size:11px;margin-left:2px}
@@ -2893,8 +2893,9 @@ PAGES.reviews = async (m) => {
   col.중.sort((a, b) => String(a.last.요청일).localeCompare(String(b.last.요청일))); col.수정.sort((a, b) => String(a.last.회신일).localeCompare(String(b.last.회신일))); col.완료.sort((a, b) => String(b.last.회신일 || '').localeCompare(String(a.last.회신일 || '')));
   const doneAll = reports.filter((x) => x.stt === '완료').length;
   const avg = (() => { const a = r.reviews.filter((x) => x.소요 != null); return a.length ? Math.round(a.reduce((s, x) => s + x.소요, 0) / a.length * 10) / 10 : 0; })();
-  const card = (x) => { const L = x.last, wait = x.stt === '중' ? L.경과 : x.stt === '수정' ? L.경과 : null; return `<button class="rvc ${st.sel === x.k ? 'on' : ''}" data-k="${esc(x.k)}"><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b><span class="rnd">${esc(L.회차 || x.g.length)}회차</span></span>
-    <span class="mt">${x.stt === '완료' ? `회신 ${esc(L.회신일 || '—')}${L.소요 != null ? ` · ${L.소요}일 걸림` : ''}` : x.stt === '수정' ? `수정 요청 ${esc(L.회신일 || '')}` : `요청 ${esc(L.요청일)}`}${L.검토자 ? ' · ' + esc(L.검토자) : ''}</span>${wait != null ? `<span class="tag ${wait > 7 ? 'r' : wait > 3 ? 'w' : 'plain'}">${wait}일째</span>` : ''}</button>`; };
+  const RV_BTN = { 중: [['fix', '수정 요청'], ['done', '검토 완료']], 수정: [['re', '재검토'], ['done', '검토 완료']] }; // 단계별 카드 버튼 (검토 요청 전 카드의 「검토 요청」과 같은 모양)
+  const card = (x) => { const L = x.last, wait = x.stt === '중' ? L.경과 : x.stt === '수정' ? L.경과 : null, bt = ed && RV_BTN[x.stt], tg = bt ? 'div' : 'button'; return `<${tg} class="rvc ${st.sel === x.k ? 'on' : ''}" data-k="${esc(x.k)}"${bt ? ' role="button" tabindex="0"' : ''}><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b><span class="rnd">${esc(L.회차 || x.g.length)}회차</span></span>
+    <span class="mt">${x.stt === '완료' ? `회신 ${esc(L.회신일 || '—')}${L.소요 != null ? ` · ${L.소요}일 걸림` : ''}` : x.stt === '수정' ? `수정 요청 ${esc(L.회신일 || '')}` : `요청 ${esc(L.요청일)}`}${L.검토자 ? ' · ' + esc(L.검토자) : ''}</span>${wait != null ? `<span class="tag ${wait > 7 ? 'r' : wait > 3 ? 'w' : 'plain'}">${wait}일째</span>` : ''}${bt ? `<span class="rvbtns">${bt.map(([a, n]) => `<button class="btn sm" data-rva="${a}" data-rk="${esc(x.k)}">${n}</button>`).join('')}</span>` : ''}</${tg}>`; };
   const pre = (x) => `<div class="rvc pre"><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b>${x.작성완료일 ? ' <span class="tag wd">작성 완료</span>' : ''}</span><span class="mt">점검 ${esc(x.점검일 || '—')} · 제출 기한 ${esc(x.기한 || '—')}</span>${x.남은날 != null ? dlTag(x.남은날) : ''}${ed ? `<button class="btn sm" data-req="${esc(x.점검id)}">검토 요청</button>` : ''}</div>`;
   const selR = reports.find((x) => x.k === st.sel);
   let side = `<div class="empty" style="padding:40px 16px">카드를 고르면 그 보고서의<br>회차별 검토 이력이 여기에 나옵니다.</div>`;
@@ -2921,7 +2922,26 @@ PAGES.reviews = async (m) => {
   bindCommon(m);
   $$('[data-v]', m).forEach((b) => (b.onclick = () => { st.view = b.dataset.v; render(); }));
   $$('[data-cs2]', m).forEach((b) => (b.onclick = () => { st.cs = b.dataset.cs2; st.sel = ''; render(); }));
-  $$('[data-k]', m).forEach((b) => (b.onclick = () => { st.sel = b.dataset.k; render(); }));
+  $$('[data-k]', m).forEach((b) => { b.onclick = () => { st.sel = b.dataset.k; render(); }; if (b.tagName === 'DIV') b.onkeydown = (e) => { if (e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); b.onclick(); } }; });
+  // 검토 중 → 수정 요청·검토 완료: 마지막 회차에 결과와 회신일 기록 / 수정 요청 → 재검토·검토 완료: 이전 회차에 재발송일, 다음 회차 새로 만듦 (이력 보존)
+  const rvReplySave = (rep, res, extra) => api('save', { t: '검토', row: Object.assign({ id: rep.last.id, 상태: res, 회신일: rep.last.회신일 || T }, extra || {}), ver: rep.last.버전 });
+  const rvNext = async (rep, done) => {
+    const L = rep.last, n = (+L.회차 || rep.g.length) + 1;
+    if (!(await ask({ title: done ? '검토 완료' : '수정 후 재발송', msg: `${rep.현장명} · ${nmI(rep.항목, rep.계약id)}\n${L.회차}회차에 재발송일(${T})을 적고, ${n}회차 ${done ? '검토 완료' : '검토 요청'}을 새로 만듭니다.`, ok: done ? '검토 완료' : '재발송' }))) return false;
+    await api('save', { t: '검토', row: { id: L.id, 재발송일: L.재발송일 || T }, ver: L.버전 });
+    await api('save', { t: '검토', row: Object.assign({ 계약id: L.계약id, 항목: L.항목, 회차: String(n), 요청일: T, 검토자: L.검토자, 제목: L.제목, 상태: done ? '검토완료' : '검토중' }, done ? { 회신일: T } : {}), ver: 0 });
+    toast(done ? `${n}회차 검토 완료로 기록했습니다` : `${n}회차 검토 요청을 만들었습니다`); return true;
+  };
+  $$('[data-rva]', m).forEach((b) => (b.onclick = async (e) => {
+    e.stopPropagation(); const rep = reports.find((x) => x.k === b.dataset.rk); if (!rep) return;
+    const bs = $$('button', b.parentNode); bs.forEach((x) => (x.disabled = true));
+    try {
+      const a = b.dataset.rva; let okd = true;
+      if (rep.stt === '중') { await rvReplySave(rep, a === 'done' ? '검토완료' : '수정요청'); toast(a === 'done' ? '검토 완료로 바꿨습니다' : '수정 요청으로 바꿨습니다'); }
+      else okd = await rvNext(rep, a === 'done');
+      if (okd) { st.sel = rep.k; reload(); } else bs.forEach((x) => (x.disabled = false));
+    } catch (er) { bs.forEach((x) => (x.disabled = false)); toast(er.message, 1); }
+  }));
   if ($('#rvAll')) $('#rvAll').onclick = () => { st.all = !st.all; render(); };
   $('#q').oninput = (e) => { st.q = e.target.value; clearTimeout(st._t); st._t = setTimeout(() => render().then(() => { const q = $('#q'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }), 300); };
   const L0 = r.reviews[0] || {};
@@ -2933,13 +2953,9 @@ PAGES.reviews = async (m) => {
     if ($('#rvReply')) $('#rvReply').onclick = () => {
       const md2 = modal('검토 회신 기록', `<p style="margin:0 0 10px">${esc(selR.현장명)} · ${esc(nmI(selR.항목, selR.계약id))} · ${esc(L.회차)}회차 <span class="sub">(요청 ${esc(L.요청일)})</span></p><div class="fg"><label><span>결과</span><div class="seg full" id="rs">${['검토완료', '수정요청'].map((s, i) => `<button type="button" data-s="${s}" class="${i ? '' : 'on'}">${s === '검토완료' ? '검토 완료' : '수정 요청'}</button>`).join('')}</div></label><label><span>회신일</span><input class="inp" type="date" id="rd" value="${T}"></label><label class="full"><span>검토 내용 (상사 의견)</span><textarea class="inp" id="ro" rows="3"></textarea></label><label class="full"><span>수정사항 (조치 내용)</span><textarea class="inp" id="rj" rows="2"></textarea></label></div>`, '<span class="msg" id="rmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="rok">저장</button>');
       let res = '검토완료'; $$('[data-s]', md2).forEach((b) => (b.onclick = () => { res = b.dataset.s; $$('[data-s]', md2).forEach((x) => x.classList.toggle('on', x === b)); }));
-      $('#rok', md2).onclick = async () => { $('#rok', md2).disabled = true; try { await api('save', { t: '검토', row: { id: L.id, 상태: res, 회신일: $('#rd', md2).value, 의견: $('#ro', md2).value, 조치: $('#rj', md2).value }, ver: L.버전 }); md2.remove(); reload(); toast('회신을 기록했습니다'); } catch (e) { $('#rok', md2).disabled = false; $('#rmsg', md2).textContent = e.message; } };
+      $('#rok', md2).onclick = async () => { $('#rok', md2).disabled = true; try { await rvReplySave(selR, res, { 회신일: $('#rd', md2).value, 의견: $('#ro', md2).value, 조치: $('#rj', md2).value }); md2.remove(); reload(); toast('회신을 기록했습니다'); } catch (e) { $('#rok', md2).disabled = false; $('#rmsg', md2).textContent = e.message; } };
     };
-    if ($('#rvResend')) $('#rvResend').onclick = async () => {
-      const n = (+L.회차 || selR.g.length) + 1;
-      if (!(await ask({ title: '수정 후 재발송', msg: `${selR.현장명} · ${selR.항목}\n${L.회차}회차에 재발송일(${T})을 적고, ${n}회차 검토 요청을 새로 만듭니다.`, ok: '재발송' }))) return;
-      try { await api('save', { t: '검토', row: { id: L.id, 재발송일: L.재발송일 || T }, ver: L.버전 }); await api('save', { t: '검토', row: { 계약id: L.계약id, 항목: L.항목, 회차: String(n), 요청일: T, 검토자: L.검토자, 제목: L.제목, 상태: '검토중' }, ver: 0 }); toast(`${n}회차 검토 요청을 만들었습니다`); reload(); } catch (e) { toast(e.message, 1); }
-    };
+    if ($('#rvResend')) $('#rvResend').onclick = async () => { try { if (await rvNext(selR, false)) reload(); } catch (e) { toast(e.message, 1); } };
   }
   $('#xl').onclick = () => exportXlsx('보고서검토관리', [['보고서검토', [['NO', '현장', '점검항목', '발송 회차', '검토요청일', '검토자', '메일 제목', '검토상태', '검토 회신일', '소요일', '검토내용', '수정사항', '수정 재발송일', '비고']].concat(r.reviews.map((x) => [x.NO, x.현장명, x.항목, x.회차, x.요청일, x.검토자, x.제목, x.상태, x.회신일, x.소요, x.의견, x.조치, x.재발송일, x.비고]))]]);
 };
@@ -2982,7 +2998,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-17c';
+const APP_VERSION = '2026-11-17d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
