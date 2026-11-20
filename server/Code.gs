@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-17d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-20a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -563,7 +563,7 @@ function contractList_() {
     const m = contractMoney_(c, inv), items = insp.filter((x) => x.계약id === c.id);
     const done = c.상태 === '완료' ? items.length : items.filter((x) => x.발송일 || stageOf_(x) === '완료' || stageOf_(x) === '입금 대기').length;
     return { id: c.id, 연도: c.연도, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명, 계약명: c.계약명, 계약일: c.계약일, 상태: c.상태,
-      발주처: (Pn[c.발주처id] || {}).거래처명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 공급가: c.공급가, 부가세: c.부가세, 계약금: c.계약금,
+      발주처: (Pn[c.발주처id] || {}).거래처명 || '', 실제입금처: (Pn[c.실제입금처id] || {}).거래처명 || '', 입금처: (Pn[c.실제입금처id] || Pn[c.발주처id] || {}).거래처명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 공급가: c.공급가, 부가세: c.부가세, 계약금: c.계약금,
       수금: m.수금, 대기: m.대기, 잔여: m.잔여, 수금률: m.수금률, 청구: m.청구, 점검: items.length, 제출: done, 공종: works_(items), 버전: c.버전,
       입금비고: c.입금비고 || '', 기존수금: c.기존수금 || 0, 기존미입금: c.기존미입금 || 0, 미수금: c.미수금 || 0, 종합보고서구분: c.종합보고서구분 || '', 종합보고서금액: c.종합보고서금액 || 0,
       이월수금: c.이월수금 || 0, 상태지정: c.상태지정 || '', VAT기준: c.VAT기준 || '', 완료일: c.완료일 || '' };
@@ -669,7 +669,7 @@ function money_() {
   const invoices = live_('청구').map((b) => {
     const c = C[b.계약id] || {};
     const part = b.입금일 ? 0 : partsSum_(b.분할입금), left = Math.max(0, b.청구액 - b.수금액 - part);
-    return Object.assign(clean_(b), { 부분입금: part, 분할: partsOf_(b.분할입금), 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 발주처: (Pn[c.발주처id] || {}).거래처명 || b.입금자, 미입금: b.입금일 || !b.발행일 ? 0 : left, 경과: b.발행일 ? dd_(T, b.발행일) : null, 연도: String(b.발행일).slice(0, 4) });
+    return Object.assign(clean_(b), { 부분입금: part, 분할: partsOf_(b.분할입금), 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 발주처: (Pn[c.발주처id] || {}).거래처명 || b.입금자, 입금처: (Pn[c.실제입금처id] || Pn[c.발주처id] || {}).거래처명 || '', 미입금: b.입금일 || !b.발행일 ? 0 : left, 경과: b.발행일 ? dd_(T, b.발행일) : null, 연도: String(b.발행일).slice(0, 4) });
   }).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일)));
   const monthly = {};
   invoices.forEach((b) => { const k = String(b.발행일).slice(0, 7); if (!k) return; const m = monthly[k] = monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; m.청구 += b.청구액; m.수금 += b.수금액; m.건수++; });
@@ -722,7 +722,7 @@ function report_() {
   const agg = {}; bills.forEach((b) => { const k = byName[b.계약id]; if (!k) return; const a = (agg[k] = agg[k] || { 수금: 0, 올해: 0, 대기: 0, 계약외: 0, 할증: 0 }); a.수금 += b.수금액; if (b.입금일 && +String(b.입금일).slice(0, 4) === Y) a.올해 += b.수금액; if (b.청구액 > 0 && !b.입금일) a.대기 += b.청구액; a.계약외 += b.계약외; a.할증 += b.할증; });
   const rows = C.map((c) => {
     const a = agg[nk(c)] || { 수금: 0, 올해: 0, 대기: 0, 계약외: 0, 할증: 0 }, paid = c.이월수금 + a.수금, goal = c.계약금 + (c.종합보고서구분 === '별도' ? c.종합보고서금액 : 0);
-    return { id: c.id, 현장id: c.현장id, 연도: c.연도, No: c.No, 계약명: c.계약명, 입금자: (Pn[c.발주처id] || {}).거래처명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 공급가: c.계약금 ? Math.round(c.계약금 / 1.1) : 0, 부가세: c.계약금 ? c.계약금 - Math.round(c.계약금 / 1.1) : 0, 계약금: c.계약금,
+    return { id: c.id, 현장id: c.현장id, 연도: c.연도, No: c.No, 계약명: c.계약명, 입금자: (Pn[c.실제입금처id] || Pn[c.발주처id] || {}).거래처명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 공급가: c.계약금 ? Math.round(c.계약금 / 1.1) : 0, 부가세: c.계약금 ? c.계약금 - Math.round(c.계약금 / 1.1) : 0, 계약금: c.계약금,
       대기: a.대기, 수금: paid, 올해수금: a.올해, 이전수금: paid - a.올해, 상태: c.상태 || '진행중', 잔여: c.계약금 ? goal - paid : 0, 종합보고서: c.종합보고서금액, 기성율: goal ? paid / goal : 0, 미수금: c.미수금, 비고: c.비고, 계약외: a.계약외 };
   });
   return { year: Y, rows };
