@@ -301,6 +301,7 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .fg label{display:grid;grid-template-columns:108px minmax(0,1fr);align-items:center;gap:8px;font-size:12.5px;color:var(--sub2);font-weight:500;min-width:0}
 .fg label>span{display:block;word-break:keep-all}
 .fg label.full{grid-column:1/-1}
+.fg .rmn{grid-column:1/-1;display:grid;grid-template-columns:108px minmax(0,1fr);align-items:start;gap:8px;font-size:12.5px;color:var(--sub2);font-weight:500;min-width:0}.fg .rmn>span{padding-top:5px}.rmn .chip{height:26px}.rmn .chip.done{opacity:.55}
 .fg label.full:has(textarea){align-items:start}.fg label.full:has(textarea)>span{padding-top:7px}
 .fg h4{grid-column:1/-1;margin:10px 0 2px;padding:5px 8px;font-size:12.5px;font-weight:700;color:var(--ink);background:#F8F9FA;border-left:3px solid var(--pri)}
 .fg h4:first-child{margin-top:0}
@@ -1257,6 +1258,22 @@ async function openForm(t, row, onSaved) {
   const m = modal(`${row.id ? '수정' : '새로 등록'} · ${{ 청구: '청구(계산서)', 연락: '연락기록', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배 발송', 외주: '외주', 단가: '회차별 단가' }[t] || t}`, `<p class="req"><b>*</b> 표시는 꼭 입력하는 항목입니다.</p><form class="fg" id="ff">${f.map(field).join('')}</form>`,
     `${row.id && t !== '계약' && t !== '청구' || row.id && can('관리자') ? `<button class="btn dan" id="fdel" type="button">삭제</button>` : ''}<span class="msg" id="fmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="fsave">저장</button>`, t === '계약');
   bindCpick(m, L);
+  if (t === '점검' && !row.id) { // 새 점검 등록: 고른 용역의 잔여 점검(점검일 없는 회차)을 골라 그 회차에 일정 입력 · 목록에 없으면 점검항목 직접 입력
+    const cs = $('[name="계약id"]', m), itIn = $('[name="항목"]', m), box = document.createElement('div');
+    box.className = 'rmn'; cs.closest('label').after(box);
+    const pick = (ex) => { const data = {}; new FormData($('#ff', m)).forEach((v, k) => { data[k] = v; }); const fill = Object.assign({}, ex); Object.keys(data).forEach((k) => { if (k !== '항목' && k !== '계약id' && data[k] !== '' && (fill[k] == null || fill[k] === '')) fill[k] = data[k]; }); m.remove(); openForm('점검', fill, onSaved); };
+    const load = async () => {
+      const cid = cs.value; if (!cid) { box.innerHTML = ''; return; }
+      box.innerHTML = '<span>잔여 점검</span><div class="sub" style="padding-top:5px">불러오는 중…</div>';
+      let d; try { d = await api('contract', { id: cid }); } catch (e) { box.innerHTML = ''; return; }
+      if (cs.value !== cid || !document.body.contains(m)) return;
+      const left = rndSort((d.items || []).filter((x) => !x.점검일));
+      box.innerHTML = `<span>잔여 점검 ${left.length}</span><div>${left.length ? `<div class="chips">${left.map((x) => `<button type="button" class="chip" data-ri="${esc(x.id)}" title="${x.예정일 ? '예정일 ' + esc(x.예정일) : '날짜 없음'}">${esc(nmI(x.항목, x.계약id))}${x.예정일 ? ` <small>${esc(String(x.예정일).slice(5).replace('-', '/'))}</small>` : ''}</button>`).join('')}</div><div class="sub" style="margin-top:4px">회차를 누르면 그 회차에 일정을 넣습니다 · 목록에 없는 점검은 아래 점검항목에 직접 입력</div>` : '<div class="sub" style="padding-top:5px">남은 점검이 없습니다 · 아래 점검항목에 직접 입력하세요</div>'}</div>`;
+      $$('[data-ri]', box).forEach((b) => (b.onclick = () => pick(left.find((x) => x.id === b.dataset.ri))));
+    };
+    cs.addEventListener('change', load); load();
+    itIn.placeholder = '직접 입력 (예: 합벽 3차)';
+  }
   $$('[data-num]', m).forEach((i) => (i.onblur = () => { const n = String(i.value).replace(/[^\d.-]/g, ''); if (n !== '' && i.name !== '연도') i.value = won(n); }));
   $('#fsave', m).onclick = async () => {
     const data = {}; new FormData($('#ff', m)).forEach((v, k) => { data[k] = $(`[name="${k}"]`, m).dataset.num ? String(v).replace(/[^\d.-]/g, '') : v; });
@@ -3014,7 +3031,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-20b';
+const APP_VERSION = '2026-11-20c';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
