@@ -1270,6 +1270,17 @@ async function openForm(t, row, onSaved) {
     } catch (e) {
       $('#fsave', m).disabled = false;
       if (e.r && e.r.code === 'conflict') { $('#fmsg', m).innerHTML = esc(e.message) + ' <button type="button" class="btn sm" id="freload">최신 내용 불러오기</button>'; $('#freload', m).onclick = () => { m.remove(); openForm(t, e.r.current, onSaved); }; }
+      else if (t === '점검' && !row.id && /회차가 이미 있습니다/.test(e.message) && data.계약id) { // 이미 등록된 회차(예: 계약 때 만들어 둔 「점검 전」 회차) → 그 회차를 열어 입력한 값으로 빈 칸만 채움
+        $('#fmsg', m).textContent = e.message;
+        try {
+          const ex = ((await api('contract', { id: data.계약id })).items || []).find((x) => norm(x.항목) === norm(data.항목));
+          if (ex && document.body.contains(m)) {
+            const fill = Object.assign({}, ex); Object.keys(data).forEach((k) => { if (data[k] !== '' && (fill[k] == null || fill[k] === '')) fill[k] = data[k]; });
+            $('#fmsg', m).innerHTML = `이 계약에 「${esc(nmI(ex.항목, ex.계약id))}」 회차가 이미 등록돼 있습니다${ex.점검일 ? ` (점검일 ${esc(ex.점검일)})` : ex.예정일 ? ` (예정일 ${esc(ex.예정일)})` : ' (날짜 없음)'}. <button type="button" class="btn sm pri" id="fexist">등록된 회차에 입력</button>`;
+            $('#fexist', m).onclick = () => { m.remove(); openForm('점검', fill, onSaved); toast('등록된 회차를 열었습니다 · 비어 있던 칸만 입력한 값으로 채웠습니다'); };
+          }
+        } catch (e2) { /* 안내 문구만 그대로 */ }
+      }
       else $('#fmsg', m).textContent = e.message;
     }
   };
@@ -2998,7 +3009,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-17d';
+const APP_VERSION = '2026-11-20a';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
