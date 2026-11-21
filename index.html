@@ -323,6 +323,7 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 .totbox{display:flex;justify-content:flex-end;gap:18px;flex-wrap:wrap;margin-top:8px;padding:7px 10px;background:#F8F9FA;border:1px solid var(--line2);font-size:12.5px;color:var(--sub2)}
 input[type=date].inp{min-width:0;max-width:100%;box-sizing:border-box} /* 아이폰: 날짜 칸이 오른쪽으로 넘치지 않게 (기본 모양은 그대로 두어 글자가 세로 가운데에 오게) */
 input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
+@supports (-webkit-touch-callout:none){input[type=date].inp{-webkit-appearance:none;appearance:none;display:block;width:100%;line-height:calc(var(--h) - 2px)}input[type=date].inp::-webkit-date-and-time-value{min-height:calc(var(--h) - 2px);line-height:calc(var(--h) - 2px)}} /* 아이폰 Safari 전용: 날짜 칸이 다른 칸보다 오른쪽으로 길어지는 것 막음 */
 .totbox b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;margin-left:6px}
 .paper{background:#E9ECEF;border:1px solid var(--line);padding:16px;overflow:auto}
 .xs-fit{margin:0 auto;overflow:hidden} /* 미리보기 축소: zoom 대신 transform (아이폰 사파리에서 zoom 이 표를 깨뜨림) */
@@ -413,8 +414,8 @@ input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
   .money3 div{padding:8px 10px}.money3 b{font-size:13.5px}
   .sec{padding:16px}.dhead{padding:16px}
   .fg{grid-template-columns:minmax(0,1fr)}
-  .modal{padding:0;align-items:stretch}
-  .mbox,.mbox.wide{max-width:none;border-radius:0;display:flex;flex-direction:column;min-height:100%;max-height:none}
+  .modal{padding:0;align-items:flex-start} /* 아이폰: stretch면 창 높이가 화면 높이에 묶여(키보드 열렸을 때 높이로 남기도 함) 내용이 흰 바탕 밖으로 넘침 → 내용만큼 늘어나게 */
+  .mbox,.mbox.wide{max-width:none;border-radius:0;display:flex;flex-direction:column;min-height:100%;height:auto;max-height:none;flex:1 1 auto}
   .mb{flex:1 0 auto;max-height:none;overflow:visible}
   .mf{border-radius:0;position:sticky;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
   .mf .btn{flex:1}.mf .dan{flex:0 0 auto}.mf .msg{flex-basis:100%;order:-1}
@@ -3033,7 +3034,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-20d';
+const APP_VERSION = '2026-11-21a';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
