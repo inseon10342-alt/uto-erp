@@ -2133,9 +2133,22 @@ PAGES.statement = async (m, p) => {
   </section><section class="paper"><div class="xs-fit"><div class="xs-wrap" id="sheet"></div></div></section></div>`;
   // 회차별 단가: 계약을 고르면 그 계약의 점검 · 단가를 받아 둠 (엑셀 회차단가_찾기와 같게: 공정 이름 → 점검항목 그대로 순서로 찾음)
   const PR = S._stmtP = {}; // 화면을 열 때마다 새로 (계산서가 바뀐 뒤 옛 금액을 쓰지 않게)
-  const loadP = async (cid) => { if (!cid) return null; if (!PR[cid]) PR[cid] = api('contract', { id: cid }, { cache: true }).then((x) => ({ c: x.contract, items: x.items, prices: x.prices || [], inv: x.invoices || [] })).catch(() => null); return PR[cid]; };
-  const priceOf = (P, it) => { const u = P.prices.find((x) => norm(UP.procKey(x.항목)) === norm(UP.procKey(it))) || P.prices.find((x) => norm(x.항목) === norm(it)); return u && u.단가 !== '' ? Number(u.단가) : ''; };
+  const loadP = async (cid) => { if (!cid) return null; if (!PR[cid]) PR[cid] = api('contract', { id: cid }, { cache: true }).then((x) => withFinal({ c: x.contract, items: x.items, prices: x.prices || [], inv: x.invoices || [], final: x.final || null })).catch(() => null); return PR[cid]; };
+  // 종합보고서도 품목 후보로: 점검 항목은 아니지만 계약에 종합보고서가 있으면(구분 포함·별도 + 금액, 또는 종합보고서 관리에 요청이 있으면) 한 줄 후보로 붙임
+  // 점검일 자리 = 제출일(제출해야 「계산서 발행 전」으로 잡힘) · 단가 = 계약의 종합보고서 금액(VAT 포함, 엑셀 용역대장 「종합보고서」와 같은 금액)
+  function withFinal(P) {
+    const c = P.c || {}, amt = Number(c.종합보고서금액) || 0, f = P.final, kind = c.종합보고서구분 || '';
+    P.finalAmt = amt;
+    const has = kind !== '해당없음' && ((/포함|별도/.test(kind) && amt > 0) || !!f);
+    if (has && !P.items.some((x) => norm(x.항목) === norm('종합보고서'))) {
+      const sub = f && (f.제출일 || /제출/.test(f.상태 || ''));
+      P.items = P.items.concat([{ id: '_final', 항목: '종합보고서', 계약id: c.id, 점검일: sub ? (f.제출일 || f.작성일 || '') : '', 단계: f ? (f.상태 || '요청') : '요청 전', _final: true }]);
+    }
+    return P;
+  }
+  const priceOf = (P, it) => { if (norm(it) === norm('종합보고서') && P.finalAmt) return P.finalAmt; const u = P.prices.find((x) => norm(UP.procKey(x.항목)) === norm(UP.procKey(it))) || P.prices.find((x) => norm(x.항목) === norm(it)); return u && u.단가 !== '' ? Number(u.단가) : ''; };
   const vatOf = (P) => (P.c && P.c.VAT기준 === '별도' ? '별도' : '포함');
+  const lineOf = (P, x) => ({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: norm(x.항목) === norm('종합보고서') && P.finalAmt ? '포함' : vatOf(P) }); // 종합보고서 금액은 VAT 포함
   // 계산서 발행 전 회차: 점검일이 있고, 발행된 계산서의 「연결점검」에 없는 회차 (점검 단계 계산의 청구 연결과 같은 기준)
   // 연결점검이 비어 있는 계산서(엑셀에서 온 대부분)는 품명으로 판단: 「지보공 1,2차, 건축물 1차」·「합벽 1~3차」·「높이 2m이상 흙막이 지보공 1차」처럼 공정 이름 + 회차
   const PC = [[/지보공|흙막이/, '지보공'], [/항타|항발/, '항타기'], [/천공/, '천공기'], [/타워/, '타워'], [/동바리/, '동바리'], [/합벽/, '합벽'], [/비계/, '비계'], [/건축물/, '건축물'], [/해체/, '해체'], [/굴착/, '굴착'], [/브라켓/, '브라켓']];
@@ -2159,7 +2172,7 @@ PAGES.statement = async (m, p) => {
     doc.청구id = b.id; doc.일자 = b.발행일 || doc.일자; if ($('#dt')) $('#dt').value = doc.일자;
     const pn = b.입금자 ? L.partners.find((x) => norm(x.n) === norm(b.입금자)) : null, pid = (pn && pn.id) || payerOf(P); if (pid) { doc.거래처id = pid; if ($('#pt')) $('#pt').value = pid; }
     const its = rndSort(P.items.filter((x) => inBill(x, b))), vat = vatOf(P);
-    let lines = its.map((x) => ({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
+    let lines = its.map((x) => lineOf(P, x));
     const ok = lines.length && lines.every((l) => l.단가 !== '') && calcLines(lines).합계 === Number(b.청구액);
     if (!ok) { const names = its.length ? its.map((x) => nmI(x.항목, x.계약id)) : String(b.품명 || '').split(/\s*,\s*/).filter(Boolean); const nm = names.length ? names : [b.품명 || '용역비'], n = nm.length, base = Math.floor(Number(b.청구액) / n);
       lines = nm.map((q, i) => ({ 품명: q, 단위: '회', 수량: 1, 단가: i === n - 1 ? Number(b.청구액) - base * (n - 1) : base, VAT: '포함' })); }
@@ -2214,13 +2227,13 @@ PAGES.statement = async (m, p) => {
       const P = await loadP(doc.계약id); if (!P) return toast('계약 자료를 불러오지 못했습니다', true);
       const vat = vatOf(P), ub = unbilled(P);
       const d = modal('점검 회차로 품목 넣기', `<p class="sub" style="margin:0 0 8px">${esc(P.c.계약명)} · VAT ${vat === '별도' ? '별도 (단가 = 공급가)' : '포함'} · 고른 회차마다 1줄씩 들어가고, 단가는 회차별 단가에서 자동으로 넣습니다.${ub.length ? ` · <b>점검했지만 계산서 발행 전인 ${ub.length}개 회차를 미리 골라 두었습니다.</b>` : ''}</p>
-        <div class="tbox"><table class="mini"><thead><tr><th></th><th>점검 회차</th><th>점검일</th><th>계산서 발행일</th><th>단계</th><th class="num">회당 단가</th></tr></thead><tbody>${rndSort(P.items).map((x) => { const i = P.items.indexOf(x), pr = priceOf(P, x.항목); return `<tr><td><input type="checkbox" data-pi="${i}" ${hasLine(x) ? 'disabled' : ub.includes(x) ? 'checked' : ''} aria-label="${esc(x.항목)}"></td><td>${esc(nmI(x.항목, x.계약id))}${hasLine(x) ? ' <span class="tag plain">이미 있음</span>' : ub.includes(x) ? ' <span class="tag w">계산서 발행 전</span>' : billed(P, x) ? ' <span class="tag plain">발행됨</span>' : ''}</td><td class="sub nw">${esc(x.점검일 || '—')}</td><td class="nw">${(() => { const bb = billOf(P, x); return bb ? `<span title="${esc(bb.품명 || '')}">${esc(bb.발행일)}</span>` : '<span class="muted">—</span>'; })()}</td><td>${stageTag(x.단계)}</td><td class="num">${pr === '' ? '<span class="tag w">단가 없음</span>' : won(pr)}</td></tr>`; }).join('') || '<tr><td colspan="6" class="sub">이 계약에 점검이 없습니다</td></tr>'}</tbody></table></div>`,
+        <div class="tbox"><table class="mini"><thead><tr><th></th><th>점검 회차</th><th>점검일</th><th>계산서 발행일</th><th>단계</th><th class="num">회당 단가</th></tr></thead><tbody>${rndSort(P.items).map((x) => { const i = P.items.indexOf(x), pr = priceOf(P, x.항목); return `<tr><td><input type="checkbox" data-pi="${i}" ${hasLine(x) ? 'disabled' : ub.includes(x) ? 'checked' : ''} aria-label="${esc(x.항목)}"></td><td>${esc(nmI(x.항목, x.계약id))}${hasLine(x) ? ' <span class="tag plain">이미 있음</span>' : ub.includes(x) ? ' <span class="tag w">계산서 발행 전</span>' : billed(P, x) ? ' <span class="tag plain">발행됨</span>' : ''}</td><td class="sub nw">${esc(x.점검일 || '—')}</td><td class="nw">${(() => { const bb = billOf(P, x); return bb ? `<span title="${esc(bb.품명 || '')}">${esc(bb.발행일)}</span>` : '<span class="muted">—</span>'; })()}</td><td>${x._final ? `<span class="tag plain" title="종합보고서 관리의 상태 · 점검일 칸 = 제출일">${esc(x.단계)}</span>` : stageTag(x.단계)}</td><td class="num">${pr === '' ? '<span class="tag w">단가 없음</span>' : won(pr)}${x._final && pr !== '' ? '<br><small class="sub">VAT 포함</small>' : ''}</td></tr>`; }).join('') || '<tr><td colspan="6" class="sub">이 계약에 점검이 없습니다</td></tr>'}</tbody></table></div>`,
         '<button class="btn" data-close>취소</button><button class="btn pri" id="piok">고른 회차 넣기</button>', true);
       $('#piok', d).onclick = () => {
         const pick = $$('[data-pi]:checked', d).map((b) => P.items[+b.dataset.pi]); if (!pick.length) return toast('회차를 고르세요', true);
         doc.lines = doc.lines.filter((l) => String(l.품명 || '').trim());
         if (doc.lines.length + pick.length > 26) return toast(`최대 26줄입니다 (지금 ${doc.lines.length}줄)`, true);
-        pick.forEach((x) => doc.lines.push({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
+        pick.forEach((x) => doc.lines.push(lineOf(P, x)));
         if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' });
         d.remove(); $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw();
         const miss = pick.filter((x) => priceOf(P, x.항목) === '').length; toast(`${pick.length}줄을 넣었습니다${miss ? ` · 단가 없는 ${miss}줄은 직접 입력하세요` : ''}`, !!miss);
@@ -2235,7 +2248,7 @@ PAGES.statement = async (m, p) => {
       if (pid && pid !== doc.거래처id) { doc.거래처id = pid; $('#pt').value = pid; msg.push(`거래처: ${(L.partners.find((x) => x.id === pid) || {}).n || ''}`); }
       // 품목은 현장(계약)마다 다르므로 계약을 바꾸면 앞 현장 품목을 지우고 새 현장의 계산서 발행 전 회차로 다시 채움
       const ub = unbilled(P), had = doc.lines.some((l) => String(l.품명 || '').trim()), vat = vatOf(P);
-      doc.lines = ub.slice(0, 26).map((x) => ({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
+      doc.lines = ub.slice(0, 26).map((x) => lineOf(P, x));
       if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: vat });
       $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines();
       if (ub.length) { const miss = doc.lines.filter((l) => l.단가 === '').length; msg.push(`계산서 발행 전 회차 ${Math.min(ub.length, 26)}줄${miss ? ` (단가 없는 ${miss}줄은 직접 입력)` : ''}`); }
@@ -3210,7 +3223,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24m';
+const APP_VERSION = '2026-11-24n';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
