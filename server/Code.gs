@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-24b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-24c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -355,6 +355,7 @@ const ACTIONS = {
   save: (who, a) => withAfter_(who, a, save_(who, a.t, a.row || {}, a.ver)),
   del: (who, a) => withAfter_(who, a, save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true)),
   saveDoc: (who, a) => saveDoc_(who, a.doc || {}, a.ver, !!a.issue),
+  cancelDoc: (who, a) => cancelDoc_(who, a),
   // 관리자
   users: (who) => { need_(who, '관리자'); return users_(); },
   saveUser: (who, a) => { need_(who, '관리자'); return saveUser_(who, a); },
@@ -848,6 +849,7 @@ function saveDoc_(who, d, ver, issue) {
     if (d.id && !cur) throw new Error('문서를 찾지 못했습니다.');
     if (cur && Number(ver) !== cur.버전) return { ok: false, code: 'conflict', msg: '다른 사람이 먼저 수정했습니다. 다시 열어 확인하세요.', current: clean_(cur) };
     if (cur && cur.상태 === '발행' && !issue) throw new Error('발행된 문서는 고칠 수 없습니다. 「복사해서 새로 작성」을 쓰세요.');
+    if (cur && cur.상태 === '취소') throw new Error('취소된 문서는 고칠 수 없습니다. 「복사해서 새로 작성」을 쓰세요.');
     const kind = d.종류 || '거래명세서';
     const calc = kind === '거래명세서' ? calcStatement_(d.lines) : { lines: [], 공급가: num_(d.공급가), 세액: num_(d.세액), 합계: num_(d.합계) };
     const body = { lines: calc.lines, 거래처: d.거래처 || {}, 현장명: d.현장명 || '', 기타사항: d.기타사항 || '', 메모: d.메모 || '' };
@@ -862,6 +864,26 @@ function saveDoc_(who, d, ver, issue) {
     const vals = [cols.map((c) => (next[c] == null ? '' : next[c]))];
     if (cur) sh.getRange(cur._row, 1, 1, cols.length).setValues(vals); else sh.appendRow(vals[0]);
     log_(who, '문서', next.id, issue ? '발행' : cur ? '수정' : '등록', cur, next);
+    TBL_ = {};
+    return { doc: next };
+  } finally { lock.releaseLock(); }
+}
+// 발행된 문서 취소 (세금계산서를 다른 거래처로 재발행할 때 등): 문서는 지우지 않고 상태만 「취소」 · 번호·내용 그대로 · 사유와 취소일은 내용에 기록
+function cancelDoc_(who, a) {
+  need_(who, '일반');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    TBL_ = {};
+    const cur = rows_('문서').find((x) => x.id === a.id && !x.삭제);
+    if (!cur) throw new Error('문서를 찾지 못했습니다.');
+    if (Number(a.ver) !== cur.버전) return { ok: false, code: 'conflict', msg: '다른 사람이 먼저 수정했습니다. 다시 열어 확인하세요.', current: clean_(cur) };
+    if (cur.상태 !== '발행') throw new Error('발행된 문서만 취소할 수 있습니다.');
+    let body = {}; try { body = JSON.parse(cur.내용 || '{}'); } catch (e) { body = {}; }
+    body.취소 = { 일자: today_(), 사유: String(a.사유 || '').slice(0, 200), 처리: who.user.email };
+    const next = Object.assign({}, clean_(cur), { 상태: '취소', 내용: JSON.stringify(body), 버전: cur.버전 + 1, 수정일: fmtT_(new Date()), 수정자: who.user.email });
+    const cols = SCHEMA['문서'].concat(META);
+    db_().getSheetByName('문서').getRange(cur._row, 1, 1, cols.length).setValues([cols.map((c) => (next[c] == null ? '' : next[c]))]);
+    log_(who, '문서', next.id, '취소', cur, next);
     TBL_ = {};
     return { doc: next };
   } finally { lock.releaseLock(); }
