@@ -1281,6 +1281,7 @@ async function openForm(t, row, onSaved) {
     if (row.id) data.id = row.id;
     const miss = f.filter((x) => x[2] && !data[x[0]]).map((x) => (FLABEL2[t] || {})[x[0]] || FLABEL[x[0]] || x[0]);
     if (miss.length) { $('#fmsg', m).textContent = miss.join(', ') + '을(를) 입력하세요.'; return; }
+    if (t === '자료요청' && row.id) keepSup(row, data);
     $('#fsave', m).disabled = true;
     try {
       const r = await api('save', { t, row: data, ver: row.버전 });
@@ -1946,15 +1947,29 @@ PAGES.contacts = async (m) => {
 function reqStep(q) { const st = q.받음 ? (q.검토 ? 3 : 2) : 1; return `<span class="step g3s ${q.받음 ? 'g' : ''}">${['요청', '수신', '검토'].map((n, k) => `<span class="${k < st - 1 || (q.받음 && k < st) ? 'on' : k === st - 1 ? 'cur' : ''}">${n}</span>`).join('')}</span>`; }
 // 자료요청 / 보완요청 구분: 구분이 「보완 요청」(띄어쓰기 상관없이)이거나, 상태가 「보완요청」이거나, 원요청 NO가 적힌 줄(엑셀 방식의 보완 요청)
 function isSup(q) { return /보완/.test(norm(q.구분)) || /보완/.test(norm(q.상태)) || String(q.원요청 || '').trim() !== ''; }
+// 상태만 「보완요청」이라 보완요청으로 보이던 건을 수신완료 등으로 바꿀 때, 구분을 건드리지 않았다면 구분에 「보완 요청」을 적어 보완요청 목록에 그대로 남김
+function keepSup(old, data) { if (isSup(old) && !isSup(Object.assign({}, old, data)) && (data.구분 === undefined || data.구분 === (old.구분 || ''))) data.구분 = '보완 요청'; return data; }
 function reqKind(q) { return isSup(q) ? '<span class="tag w">보완요청</span>' : '<span class="tag plain">자료요청</span>'; }
 function reqTag(q) { if (q.받음) return '<span class="tag g">수신 완료</span>'; if (q.기한남음 != null && q.기한남음 < 0) return `<span class="tag r">기한 지남 ${-q.기한남음}일</span>`; return `<span class="tag ${q.경과 > 7 ? 'w' : 't'}">미수신 ${q.경과 != null ? q.경과 + '일' : ''}</span>`; }
 function mailTag(x) { if (x.회신대기) return `<span class="tag ${x.경과 > 7 ? 'w' : 't'}">회신 대기${x.경과 != null ? ' ' + x.경과 + '일' : ''}</span>`; if (x.회신일 || /받음/.test(x.회신상태)) return '<span class="tag g">회신 받음</span>'; return `<span class="tag plain">${esc(x.회신상태 || '회신 불필요')}</span>`; }
 function showReq(q, reload) {
   const m = modal('자료요청 상세', `<div style="margin-bottom:10px">${reqKind(q)} ${reqStep(q)} ${reqTag(q)}</div><dl class="kv"><dt>현장</dt><dd><a href="#" data-site="${esc(q.현장id)}">${esc(q.현장명)}</a></dd><dt>요청일 · 방법</dt><dd>${esc(q.요청일)} · ${esc(q.방법 || '-')}</dd><dt>현장 담당자</dt><dd>${esc(q.담당자 || '-')}</dd><dt>점검항목</dt><dd>${esc(q.항목 || '-')}${q.점검일 ? ` <span class="sub">(점검 ${esc(q.점검일)})</span>` : ''}</dd><dt>요청 구분</dt><dd>${esc(q.구분 || '-')}${q.원요청 ? ` · 원요청 NO ${esc(q.원요청)}` : ''}</dd>
     <dt>요청 자료</dt><dd class="pre">${esc(q.자료 || '-')}</dd><dt>회신 기한</dt><dd>${esc(q.기한 || '-')}</dd><dt>수신일</dt><dd>${esc(q.수신일 || '아직 받지 못함')}${q.받음 && q.경과 != null ? ` <span class="sub">(요청 후 ${q.경과}일)</span>` : ''}</dd><dt>수신 자료 검토</dt><dd class="pre">${esc(q.검토 || '-')}</dd>${q.비고 ? `<dt>비고</dt><dd class="pre">${esc(q.비고)}</dd>` : ''}</dl>`,
-    `${editBtn('자료요청', '수정', '', 'id="qEdit"')}<button class="btn" data-close>닫기</button>`);
+    `${!q.받음 ? editBtn('자료요청', '수신 완료', 'pri', 'id="qRcv"') : ''}${editBtn('자료요청', '수정', '', 'id="qEdit"')}<button class="btn" data-close>닫기</button>`);
   bindCommon(m); $$('[data-site]', m).forEach((a) => a.addEventListener('click', () => m.remove()));
   if ($('#qEdit', m)) $('#qEdit', m).onclick = () => { m.remove(); openForm('자료요청', q, reload); };
+  if ($('#qRcv', m)) $('#qRcv', m).onclick = () => { // 받은 날짜만 넣으면 수신일 + 상태 「수신완료」 (보완요청은 보완요청 목록에 그대로)
+    const d = modal('자료 수신 완료', `<p class="sub" style="margin:0 0 10px">${reqKind(q)} ${esc(q.현장명)} · ${esc(String(q.자료 || '').slice(0, 60))}</p><div class="fg"><label><span>수신일 <b>*</b></span><input class="inp" type="date" id="rcD" value="${today()}"></label><label><span>상태</span><select class="inp" id="rcS"><option>수신완료</option><option>일부수신</option></select></label><label class="full"><span>수신 자료 검토</span><textarea class="inp" id="rcR" rows="3" placeholder="받은 자료 확인 내용 (선택)">${esc(q.검토 || '')}</textarea></label></div>`,
+      '<span class="msg" id="rcM"></span><button class="btn" data-close>취소</button><button class="btn pri" id="rcOk">저장</button>');
+    $('#rcOk', d).onclick = async () => {
+      const dv = $('#rcD', d).value; if (!dv) { $('#rcM', d).textContent = '수신일을 입력하세요'; return; }
+      const st = $('#rcS', d).value, data = keepSup(q, { id: q.id, 수신일: st === '수신완료' ? dv : q.수신일 || '', 상태: st, 검토: $('#rcR', d).value });
+      if (st === '일부수신' && !q.수신일) data.수신일 = '';
+      $('#rcOk', d).disabled = true;
+      try { await api('save', { t: '자료요청', row: data, ver: q.버전 }); d.remove(); m.remove(); invalidate(); toast(st === '수신완료' ? '수신 완료로 정리했습니다' : '일부 수신으로 기록했습니다'); reload && reload(); }
+      catch (e) { $('#rcOk', d).disabled = false; $('#rcM', d).textContent = e.message; }
+    };
+  };
 }
 function showMail(x, reload) {
   const m = modal('메일 상세', `<h3 style="margin:0 0 6px;font-size:15px">${esc(x.제목)}</h3><div style="margin-bottom:10px">${mailTag(x)}</div><dl class="kv"><dt>현장</dt><dd><a href="#" data-site="${esc(x.현장id)}">${esc(x.현장명)}</a></dd><dt>구분 · 점검항목</dt><dd>${esc([x.구분, x.항목].filter(Boolean).join(' · ') || '-')}</dd><dt>받는 사람</dt><dd>${esc(x.받는사람 || '-')} <span class="sub">${esc(x.이메일 || '')}</span></dd><dt>보낸 날짜</dt><dd>${esc(x.보낸날)}</dd><dt>첨부</dt><dd>${esc(x.첨부 || '-')}</dd>${x.내용 ? `<dt>메일 내용</dt><dd class="pre">${esc(x.내용)}</dd>` : ''}</dl>
@@ -3053,7 +3068,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24a';
+const APP_VERSION = '2026-11-24b';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
