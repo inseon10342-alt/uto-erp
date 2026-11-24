@@ -2200,7 +2200,12 @@ PAGES.statement = async (m, p) => {
     };
     $('#save').onclick = () => save(false); $('#issue').onclick = () => save(true);
   } else $('#copy').onclick = () => go('statement', { doc: doc.id, copy: 1 });
-  $('#print').onclick = () => window.print();
+  $('#print').onclick = () => { // PDF로 저장할 때 파일 이름 = 문서 제목: 유토건축_용역명_거래명세서_발행일자
+    const c = L.contracts.find((x) => x.id === doc.계약id), nm = String((c && c.n) || doc.현장명 || '용역명없음').replace(/[\\/:*?"<>|\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const old = document.title; document.title = `유토건축_${nm}_거래명세서_${doc.일자 || today()}`;
+    const back = () => { document.title = old; window.removeEventListener('afterprint', back); }; window.addEventListener('afterprint', back);
+    window.print(); setTimeout(back, 60000);
+  };
 };
 PAGES.docbox = async (m) => {
   const r = await api('docs', {}, { cache: true });
@@ -3123,7 +3128,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24h';
+const APP_VERSION = '2026-11-24i';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
