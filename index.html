@@ -2176,15 +2176,16 @@ PAGES.statement = async (m, p) => {
     $('#pt').onchange = (e) => { doc.거래처id = e.target.value; draw(); };
     $('#ct').onchange = async (e) => { // 계약(현장)을 고르면: 거래처 = 실제 입금처(없으면 발주처) · 품목이 비어 있으면 점검했지만 계산서 발행 전인 회차를 회차별 단가로 채움
       doc.계약id = e.target.value; const c = L.contracts.find((x) => x.id === doc.계약id); if (c) { doc.현장id = c.현장id; doc.현장명 = c.n; $('#sn').value = c.n; } draw();
-      if (!doc.계약id) return; const cid = doc.계약id, P = await loadP(cid); if (!P || doc.계약id !== cid) return;
+      if (!doc.계약id) { doc.lines = [{ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }]; $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); return; } const cid = doc.계약id, P = await loadP(cid); if (!P || doc.계약id !== cid) return;
       const msg = [], pid = payerOf(P);
       if (pid && pid !== doc.거래처id) { doc.거래처id = pid; $('#pt').value = pid; msg.push(`거래처: ${(L.partners.find((x) => x.id === pid) || {}).n || ''}`); }
-      const ub = unbilled(P).filter((x) => !hasLine(x)), empty = !doc.lines.some((l) => String(l.품명 || '').trim());
-      if (ub.length && empty) {
-        const vat = vatOf(P); doc.lines = ub.slice(0, 26).map((x) => ({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
-        $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines();
-        const miss = doc.lines.filter((l) => l.단가 === '').length; msg.push(`계산서 발행 전 회차 ${doc.lines.length}줄${miss ? ` (단가 없는 ${miss}줄은 직접 입력)` : ''}`);
-      } else if (ub.length) msg.push(`계산서 발행 전 회차 ${ub.length}개 · 「점검 회차로 품목 넣기」에서 넣을 수 있습니다`);
+      // 품목은 현장(계약)마다 다르므로 계약을 바꾸면 앞 현장 품목을 지우고 새 현장의 계산서 발행 전 회차로 다시 채움
+      const ub = unbilled(P), had = doc.lines.some((l) => String(l.품명 || '').trim()), vat = vatOf(P);
+      doc.lines = ub.slice(0, 26).map((x) => ({ 품명: nmI(x.항목, x.계약id), 단위: '회', 수량: 1, 단가: priceOf(P, x.항목), VAT: vat }));
+      if (!doc.lines.length) doc.lines.push({ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: vat });
+      $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines();
+      if (ub.length) { const miss = doc.lines.filter((l) => l.단가 === '').length; msg.push(`계산서 발행 전 회차 ${Math.min(ub.length, 26)}줄${miss ? ` (단가 없는 ${miss}줄은 직접 입력)` : ''}`); }
+      else msg.push(had ? '품목을 비웠습니다 · 이 현장은 계산서 발행 전 회차가 없습니다' : '이 현장은 계산서 발행 전 회차가 없습니다');
       draw(); if (msg.length) toast(msg.join(' · '));
     };
     $('#dt').onchange = (e) => { doc.일자 = e.target.value; draw(); };
@@ -3122,7 +3123,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24g';
+const APP_VERSION = '2026-11-24h';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
