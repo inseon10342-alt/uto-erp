@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-24c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-24d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -31,7 +31,7 @@ const SCHEMA = {
   점검: ['id', '계약id', '항목', '단계', '예정일', '점검일', '기한', '발송일', '시기', '위치', '내부검토', '비고', '작성완료일'], // 작성완료일: 웹 전용 (엑셀에 칸 없음)
   청구: ['id', '계약id', '발행일', '품명', '청구액', '공급가', '부가세', '입금일', '수금액', '입금자', '상태', '연결점검', '계약외', '할증', '비고', '분할입금'],
   연락: ['id', '현장id', '연락일', '방법', '담당자', '공정', '메모', '예상점검', '예상시기', '다음연락', '비고', '작성자'],
-  문서: ['id', '종류', '번호', '계약id', '현장id', '거래처id', '일자', '상태', '제목', '내용', '공급가', '세액', '합계', '파일', '작성자'],
+  문서: ['id', '종류', '번호', '계약id', '현장id', '거래처id', '일자', '상태', '제목', '내용', '공급가', '세액', '합계', '파일', '작성자', '청구id'], // 청구id: 이 거래명세서가 어느 세금계산서(청구)의 명세서인지
   자료요청: ['id', 'NO', '현장id', '요청일', '방법', '담당자', '항목', '점검일', '구분', '원요청', '자료', '기한', '수신일', '상태', '검토', '비고'],
   메일: ['id', 'NO', '현장id', '구분', '항목', '받는사람', '이메일', '보낸날', '제목', '내용', '첨부', '회신필요', '회신상태', '회신일', '회신내용', '회신첨부', '비고'],
   검토: ['id', 'NO', '계약id', '항목', '회차', '요청일', '검토자', '제목', '상태', '회신일', '의견', '조치', '재발송일', '비고'],
@@ -350,7 +350,8 @@ const ACTIONS = {
   partners: () => cached_('partners', () => ({ partners: partnersList_() })),
   partner: (who, a) => cached_('partner:' + a.id, () => partnerDetail_(a.id)),
   docs: (who, a) => ({ docs: live_('문서').filter((d) => !a.종류 || d.종류 === a.종류).sort((x, y) => String(y.일자).localeCompare(String(x.일자))).map(clean_) }),
-  doc: (who, a) => { const d = live_('문서').find((x) => x.id === a.id); return { doc: d ? clean_(d) : null }; },
+  doc: (who, a) => { const d = live_('문서').find((x) => x.id === a.id); const b = d && d.청구id ? live_('청구').find((x) => x.id === d.청구id) : null; return { doc: d ? clean_(d) : null, bill: b ? clean_(b) : null, diff: d && d.청구id ? docDiff_(d, b) : [] }; },
+  linkDoc: (who, a) => linkDoc_(who, a),
   history: (who, a) => ({ history: history_(a.t, a.id) }),
   save: (who, a) => withAfter_(who, a, save_(who, a.t, a.row || {}, a.ver)),
   del: (who, a) => withAfter_(who, a, save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true)),
@@ -614,7 +615,7 @@ function contractDetail_(id) {
   const Pn = byId_('거래처'), inv = live_('청구'), m = contractMoney_(c, inv);
   return { contract: Object.assign(clean_(c), m, { 현장명: (byId_('현장')[c.현장id] || {}).현장명 || '', 발주처: clean_(Pn[c.발주처id] || {}), 실제입금처: clean_(Pn[c.실제입금처id] || {}), 시공사: clean_(Pn[c.시공사id] || {}) }),
     items: live_('점검').filter((x) => x.계약id === id).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x) })),
-    invoices: inv.filter((b) => b.계약id === id).map(clean_).sort((a, b) => String(a.발행일).localeCompare(String(b.발행일))),
+    invoices: inv.filter((b) => b.계약id === id).map((b) => Object.assign(clean_(b), { 명세서: live_('문서').filter((d) => d.청구id === b.id && (d.상태 === '발행' || d.상태 === '취소')).map((d) => ({ id: d.id, 번호: d.번호, 상태: d.상태, 다름: docDiff_(d, b) })) })).sort((a, b) => String(a.발행일).localeCompare(String(b.발행일))),
     docs: live_('문서').filter((d) => d.계약id === id).map(clean_), prices: live_('단가').filter((u) => u.계약id === id).map(clean_),
     final: (live_('종합').find((f) => f.계약id === id) || null) };
 }
@@ -673,6 +674,10 @@ function money_() {
     const part = b.입금일 ? 0 : partsSum_(b.분할입금), left = Math.max(0, b.청구액 - b.수금액 - part);
     return Object.assign(clean_(b), { 부분입금: part, 분할: partsOf_(b.분할입금), 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 현장id: c.현장id || '', 발주처: (Pn[c.발주처id] || {}).거래처명 || b.입금자, 입금처: (Pn[c.실제입금처id] || Pn[c.발주처id] || {}).거래처명 || '', 미입금: b.입금일 || !b.발행일 ? 0 : left, 경과: b.발행일 ? dd_(T, b.발행일) : null, 연도: String(b.발행일).slice(0, 4) });
   }).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일)));
+  // 세금계산서마다 연결된 거래명세서 (표시용 · 금액 계산과 무관)
+  const DB = {}; live_('청구').forEach((b) => { DB[b.id] = b; });
+  const DM = {}; live_('문서').forEach((d) => { if (d.청구id && (d.상태 === '발행' || d.상태 === '취소')) (DM[d.청구id] = DM[d.청구id] || []).push({ id: d.id, 번호: d.번호, 상태: d.상태, 합계: d.합계, 다름: docDiff_(d, DB[d.청구id]) }); });
+  invoices.forEach((b) => { b.명세서 = DM[b.id] || []; });
   const monthly = {};
   invoices.forEach((b) => { const k = String(b.발행일).slice(0, 7); if (!k) return; const m = monthly[k] = monthly[k] || { 청구: 0, 수금: 0, 건수: 0 }; m.청구 += b.청구액; m.수금 += b.수금액; m.건수++; });
   // 월별 실적 (엑셀 진행현황보고 「월별 실적」과 같은 기준 · 완료된 용역 포함): 점검 건수(점검일) · 현장 방문(같은 날 같은 용역은 1회) · 보고서 발송(발송일) · 청구(발행일) · 입금(입금일 기준 수금액)
@@ -853,8 +858,11 @@ function saveDoc_(who, d, ver, issue) {
     const kind = d.종류 || '거래명세서';
     const calc = kind === '거래명세서' ? calcStatement_(d.lines) : { lines: [], 공급가: num_(d.공급가), 세액: num_(d.세액), 합계: num_(d.합계) };
     const body = { lines: calc.lines, 거래처: d.거래처 || {}, 현장명: d.현장명 || '', 기타사항: d.기타사항 || '', 메모: d.메모 || '' };
+    const bill = d.청구id ? live_('청구').find((x) => x.id === d.청구id) : null;
+    if (d.청구id && !bill) return { ok: false, code: 'invalid', msg: '연결할 세금계산서를 찾지 못했습니다.' };
+    if (bill) body.청구 = billSnap_(bill); // 연결 당시 계산서 값 (나중에 계산서가 바뀌면 「계산서와 다름」으로 알림)
     const next = Object.assign({}, cur ? clean_(cur) : {}, { 종류: kind, 계약id: d.계약id || '', 현장id: d.현장id || '', 거래처id: d.거래처id || '', 일자: d.일자 || today_(), 제목: d.제목 || '',
-      내용: JSON.stringify(body), 공급가: calc.공급가, 세액: calc.세액, 합계: calc.합계 });
+      내용: JSON.stringify(body), 공급가: calc.공급가, 세액: calc.세액, 합계: calc.합계, 청구id: bill ? bill.id : '' });
     if (!next.거래처id && !(body.거래처 && body.거래처.거래처명)) return { ok: false, code: 'invalid', msg: '거래처를 고르세요.' };
     if (!calc.lines.length && kind === '거래명세서') return { ok: false, code: 'invalid', msg: '품목을 한 줄 이상 입력하세요.' };
     if (!cur) { next.id = newId_('문서'); next.작성자 = who.user.email; next.상태 = '임시저장'; }
@@ -869,6 +877,41 @@ function saveDoc_(who, d, ver, issue) {
   } finally { lock.releaseLock(); }
 }
 // 발행된 문서 취소 (세금계산서를 다른 거래처로 재발행할 때 등): 문서는 지우지 않고 상태만 「취소」 · 번호·내용 그대로 · 사유와 취소일은 내용에 기록
+// ===== 거래명세서 ↔ 세금계산서(청구) 연결 =====
+function billSnap_(b) { return { 발행일: b.발행일 || '', 청구액: b.청구액 || 0, 입금자: b.입금자 || '' }; }
+/** 연결된 계산서와 명세서가 어긋난 점 (발행된 명세서는 자동으로 고치지 않고 알리기만) */
+function docDiff_(d, b) {
+  if (!d || !d.청구id || d.상태 === '취소') return [];
+  if (!b) return ['연결된 세금계산서가 삭제됨'];
+  let body = {}; try { body = JSON.parse(d.내용 || '{}'); } catch (e) { body = {}; }
+  const s = body.청구 || {}, out = [];
+  if (s.발행일 !== undefined && s.발행일 !== (b.발행일 || '')) out.push(`계산서 발행일 ${s.발행일 || '없음'} → ${b.발행일 || '없음'}`);
+  if (s.청구액 !== undefined && Number(s.청구액) !== Number(b.청구액 || 0)) out.push(`계산서 금액 ${Number(s.청구액).toLocaleString('en-US')} → ${Number(b.청구액 || 0).toLocaleString('en-US')}원`);
+  if (s.입금자 !== undefined && String(s.입금자) !== String(b.입금자 || '')) out.push(`입금자 ${s.입금자 || '(발주처)'} → ${b.입금자 || '(발주처)'}`);
+  if (d.종류 === '거래명세서' && Number(d.합계) !== Number(b.청구액 || 0)) out.push(`명세서 합계 ${Number(d.합계).toLocaleString('en-US')}원 ≠ 계산서 ${Number(b.청구액 || 0).toLocaleString('en-US')}원`);
+  return out;
+}
+/** 이미 있는 명세서(발행 포함)에 세금계산서를 연결·해제 — 연결 칸만 바꾸고 명세서 내용은 그대로 */
+function linkDoc_(who, a) {
+  need_(who, '일반');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    TBL_ = {};
+    const cur = rows_('문서').find((x) => x.id === a.id && !x.삭제);
+    if (!cur) throw new Error('문서를 찾지 못했습니다.');
+    if (Number(a.ver) !== cur.버전) return { ok: false, code: 'conflict', msg: '다른 사람이 먼저 수정했습니다. 다시 열어 확인하세요.', current: clean_(cur) };
+    const bill = a.청구id ? live_('청구').find((x) => x.id === a.청구id) : null;
+    if (a.청구id && !bill) throw new Error('세금계산서를 찾지 못했습니다.');
+    let body = {}; try { body = JSON.parse(cur.내용 || '{}'); } catch (e) { body = {}; }
+    if (bill) body.청구 = billSnap_(bill); else delete body.청구;
+    const next = Object.assign({}, clean_(cur), { 청구id: bill ? bill.id : '', 내용: JSON.stringify(body), 버전: cur.버전 + 1, 수정일: fmtT_(new Date()), 수정자: who.user.email });
+    const cols = SCHEMA['문서'].concat(META);
+    db_().getSheetByName('문서').getRange(cur._row, 1, 1, cols.length).setValues([cols.map((c) => (next[c] == null ? '' : next[c]))]);
+    log_(who, '문서', next.id, bill ? '계산서 연결' : '계산서 연결 해제', cur, next);
+    TBL_ = {};
+    return { doc: next };
+  } finally { lock.releaseLock(); }
+}
 function cancelDoc_(who, a) {
   need_(who, '일반');
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
