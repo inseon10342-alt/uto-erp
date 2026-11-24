@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-20a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-24a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -369,6 +369,7 @@ const ACTIONS = {
   restoreCommit: (who, a) => { need_(who, '관리자'); return restoreCommit_(who, a.id); },
   setSource: (who, a) => { need_(who, '관리자'); return setSource_(who, a.value); },
   saveSeal: (who, a) => { need_(who, '관리자'); return saveSeal_(who, a); },
+  sealPart: (who, a) => { need_(who, '관리자'); return sealPart_(who, a); },
   sourceList: (who) => { need_(who, '관리자'); return sourceList_(); },
   setSourceFile: (who, a) => { need_(who, '관리자'); return setSourceFile_(who, a.id); },
   exportInfo: (who) => { need_(who, '관리자'); return exportInfo_(); },
@@ -790,6 +791,19 @@ function company_() {
   return { 상호: get('회사_상호', '㈜유토엔지니어링건축사사무소'), 대표: get('회사_대표', ''), 사업자번호: get('회사_사업자번호', ''), 주소: get('회사_주소', ''), 업태: get('회사_업태', ''), 종목: get('회사_종목', ''), 전화: get('회사_전화', ''), 팩스: get('회사_팩스', ''), 기타사항: get('회사_거래명세서_기타사항', ''), 직인: seal };
 }
 /** 거래명세서 직인 이미지: 공개 저장소(GitHub)에 두지 않고 회사 Drive 에 보관, 로그인한 사람에게만 보냄 */
+// 직인 이미지는 주소(URL) 길이 제한 때문에 한 번에 보낼 수 없어 여러 조각으로 나눠 받음 → 마지막 조각에서 합쳐 저장 (조각은 10분만 임시 보관)
+function sealPart_(who, a) {
+  const u = String(a.u || '').replace(/[^\w]/g, '').slice(0, 20), i = +a.i, n = +a.n, part = String(a.part || '');
+  if (!u || !(n > 0) || n > 80 || !(i >= 0) || i >= n || part.length > 6000) return { ok: false, msg: '직인 조각이 올바르지 않습니다.' };
+  const C = CacheService.getScriptCache(), base = 'seal:' + who.user.email + ':' + u + ':';
+  C.put(base + i, part, 600);
+  if (i < n - 1) return { got: i + 1, n };
+  const keys = []; for (let k = 0; k < n; k++) keys.push(base + k);
+  const got = C.getAll(keys), parts = keys.map((k) => got[k]);
+  if (parts.some((x) => x == null)) return { ok: false, msg: '직인 이미지 일부를 받지 못했습니다. 다시 등록해 주세요.' };
+  C.removeAll(keys);
+  return saveSeal_(who, { data: parts.join('') });
+}
 function saveSeal_(who, a) {
   const m = /^data:(image\/(png|jpeg|gif|webp));base64,(.+)$/.exec(String(a.data || ''));
   const old = setting_('회사_직인');

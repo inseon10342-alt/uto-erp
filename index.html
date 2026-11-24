@@ -1312,19 +1312,19 @@ async function openForm(t, row, onSaved) {
   };
 }
 // 세금계산서 취소·재발행: 같은 청구 건에 새 발행일·금액만 바꾸고, 원래 발행일·금액·사유를 비고 맨 앞에 남김 (새 청구 건을 만들지 않아 중복 청구가 생기지 않음 · 수정 전 값은 변경 이력에도 남음)
-// 직인 이미지 준비: 큰 사진도 그대로 올릴 수 있게 브라우저에서 줄이고(긴 변 600px → 넘치면 더 줄임), 흰 배경은 투명하게 (명세서 글자 위에 찍혀도 가리지 않게) → 400KB 이하 PNG
+// 직인 이미지 준비: 큰 사진도 그대로 올릴 수 있게 브라우저에서 줄이고(긴 변 420px → 60KB 넘으면 더 줄임), 흰 배경은 투명하게 (명세서 글자 위에 찍혀도 가리지 않게) → 400KB 이하 PNG
 function sealPrep(file) {
   return new Promise((res) => {
     const img = new Image(), u = URL.createObjectURL(file);
     img.onload = () => {
-      URL.revokeObjectURL(u); let side = 600, out = '';
+      URL.revokeObjectURL(u); let side = 420, out = '';
       for (let t = 0; t < 6; t++, side = Math.round(side * 0.75)) {
         const k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight)), w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
         const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d'); g.drawImage(img, 0, 0, w, h);
         const px = g.getImageData(0, 0, w, h), d = px.data;
         for (let i = 0; i < d.length; i += 4) { const mn = Math.min(d[i], d[i + 1], d[i + 2]); if (mn > 232) d[i + 3] = 0; else if (mn > 200) d[i + 3] = Math.min(d[i + 3], Math.round((232 - mn) * 8)); }
         g.putImageData(px, 0, 0); out = cv.toDataURL('image/png');
-        if (out.length * 0.75 <= 380000) break;
+        if (out.length <= 60000) break; // 명세서 인쇄용으로 충분한 크기 · 보내는 조각 수를 줄임
       }
       res(out);
     };
@@ -2506,7 +2506,13 @@ PAGES.settings = async (m) => {
       <div><div class="sub" style="margin-bottom:6px">직인 이미지</div><div style="height:96px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;background:#fff">${co.직인 ? `<img src="${co.직인}" alt="직인" style="max-height:88px">` : '<span class="sub">등록 안 됨</span>'}</div>
       ${can('관리자') ? `<label class="btn sm" style="margin-top:6px;width:100%">${co.직인 ? '직인 바꾸기' : '직인 등록'}<input type="file" accept="image/png,image/jpeg" id="sealF" hidden></label>${co.직인 ? '<button class="btn sm ghost" id="sealDel" style="width:100%;margin-top:4px">직인 지우기</button>' : ''}` : ''}
       <p class="sub" style="margin:6px 0 0">큰 사진·스캔 파일도 그대로 고르면 자동으로 줄이고 흰 배경을 투명하게 바꿔 등록합니다. 직인은 회사 Drive 에만 보관되고 로그인한 사람에게만 보입니다.</p></div></div>`;
-    const up = async (data) => { try { await api('saveSeal', { data }); invalidate(); LK = null; toast(data ? '직인을 등록했습니다' : '직인을 지웠습니다'); render(); } catch (e) { toast(e.message, 1); } };
+    const up = async (data) => { try {
+      if (!data) await api('saveSeal', { data: '' });
+      else { // 주소 길이 제한 때문에 4,000자씩 나눠 보냄
+        const CH = 4000, n = Math.ceil(data.length / CH), u = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        for (let i = 0; i < n; i++) { if (n > 2) toast(`직인 올리는 중… ${Math.round((i + 1) / n * 100)}%`); await api('sealPart', { u, i, n, part: data.slice(i * CH, (i + 1) * CH) }, { quiet: i < n - 1 }); }
+      }
+      invalidate(); LK = null; toast(data ? '직인을 등록했습니다' : '직인을 지웠습니다'); render(); } catch (e) { toast(e.message, 1); } };
     if ($('#sealF')) $('#sealF').onchange = (e) => { const f = e.target.files[0]; if (!f) return; e.target.value = '';
       sealPrep(f).then((url) => (url ? up(url) : toast('이미지를 읽지 못했습니다 (PNG·JPG 파일을 골라 주세요)', 1))); };
     if ($('#sealDel')) $('#sealDel').onclick = () => up(''); });
@@ -3116,7 +3122,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24f';
+const APP_VERSION = '2026-11-24g';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
