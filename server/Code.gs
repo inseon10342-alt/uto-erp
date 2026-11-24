@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-24a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-24b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -683,7 +683,14 @@ function money_() {
   live_('청구').forEach((b) => { if (b.발행일) P0(String(b.발행일).slice(0, 7)).청구 += b.청구액; if (b.입금일) P0(String(b.입금일).slice(0, 7)).입금 += b.수금액; });
   const years = {};
   contracts.forEach((c) => { const y = years[c.연도] = years[c.연도] || { 건수: 0, 공급가: 0, 계약금: 0, 수금: 0, 진행: 0, 완료: 0 }; y.건수++; y.공급가 += c.공급가; y.계약금 += c.계약금; y.수금 += c.수금; if (c.상태 === '진행중') y.진행++; else y.완료++; });
-  return { contracts, invoices, monthly, years, perf };
+  // 입금 연도 기준 수금 (표시용 추가 집계 · 위 용역 연도 기준 계산은 그대로): 용역 연도 기준 「수금」과 같은 돈(계산서 수금액 + 이월수금)을 입금일의 해로 나눔
+  // 이월수금은 입금일이 없어 「입금일 없음」으로 따로 둠 → 연도 합계 + 입금일 없음 = 용역 연도 기준 수금 합계 (검산값 함께 보냄)
+  const cids = {}; contracts.forEach((c) => { cids[c.id] = 1; });
+  const paidYears = {}; let noDate = 0;
+  contracts.forEach((c) => { noDate += c.이월수금 || 0; });
+  live_('청구').forEach((b) => { if (!cids[b.계약id] || !b.수금액) return; const y = String(b.입금일 || '').slice(0, 4); if (/^\d{4}$/.test(y)) paidYears[y] = (paidYears[y] || 0) + b.수금액; else noDate += b.수금액; });
+  const sumA = Object.keys(years).reduce((t, k) => t + years[k].수금, 0), sumB = Object.keys(paidYears).reduce((t, k) => t + paidYears[k], 0) + noDate;
+  return { contracts, invoices, monthly, years, perf, paidYears: { years: paidYears, 입금일없음: noDate, 검산: { 용역연도합계: sumA, 입금연도합계: sumB, 일치: sumA === sumB } } };
 }
 function partnersList_() {
   const cs = contractList_(), raw = live_('계약');

@@ -2374,12 +2374,18 @@ PAGES.yearly = async (m) => {
   const payers = {}; r.contracts.forEach((c) => { const k = c.발주처 || '(미입력)'; const p = payers[k] = payers[k] || { n: 0, amt: 0 }; p.n++; p.amt += c.공급가; });
   const top = Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).slice(0, 10), tmax = Math.max(1, ...top.map(([, v]) => v.amt));
   const tot = ys.reduce((a, [, v]) => [a[0] + v.건수, a[1] + v.공급가, a[2] + v.계약금, a[3] + v.수금], [0, 0, 0, 0]);
+  // 입금 연도 기준 수금 (서버 집계 그대로 표시 · 위 용역 연도 기준 계산은 바꾸지 않음): 표의 연도 = 용역 연도 ∪ 입금 연도
+  const PY = (r.paidYears || {}).years || {}, noDate = (r.paidYears || {}).입금일없음 || 0, chk = (r.paidYears || {}).검산 || {};
+  const yrs = [...new Set(ys.map(([y]) => String(y)).concat(Object.keys(PY)))].filter((y) => y && y !== 'undefined').sort((a, b) => b - a), YV = Object.fromEntries(ys.map(([y, v]) => [String(y), v]));
+  const totP = Object.values(PY).reduce((a, b) => a + b, 0) + noDate, dash = '<span class="muted">—</span>';
   m.innerHTML = head('연도별 실적', `<button class="btn" id="xl">${ic('down', 15)} 엑셀</button>`) + `
   <div class="sumline"><div><span>전체 계약</span><b>${tot[0]}<small>건 · ${ys.length}개 연도</small></b></div><div><span>계약금액 합계 (VAT 별도)</span><b>${won(tot[1])}</b></div><div><span>VAT 포함</span><b>${won(tot[2])}</b></div><div><span>수금 합계</span><b class="ok">${won(tot[3])}</b></div><div><span>발주처</span><b>${Object.keys(payers).length}<small>곳</small></b></div></div>
   <div class="grid2"><section class="panel"><div class="ph"><h2>연도별 계약금액</h2><span class="sub">VAT 별도 · 막대 위 단위 억</span></div><div class="chart">${barChart({ w: 560, height: 190, vals: true, fmt: () => '', labels: asc.map(([y]) => y), series: [{ name: '계약금액 (VAT 별도)', color: '#526779', values: asc.map(([, v]) => v.공급가) }, { name: '수금', color: '#82968A', values: asc.map(([, v]) => v.수금) }] })}</div>
-    <div class="tbox"><table><thead><tr><th>연도</th><th class="num">계약 건수</th><th class="num">진행 / 완료</th><th class="num">계약금액 (VAT 별도)</th><th class="num">VAT 포함</th><th class="num">수금</th></tr></thead><tbody>
-    ${ys.map(([y, v]) => `<tr><td>${y}</td><td class="num">${v.건수}</td><td class="num sub">${v.진행} / ${v.완료}</td><td class="num"><b>${won(v.공급가)}</b></td><td class="num">${won(v.계약금)}</td><td class="num">${won(v.수금)}</td></tr>`).join('')}</tbody>
-    <tfoot><tr><td>합계</td><td class="num">${tot[0]}</td><td></td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[2])}</td><td class="num">${won(tot[3])}</td></tr></tfoot></table></div></section>
+    <div class="tbox"><table><thead><tr><th>연도</th><th class="num">계약 건수</th><th class="num">진행 / 완료</th><th class="num">계약금액 (VAT 별도)</th><th class="num">VAT 포함</th><th class="num" title="그 해 용역(계약)에서 지금까지 받은 돈 · 입금이 다음 해여도 용역 연도로">수금<br><small class="sub">용역 연도 기준</small></th><th class="num" title="그 해에 실제로 입금된 돈 (계산서 입금일 기준) · 어느 해 용역이든">수금<br><small class="sub">입금 연도 기준</small></th></tr></thead><tbody>
+    ${yrs.map((y) => { const v = YV[y]; return `<tr><td>${y}</td><td class="num">${v ? v.건수 : dash}</td><td class="num sub">${v ? `${v.진행} / ${v.완료}` : ''}</td><td class="num">${v ? `<b>${won(v.공급가)}</b>` : dash}</td><td class="num">${v ? won(v.계약금) : dash}</td><td class="num">${v ? won(v.수금) : dash}</td><td class="num">${PY[y] ? won(PY[y]) : dash}</td></tr>`; }).join('')}
+    ${noDate ? `<tr class="sub"><td colspan="5" title="이월수금처럼 입금일이 없는 수금 — 입금 연도를 알 수 없어 따로 표시">입금일 없음 (이월수금 등)</td><td></td><td class="num">${won(noDate)}</td></tr>` : ''}</tbody>
+    <tfoot><tr><td>합계</td><td class="num">${tot[0]}</td><td></td><td class="num">${won(tot[1])}</td><td class="num">${won(tot[2])}</td><td class="num">${won(tot[3])}</td><td class="num">${won(totP)}</td></tr></tfoot></table></div>
+    <div class="sub" style="padding:8px 14px">${chk.일치 && totP === tot[3] ? '✓ 검산: 두 기준의 수금 합계가 같습니다 (같은 돈을 용역 연도 / 입금 연도로 나눈 것)' : `<b style="color:var(--bad)">검산 불일치: 용역 연도 합계 ${won(tot[3])} · 입금 연도 합계 ${won(totP)} — 관리자에게 알려 주세요</b>`}</div></section>
   <section class="panel"><div class="ph"><h2>발주처(계약자)별 실적</h2><span class="sub">상위 10 · 전체 기간 · VAT 별도</span></div><div class="sec">
     ${top.map(([k, v], i) => `<div style="display:grid;grid-template-columns:18px minmax(0,1fr) 112px;gap:8px;align-items:center;padding:5px 0;border-top:${i ? '1px solid var(--line2)' : '0'}"><span class="sub">${i + 1}</span><div style="min-width:0"><div class="t1" style="font-weight:500">${esc(k)} <span class="sub">${v.n}건</span></div><div class="bar" style="margin-top:3px"><i style="width:${v.amt / tmax * 100}%;background:var(--pri)"></i></div></div><span class="num"><b>${won(v.amt)}</b></span></div>`).join('')}</div></section></div>`;
   // 월별 점검일수 (연도 × 월) — 완료된 용역 포함, 점검일 기준
@@ -2394,7 +2400,7 @@ PAGES.yearly = async (m) => {
   m.querySelector('.grid2').insertAdjacentHTML('beforebegin', `<section class="panel" style="margin-bottom:12px"><div class="ph"><h2>월별 점검 실적</h2><div class="seg" role="group" aria-label="보기">${Object.entries(MK).map(([k, t]) => `<button data-pk="${k}">${t}</button>`).join('')}</div><span class="sub">완료된 용역 포함 · 점검일 기준 · 점검일수 = 점검한 날짜 수 (같은 날 여러 현장도 1일) · 현장 방문 = 같은 날 같은 용역 1회</span></div><div class="tbox"><table class="perf pdays keep" id="pdT"></table></div></section>`);
   pdraw();
   $$('[data-pk]', m).forEach((b) => (b.onclick = () => { pst.k = b.dataset.pk; pdraw(); }));
-  $('#xl').onclick = () => exportXlsx('연도별실적', [['월별 점검', [['연도', '월', '점검일수', '점검 건수', '현장 방문']].concat(py.slice().reverse().flatMap((y) => Array.from({ length: 12 }, (_, i) => { const o = PF[`${y}-${p2(i + 1)}`] || {}; return [y, i + 1, o.일수 || 0, o.점검 || 0, o.방문 || 0]; })))], ['연도별', [['연도', '건수', '진행', '완료', '계약금액(VAT 별도)', 'VAT 포함', '수금']].concat(ys.map(([y, v]) => [y, v.건수, v.진행, v.완료, v.공급가, v.계약금, v.수금]))], ['발주처별', [['발주처', '건수', '계약금액(VAT 별도)']].concat(Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).map(([k, v]) => [k, v.n, v.amt]))]]);
+  $('#xl').onclick = () => exportXlsx('연도별실적', [['월별 점검', [['연도', '월', '점검일수', '점검 건수', '현장 방문']].concat(py.slice().reverse().flatMap((y) => Array.from({ length: 12 }, (_, i) => { const o = PF[`${y}-${p2(i + 1)}`] || {}; return [y, i + 1, o.일수 || 0, o.점검 || 0, o.방문 || 0]; })))], ['연도별', [['연도', '건수', '진행', '완료', '계약금액(VAT 별도)', 'VAT 포함', '수금(용역 연도 기준)', '수금(입금 연도 기준)']].concat(yrs.map((y) => { const v = YV[y] || {}; return [y, v.건수 || 0, v.진행 || 0, v.완료 || 0, v.공급가 || 0, v.계약금 || 0, v.수금 || 0, PY[y] || 0]; })).concat(noDate ? [['입금일 없음(이월수금 등)', '', '', '', '', '', '', noDate]] : []).concat([['합계', tot[0], '', '', tot[1], tot[2], tot[3], totP]])], ['발주처별', [['발주처', '건수', '계약금액(VAT 별도)']].concat(Object.entries(payers).sort((a, b) => b[1].amt - a[1].amt).map(([k, v]) => [k, v.n, v.amt]))]]);
 };
 // ---------- 기초정보
 PAGES.partners = async (m, p) => {
@@ -3128,7 +3134,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24i';
+const APP_VERSION = '2026-11-24j';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
