@@ -1257,7 +1257,7 @@ async function openForm(t, row, onSaved) {
     return `<label class="${cls || ''}"><span>${lab}</span>${input}</label>`;
   };
   const m = modal(`${row.id ? '수정' : '새로 등록'} · ${{ 청구: '청구(계산서)', 연락: '연락기록', 검토: '보고서 검토', 일지: '업무일지', 택배: '택배 발송', 외주: '외주', 단가: '회차별 단가' }[t] || t}`, `<p class="req"><b>*</b> 표시는 꼭 입력하는 항목입니다.</p><form class="fg" id="ff">${f.map(field).join('')}</form>`,
-    `${row.id && t !== '계약' && t !== '청구' || row.id && can('관리자') ? `<button class="btn dan" id="fdel" type="button">삭제</button>` : ''}<span class="msg" id="fmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="fsave">저장</button>`, t === '계약');
+    `${row.id && t !== '계약' && t !== '청구' || row.id && can('관리자') ? `<button class="btn dan" id="fdel" type="button">삭제</button>` : ''}${t === '청구' && row.id && row.발행일 && can('관리자') ? '<button class="btn" id="freiss" type="button">취소·재발행</button>' : ''}<span class="msg" id="fmsg"></span><button class="btn" data-close>취소</button><button class="btn pri" id="fsave">저장</button>`, t === '계약');
   bindCpick(m, L);
   if (t === '점검' && !row.id) { // 새 점검 등록: 고른 용역의 잔여 점검(점검일 없는 회차)을 골라 그 회차에 일정 입력 · 목록에 없으면 점검항목 직접 입력
     const cs = $('[name="계약id"]', m), itIn = $('[name="항목"]', m), box = document.createElement('div');
@@ -1302,10 +1302,29 @@ async function openForm(t, row, onSaved) {
       else $('#fmsg', m).textContent = e.message;
     }
   };
+  if ($('#freiss', m)) $('#freiss', m).onclick = () => reissue(row, () => { m.remove(); onSaved && onSaved(row); });
   if ($('#fdel', m)) $('#fdel', m).onclick = async () => {
     const nm = row.현장명 || row.계약명 || row.거래처명 || row.항목 || row.연락일 || row.품명 || '';
     if (!(await ask({ title: '삭제', msg: `「${nm}」을(를) 삭제합니다.\n삭제한 내용은 변경 이력에 남아 복구할 수 있습니다.`, type: nm, ok: '삭제', danger: true }))) { return; }
     try { await api('del', { t, id: row.id, ver: row.버전 }); m.remove(); invalidate(); LK = null; toast('삭제했습니다 (변경이력에 남아 복구할 수 있습니다)'); onSaved && onSaved(null); } catch (e) { $('#fmsg', m).textContent = e.message; }
+  };
+}
+// 세금계산서 취소·재발행: 같은 청구 건에 새 발행일·금액만 바꾸고, 원래 발행일·금액·사유를 비고 맨 앞에 남김 (새 청구 건을 만들지 않아 중복 청구가 생기지 않음 · 수정 전 값은 변경 이력에도 남음)
+function reissue(b, done) {
+  const d = modal('세금계산서 취소·재발행', `<p class="sub" style="margin:0 0 10px">${esc(b.품명 || '')} · 원래 발행일 ${esc(b.발행일)} · ${won(b.청구액)}원<br>새 청구 건을 만들지 않고 이 건의 발행일·금액을 바꿉니다. 원래 발행일과 금액은 비고에 자동으로 남습니다.<br>공급가·부가세, 계약 수금·잔여, 입금 대기 경과일, 월별 매출, 엑셀 수금대장은 새 발행일·금액으로 함께 바뀝니다.${b.입금일 ? `<br><b style="color:var(--bad)">이미 입금된 건(${esc(b.입금일)})입니다 · 금액을 바꾸면 수금액도 새 금액으로 바뀝니다.</b>` : (b.분할입금 ? '<br>분할 입금 기록은 그대로 두고 남은 금액만 새 금액 기준으로 다시 계산됩니다.' : '')}</p>
+    <div class="fg"><label><span>재발행일 <b>*</b></span><input class="inp" type="date" id="riD" value="${today()}"></label><label><span>청구액 (VAT 포함)</span><input class="inp" id="riA" inputmode="numeric" value="${won(b.청구액)}"></label><label class="full"><span>사유</span><input class="inp" id="riW" placeholder="예: 공급받는자 변경, 금액 정정"></label></div>`,
+    '<span class="msg" id="riM"></span><button class="btn" data-close>취소</button><button class="btn pri" id="riOk">재발행 저장</button>');
+  $('#riA', d).oninput = (e) => { const v = e.target.value.replace(/[^\d]/g, ''); e.target.value = v ? won(+v) : ''; };
+  $('#riOk', d).onclick = async () => {
+    const nd = $('#riD', d).value, amt = +$('#riA', d).value.replace(/[^\d]/g, ''), why = $('#riW', d).value.trim();
+    if (!nd) { $('#riM', d).textContent = '재발행일을 입력하세요'; return; }
+    if (!amt) { $('#riM', d).textContent = '청구액을 입력하세요'; return; }
+    const note = `[재발행 ${nd}] ${b.발행일} 발행분(${won(b.청구액)}원) 취소${amt !== b.청구액 ? ` → ${won(amt)}원` : ''}${why ? ' · 사유: ' + why : ''}`;
+    const btn = $('#riOk', d); btn.disabled = true;
+    try {
+      await api('save', { t: '청구', row: { id: b.id, 발행일: nd, 청구액: amt, 비고: b.비고 ? note + '\n' + b.비고 : note }, ver: b.버전 });
+      d.remove(); invalidate(); toast('재발행으로 정리했습니다 · 원래 발행일은 비고에 남겼습니다'); done && done();
+    } catch (e) { btn.disabled = false; $('#riM', d).textContent = e.message; }
   };
 }
 function modal(title, body, foot, wide) {
@@ -2231,10 +2250,10 @@ PAGES.invoices = async (m) => {
   const st = S.invF = S.invF || { y: '', s: '', q: '' };
   const ys = [...new Set(r.invoices.map((b) => b.연도).filter(Boolean))].sort().reverse();
   const draw = () => {
-    const rows = r.invoices.filter((b) => (!st.y || b.연도 === st.y) && (!st.s || (st.s === '입금 대기' ? b.미입금 > 0 : st.s === '입금 완료' ? !!b.입금일 : !b.발행일)) && (!st.q || norm(b.현장명 + b.품명 + b.발주처 + b.입금자).includes(norm(st.q))));
+    const rows = r.invoices.filter((b) => (!st.y || b.연도 === st.y) && (!st.s || (st.s === '입금 대기' ? b.미입금 > 0 : st.s === '입금 완료' ? !!b.입금일 : !b.발행일)) && (!st.q || norm(b.현장명 + b.품명 + b.발주처 + b.입금자 + (/^\[재발행/m.test(b.비고 || '') ? '재발행' : '')).includes(norm(st.q))));
     S._invRows = rows;
     const sum = rows.reduce((a, b) => [a[0] + b.청구액, a[1] + b.수금액, a[2] + b.미입금], [0, 0, 0]);
-    $('#tb').innerHTML = rows.map((b) => `<tr><td class="tc" style="min-width:220px"><div class="t1" title="${esc(b.현장명)}"><a href="#" data-site="${esc(b.현장id)}">${esc(b.현장명)}</a></div><div class="t2" title="${esc(b.품명 + (b.발주처 ? ' · ' + b.발주처 : ''))}">${esc(b.품명)}${b.발주처 ? ' · ' + esc(b.발주처) : ''}</div></td><td class="date sub">${esc(b.발행일 || '—')}</td><td class="num">${won(b.청구액)}</td><td class="date sub">${esc(b.입금일 || '—')}</td><td class="num">${won(b.수금액)}</td><td class="num">${b.미입금 ? won(b.미입금) : '<span class="muted">—</span>'}</td><td class="c">${b.미입금 ? `<span class="tag ${b.경과 > 30 ? 'r' : 'w'}">입금 대기 ${b.경과}일</span>` : b.발행일 ? '<span class="tag g">입금 완료</span>' : '<span class="tag">발행 없음</span>'}</td><td class="act">${editBtn('청구', '수정', 'sm', `data-eb="${esc(b.id)}"`)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
+    $('#tb').innerHTML = rows.map((b) => `<tr><td class="tc" style="min-width:220px"><div class="t1" title="${esc(b.현장명)}"><a href="#" data-site="${esc(b.현장id)}">${esc(b.현장명)}</a></div><div class="t2" title="${esc(b.품명 + (b.발주처 ? ' · ' + b.발주처 : ''))}">${/^\[재발행/m.test(b.비고 || '') ? '<span class="tag w" title="취소 후 재발행한 건 (원래 발행일은 비고)">재발행</span> ' : ''}${esc(b.품명)}${b.발주처 ? ' · ' + esc(b.발주처) : ''}</div></td><td class="date sub">${esc(b.발행일 || '—')}</td><td class="num">${won(b.청구액)}</td><td class="date sub">${esc(b.입금일 || '—')}</td><td class="num">${won(b.수금액)}</td><td class="num">${b.미입금 ? won(b.미입금) : '<span class="muted">—</span>'}</td><td class="c">${b.미입금 ? `<span class="tag ${b.경과 > 30 ? 'r' : 'w'}">입금 대기 ${b.경과}일</span>` : b.발행일 ? '<span class="tag g">입금 완료</span>' : '<span class="tag">발행 없음</span>'}</td><td class="act">${editBtn('청구', '수정', 'sm', `data-eb="${esc(b.id)}"`)}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">없음</td></tr>';
     $('#tf').innerHTML = `<tr><td>합계 ${rows.length}건</td><td></td><td class="num">${won(sum[0])}</td><td></td><td class="num">${won(sum[1])}</td><td class="num">${won(sum[2])}</td><td colspan="2"></td></tr>`;
     bindCommon($('#tb'));
     $$('[data-eb]', m).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), () => { invalidate(); render(); })));
@@ -3034,7 +3053,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-21a';
+const APP_VERSION = '2026-11-24a';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
