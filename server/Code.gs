@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-25a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-25b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -278,7 +278,10 @@ function finals_() {
   const cur = Object.values(last);
   const done = live_('계약').filter((c) => c.상태 && c.상태 !== '진행중').map((c) => Object.assign({ id: c.id }, info(c), { 요청: last[c.id] ? last[c.id].상태 : '' }))
     .sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || a.현장명.localeCompare(b.현장명));
-  return { list: rows, done, kpi: { 완료용역: done.length, 요청: cur.length, 미작성: cur.filter((r) => r.상태 === '미작성').length, 작성중: cur.filter((r) => r.상태 === '작성 중').length, 검토중: cur.filter((r) => r.상태 !== '제출 완료' && (r.검토상태 === '검토중' || r.검토상태 === '수정요청')).length, 제출완료: cur.filter((r) => r.상태 === '제출 완료').length } };
+  // 진행 중이지만 계약에 종합보고서가 포함·별도로 들어 있는 용역도 요청 등록 대상 (용역 완료 전에 종합보고서를 내는 경우)
+  const planned = live_('계약').filter((c) => (!c.상태 || c.상태 === '진행중') && /포함|별도/.test(c.종합보고서구분 || '')).map((c) => Object.assign({ id: c.id, 진행: true }, info(c), { 요청: last[c.id] ? last[c.id].상태 : '' }))
+    .sort((a, b) => (b.연도 || 0) - (a.연도 || 0) || a.현장명.localeCompare(b.현장명));
+  return { list: rows, done, planned, kpi: { 완료용역: done.length, 요청: cur.length, 미작성: cur.filter((r) => r.상태 === '미작성').length, 작성중: cur.filter((r) => r.상태 === '작성 중').length, 검토중: cur.filter((r) => r.상태 !== '제출 완료' && (r.검토상태 === '검토중' || r.검토상태 === '수정요청')).length, 제출완료: cur.filter((r) => r.상태 === '제출 완료').length } };
 }
 function finalDir_() {
   const id = P.getProperty('FINAL_DIR');
@@ -337,7 +340,21 @@ const ACTIONS = {
     const C = byId_('계약'), S = byId_('현장'), Pn = byId_('거래처'), T = today_();
     const writing = live_('점검').filter((x) => isWriting_(stageOf_(x)) && !has[x.계약id + '|' + key_(x.항목)]).map((x) => { const c = C[x.계약id] || {}; return { 작성완료일: x.작성완료일 || '', 점검id: x.id, 계약id: x.계약id, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '', 항목: x.항목, 점검일: x.점검일, 기한: x.기한, 남은날: x.기한 ? dd_(x.기한, T) : null }; })
       .sort((a, b) => (a.남은날 == null ? 9999 : a.남은날) - (b.남은날 == null ? 9999 : b.남은날));
-    return { reviews: list, writing };
+    // 진행 중 용역의 종합보고서 (계약에 포함·별도): 종합보고서 관리에 등록돼 있거나, 그 계약의 점검을 모두 마쳤으면 「검토 요청 전」에 올림 → 검토·시공사 발송까지 보고서 검토 관리에서 처리 (종합보고서 관리와 같은 기록)
+    const FN = {}; live_('종합').forEach((f) => { FN[f.계약id] = f; });
+    const byCi = {}; live_('점검').forEach((x) => { (byCi[x.계약id] = byCi[x.계약id] || []).push(x); });
+    live_('계약').filter((c) => (!c.상태 || c.상태 === '진행중') && /포함|별도/.test(c.종합보고서구분 || '') && !has[c.id + '|' + key_('종합보고서')]).forEach((c) => {
+      const f = FN[c.id], its = (byCi[c.id] || []).filter((x) => key_(x.항목) !== key_('종합보고서')), ds = its.map((x) => x.점검일).filter(Boolean).sort();
+      if (f && (f.제출일 || f.상태 === '제출 완료')) return;
+      if (!f && !(its.length && ds.length === its.length)) return; // 아직 점검이 남아 있으면 (등록 전엔) 올리지 않음
+      writing.push({ 종합: true, 종합id: f ? f.id : '', 점검id: 'F:' + c.id, 계약id: c.id, 현장id: c.현장id, 현장명: (S[c.현장id] || {}).현장명 || c.계약명 || '', 시공사: (Pn[c.시공사id] || Pn[c.발주처id] || {}).거래처명 || '',
+        항목: '종합보고서', 점검일: ds[ds.length - 1] || '', 점검수: its.length, 점검완료: ds.length, 기한: '', 남은날: null, 작성완료일: f ? f.작성일 || '' : '', 종합상태: f ? f.상태 : '' });
+    });
+    // 검토한 보고서의 시공사 발송 상태 (점검 발송일) + 그 현장에 마지막으로 보낸 받는 사람·주소 (택배 발송 기록)
+    const lastTo = {}; live_('택배').slice().sort((a, b) => String(a.발송일).localeCompare(String(b.발송일))).forEach((k) => { if (k.받는사람 || k.주소) lastTo[k.현장id] = { 받는사람: k.받는사람, 주소: k.주소 }; });
+    const send = {}; live_('점검').forEach((x) => { const kk = x.계약id + '|' + key_(x.항목); if (has[kk]) send[kk] = { 점검id: x.id, 발송일: x.발송일 || '', 버전: x.버전, 점검일: x.점검일 || '', 단계: stageOf_(x), 예전: lastTo[(C[x.계약id] || {}).현장id] || null }; });
+    live_('종합').forEach((f) => { const kk = f.계약id + '|' + key_('종합보고서'); if (has[kk]) send[kk] = { 종합id: f.id, 발송일: f.제출일 || '', 버전: f.버전, 예전: lastTo[f.현장id] || null }; });
+    return { reviews: list, writing, send };
   }),
   journal: () => cached_('journal', () => ({ jobs: live_('일지').map(clean_).sort((a, b) => String(a.날짜).localeCompare(String(b.날짜))), year: +(setting_('일지연도') || new Date().getFullYear()) })),
   parcels: () => cached_('parcels', parcelsList_),
