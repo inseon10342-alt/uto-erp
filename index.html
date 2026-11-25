@@ -3185,26 +3185,31 @@ PAGES.reviews = async (m) => {
     await api('save', { t: '검토', row: Object.assign({ 계약id: L.계약id, 항목: L.항목, 회차: String(n), 요청일: T, 검토자: L.검토자, 제목: L.제목, 상태: done ? '검토완료' : '검토중' }, done ? { 회신일: T } : {}), ver: 0 });
     toast(done ? `${n}회차 검토 완료로 기록했습니다` : `${n}회차 검토 요청을 만들었습니다`); return true;
   };
-  // 시공사 발송: 누르면 바로 오늘 날짜로 점검 발송일(종합보고서는 제출일)을 기록 → 점검 단계 「완료」 (택배는 일부 용역만이라 창을 띄우지 않음 · 택배로 보낸 건은 「택배 발송」에서 따로 기록)
-  const rvSend = async (rep) => {
+  // 시공사 발송: 발송일을 고르는 작은 창(기본 오늘) → 점검 발송일(종합보고서는 제출일) 기록 → 점검 단계 「완료」 (택배 기록 창은 띄우지 않음 · 택배로 보낸 건은 「택배 발송」에서 따로 기록)
+  const rvSend = (rep) => {
+    const d = modal('시공사 발송', `<p class="sub" style="margin:0 0 10px">${esc(rep.현장명)} · <b>${esc(nmI(rep.항목, rep.계약id))}</b> · ${esc(rep.시공사 || '')}</p><div class="fg"><label><span>발송일 <b>*</b></span><input class="inp" type="date" id="sdD" value="${T}" max="${T}"></label></div>`,
+      '<span class="msg" id="sdM"></span><button class="btn" data-close>취소</button><button class="btn pri" id="sdOk">발송 기록</button>');
+    $('#sdOk', d).onclick = async () => { const dv = $('#sdD', d).value; if (!dv) { $('#sdM', d).textContent = '발송일을 고르세요'; return; } $('#sdOk', d).disabled = true; const ok = await rvSendSave(rep, dv); if (ok) d.remove(); else $('#sdOk', d).disabled = false; };
+  };
+  const rvSendSave = async (rep, day) => {
     let sd = rep.sd;
     try {
       if (!sd || (!sd.점검id && !sd.종합id)) { // 서버가 발송 정보를 아직 안 주는 경우 등: 그 현장의 점검·종합보고서에서 직접 찾음
         if (norm(rep.항목) === norm('종합보고서')) { const f = ((await api('finals', {})).list || []).find((y) => y.계약id === rep.계약id); sd = f ? { 종합id: f.id, 버전: f.버전 } : null; }
         else { const it = ((await api('site', { id: rep.현장id })).items || []).find((y) => y.계약id === rep.계약id && norm(y.항목) === norm(rep.항목)); sd = it ? { 점검id: it.id, 버전: it.버전 } : null; }
       }
-      if (!sd) return toast('이 보고서의 점검 회차를 찾지 못했습니다. 현장 상세에서 발송일을 넣어 주세요.', 1);
-      if (sd.점검id) await api('save', { t: '점검', row: { id: sd.점검id, 발송일: T }, ver: sd.버전 });
-      else await api('save', { t: '종합', row: { id: sd.종합id, 제출일: T }, ver: sd.버전 });
-      st.sel = rep.k; toast(`시공사 발송(${T})을 기록했습니다 · 날짜는 점검 수정에서 바꿀 수 있습니다`); reload();
-    } catch (e) { toast(e.message, 1); }
+      if (!sd) { toast('이 보고서의 점검 회차를 찾지 못했습니다. 현장 상세에서 발송일을 넣어 주세요.', 1); return false; }
+      if (sd.점검id) await api('save', { t: '점검', row: { id: sd.점검id, 발송일: day }, ver: sd.버전 });
+      else await api('save', { t: '종합', row: { id: sd.종합id, 제출일: day }, ver: sd.버전 });
+      st.sel = rep.k; toast(`시공사 발송(${day})을 기록했습니다`); reload(); return true;
+    } catch (e) { toast(e.message, 1); return false; }
   };
   $$('[data-rva]', m).forEach((b) => (b.onclick = async (e) => {
     e.stopPropagation(); const rep = reports.find((x) => x.k === b.dataset.rk); if (!rep) return;
     const bs = $$('button', b.parentNode); bs.forEach((x) => (x.disabled = true));
     try {
       const a = b.dataset.rva; let okd = true;
-      if (a === 'send') { await rvSend(rep); return; }
+      if (a === 'send') { bs.forEach((x) => (x.disabled = false)); rvSend(rep); return; }
       if (rep.stt === '중') { await rvReplySave(rep, a === 'done' ? '검토완료' : '수정요청'); toast(a === 'done' ? '검토 완료로 바꿨습니다' : '수정 요청으로 바꿨습니다'); }
       else okd = await rvNext(rep, a === 'done');
       if (okd) { st.sel = rep.k; reload(); } else bs.forEach((x) => (x.disabled = false));
@@ -3270,7 +3275,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25g';
+const APP_VERSION = '2026-11-25h';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
