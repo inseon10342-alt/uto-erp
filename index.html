@@ -3147,7 +3147,7 @@ PAGES.reviews = async (m) => {
   const doneAll = reports.filter((x) => x.stt === '완료' || x.stt === '발송').length, unsent = reports.filter((x) => x.stt === '완료').length;
   const avg = (() => { const a = r.reviews.filter((x) => x.소요 != null); return a.length ? Math.round(a.reduce((s, x) => s + x.소요, 0) / a.length * 10) / 10 : 0; })();
   const RV_BTN = { 중: [['fix', '수정 요청'], ['done', '검토 완료']], 수정: [['re', '재검토'], ['done', '검토 완료']], 완료: [['send', '시공사 발송']] }; // 단계별 카드 버튼 (검토 요청 전 카드의 「검토 요청」과 같은 모양)
-  const card = (x) => { const L = x.last, wait = x.stt === '중' ? L.경과 : x.stt === '수정' ? L.경과 : null, bt = ed && (x.stt !== '완료' || !!x.sd) && RV_BTN[x.stt], tg = bt ? 'div' : 'button'; return `<${tg} class="rvc ${st.sel === x.k ? 'on' : ''}" data-k="${esc(x.k)}"${bt ? ' role="button" tabindex="0"' : ''}><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b><span class="rnd">${esc(L.회차 || x.g.length)}회차</span></span>
+  const card = (x) => { const L = x.last, wait = x.stt === '중' ? L.경과 : x.stt === '수정' ? L.경과 : null, bt = ed && RV_BTN[x.stt], tg = bt ? 'div' : 'button'; return `<${tg} class="rvc ${st.sel === x.k ? 'on' : ''}" data-k="${esc(x.k)}"${bt ? ' role="button" tabindex="0"' : ''}><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b><span class="rnd">${esc(L.회차 || x.g.length)}회차</span></span>
     <span class="mt">${x.stt === '발송' ? `시공사 발송 ${esc(x.sd.발송일 || '완료')} · 검토 회신 ${esc(L.회신일 || '—')}` : x.stt === '완료' ? `회신 ${esc(L.회신일 || '—')}${L.소요 != null ? ` · ${L.소요}일 걸림` : ''}` : x.stt === '수정' ? `수정 요청 ${esc(L.회신일 || '')}` : `요청 ${esc(L.요청일)}`}${L.검토자 ? ' · ' + esc(L.검토자) : ''}</span>${wait != null ? `<span class="tag ${wait > 7 ? 'r' : wait > 3 ? 'w' : 'plain'}">${wait}일째</span>` : ''}${bt ? `<span class="rvbtns">${bt.map(([a, n]) => `<button class="btn sm" data-rva="${a}" data-rk="${esc(x.k)}">${n}</button>`).join('')}</span>` : ''}</${tg}>`; };
   const pre = (x) => `<div class="rvc pre"><span class="t1">${esc(x.현장명)}</span><span class="nm2 sub">${esc(x.시공사)}</span><span class="it"><b>${esc(nmI(x.항목, x.계약id))}</b>${x.종합 ? ` <span class="tag plain" title="계약에 포함된 종합보고서 · 종합보고서 관리와 같은 기록">${esc(x.종합상태 || '종합보고서')}</span>` : ''}${x.작성완료일 ? ' <span class="tag wd">작성 완료</span>' : ''}</span><span class="mt">${x.종합 ? `점검 ${x.점검완료}/${x.점검수} 마침 · 마지막 점검 ${esc(x.점검일 || '—')}` : `점검 ${esc(x.점검일 || '—')} · 제출 기한 ${esc(x.기한 || '—')}`}</span>${x.남은날 != null ? dlTag(x.남은날) : ''}${ed ? `<button class="btn sm" data-req="${esc(x.점검id)}">검토 요청</button>` : ''}</div>`;
   const selR = reports.find((x) => x.k === st.sel);
@@ -3162,7 +3162,7 @@ PAGES.reviews = async (m) => {
       <div class="rvst">${RV_COLS.slice(1).map(([k, n, , c]) => `<span class="${selR.stt === k ? 'on ' + c : ''}">${n}</span>`).join('<i>›</i>')}</div>
       <div class="sub" style="margin:8px 0 12px">${esc(selR.시공사)} · 발송 ${selR.g.length}회 · <a href="#" data-site="${esc(selR.현장id)}">현장 보기</a></div>
       ${timeline(ev)}
-      ${ed ? `<div class="rvact">${selR.stt === '중' ? '<button class="btn pri" id="rvReply">회신 기록</button>' : ''}${selR.stt === '수정' ? '<button class="btn pri" id="rvResend">수정 후 재발송</button>' : ''}${selR.stt === '완료' && selR.sd ? '<button class="btn pri" id="rvSend">시공사 발송</button>' : ''}<button class="btn" id="rvEdit">마지막 회차 수정</button></div>` : ''}</div>`;
+      ${ed ? `<div class="rvact">${selR.stt === '중' ? '<button class="btn pri" id="rvReply">회신 기록</button>' : ''}${selR.stt === '수정' ? '<button class="btn pri" id="rvResend">수정 후 재발송</button>' : ''}${selR.stt === '완료' ? '<button class="btn pri" id="rvSend">시공사 발송</button>' : ''}<button class="btn" id="rvEdit">마지막 회차 수정</button></div>` : ''}</div>`;
   }
   const site = () => {
     const bySite = {}; reports.filter(hit).forEach((x) => { (bySite[x.현장명] = bySite[x.현장명] || []).push(x); });
@@ -3185,24 +3185,26 @@ PAGES.reviews = async (m) => {
     await api('save', { t: '검토', row: Object.assign({ 계약id: L.계약id, 항목: L.항목, 회차: String(n), 요청일: T, 검토자: L.검토자, 제목: L.제목, 상태: done ? '검토완료' : '검토중' }, done ? { 회신일: T } : {}), ver: 0 });
     toast(done ? `${n}회차 검토 완료로 기록했습니다` : `${n}회차 검토 요청을 만들었습니다`); return true;
   };
-  // 시공사 발송: 택배 발송 기록(받는 사람·주소는 그 현장에 마지막으로 보낸 곳)을 남기고, 점검 발송일(종합보고서는 제출일)을 기록 → 점검 단계 「완료」
-  const rvSend = (rep) => { const sd = rep.sd; if (!sd) return toast('이 보고서의 점검 회차를 찾지 못했습니다', 1);
-    openForm('택배', { 현장id: rep.현장id, 발송일: T, 항목: rep.항목, 받는사람: (sd.예전 || {}).받는사람 || '', 주소: (sd.예전 || {}).주소 || '' }, async (row) => {
-      if (!row || !row.발송일) return reload();
-      try {
-        if (sd.점검id) await api('save', { t: '점검', row: { id: sd.점검id, 발송일: row.발송일 }, ver: sd.버전 });
-        else if (sd.종합id) await api('save', { t: '종합', row: { id: sd.종합id, 제출일: row.발송일 }, ver: sd.버전 });
-        st.sel = rep.k; toast(`시공사 발송(${row.발송일})을 기록했습니다`);
-      } catch (e) { toast(e.message, 1); }
-      reload();
-    });
+  // 시공사 발송: 누르면 바로 오늘 날짜로 점검 발송일(종합보고서는 제출일)을 기록 → 점검 단계 「완료」 (택배는 일부 용역만이라 창을 띄우지 않음 · 택배로 보낸 건은 「택배 발송」에서 따로 기록)
+  const rvSend = async (rep) => {
+    let sd = rep.sd;
+    try {
+      if (!sd || (!sd.점검id && !sd.종합id)) { // 서버가 발송 정보를 아직 안 주는 경우 등: 그 현장의 점검·종합보고서에서 직접 찾음
+        if (norm(rep.항목) === norm('종합보고서')) { const f = ((await api('finals', {})).list || []).find((y) => y.계약id === rep.계약id); sd = f ? { 종합id: f.id, 버전: f.버전 } : null; }
+        else { const it = ((await api('site', { id: rep.현장id })).items || []).find((y) => y.계약id === rep.계약id && norm(y.항목) === norm(rep.항목)); sd = it ? { 점검id: it.id, 버전: it.버전 } : null; }
+      }
+      if (!sd) return toast('이 보고서의 점검 회차를 찾지 못했습니다. 현장 상세에서 발송일을 넣어 주세요.', 1);
+      if (sd.점검id) await api('save', { t: '점검', row: { id: sd.점검id, 발송일: T }, ver: sd.버전 });
+      else await api('save', { t: '종합', row: { id: sd.종합id, 제출일: T }, ver: sd.버전 });
+      st.sel = rep.k; toast(`시공사 발송(${T})을 기록했습니다 · 날짜는 점검 수정에서 바꿀 수 있습니다`); reload();
+    } catch (e) { toast(e.message, 1); }
   };
   $$('[data-rva]', m).forEach((b) => (b.onclick = async (e) => {
     e.stopPropagation(); const rep = reports.find((x) => x.k === b.dataset.rk); if (!rep) return;
     const bs = $$('button', b.parentNode); bs.forEach((x) => (x.disabled = true));
     try {
       const a = b.dataset.rva; let okd = true;
-      if (a === 'send') { bs.forEach((x) => (x.disabled = false)); return rvSend(rep); }
+      if (a === 'send') { await rvSend(rep); return; }
       if (rep.stt === '중') { await rvReplySave(rep, a === 'done' ? '검토완료' : '수정요청'); toast(a === 'done' ? '검토 완료로 바꿨습니다' : '수정 요청으로 바꿨습니다'); }
       else okd = await rvNext(rep, a === 'done');
       if (okd) { st.sel = rep.k; reload(); } else bs.forEach((x) => (x.disabled = false));
@@ -3268,7 +3270,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25f';
+const APP_VERSION = '2026-11-25g';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
