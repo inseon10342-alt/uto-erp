@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-25d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-25e'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -1798,7 +1798,7 @@ function exportInfo_() {
 /** 삭제한 점검 회차 되살리기: 삭제 표시만 지움 (내용은 삭제 전 그대로) · 같은 이름의 회차가 이미 있으면 막음 · 변경 이력에 「복구」 */
 function undel_(who, a) {
   const t = a.t; if (t !== '점검') throw new Error('지금은 삭제한 점검 회차만 되살릴 수 있습니다.');
-  need_(who, '관리자');
+  need_(who, WRITE_ROLE[t]); // 되살리기는 점검 입력 권한(일반)이면 가능 — 삭제는 계속 관리자만
   if ((setting_('원본') || '엑셀') === '엑셀') throw new Error('지금은 엑셀이 원본이라 웹에서 고칠 수 없습니다.');
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {

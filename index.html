@@ -1279,9 +1279,9 @@ async function openForm(t, row, onSaved) {
       if (cs.value !== cid || !document.body.contains(m)) return;
       const left = rndSort((d.items || []).filter((x) => !x.점검일));
       box.innerHTML = `<span>잔여 점검 ${left.length}</span><div>${left.length ? `<div class="chips">${left.map((x) => `<button type="button" class="chip" data-ri="${esc(x.id)}" title="${x.예정일 ? '예정일 ' + esc(x.예정일) : '날짜 없음'}">${esc(nmI(x.항목, x.계약id))}${x.예정일 ? ` <small>${esc(String(x.예정일).slice(5).replace('-', '/'))}</small>` : ''}</button>`).join('')}</div><div class="sub" style="margin-top:4px">회차를 누르면 그 회차에 일정을 넣습니다 · 목록에 없는 점검은 아래 점검항목에 직접 입력</div>` : '<div class="sub" style="padding-top:5px">남은 점검이 없습니다 · 아래 점검항목에 직접 입력하세요</div>'}</div>`;
-      // 삭제한 회차: 같은 이름 회차가 새로 생겼어도 숨기지 않음 (누르면 서버가 이유를 알려 줌) · 관리자가 아니면 보이기만 (되살리기는 관리자)
-      const dl = d.deletedItems || [], adm = can('관리자');
-      if (dl.length) box.lastElementChild.insertAdjacentHTML('beforeend', `<div class="sub" style="margin-top:6px">삭제한 회차${adm ? '' : ' (관리자만 되살릴 수 있음)'}: ${dl.map((x) => { const dup = (d.items || []).some((y) => norm(y.항목) === norm(x.항목)), dt = x.점검일 || x.예정일; return `<button type="button" class="chip" data-undel="${esc(x.id)}" ${adm ? '' : 'disabled'} title="${dup ? '같은 이름 회차가 이미 있음 · 그 회차를 먼저 정리해야 되살릴 수 있습니다' : '삭제 전 내용 그대로 되살림'}">↺ ${esc(nmI(x.항목, x.계약id))}${dt ? ` <small>${esc(String(dt).slice(5).replace('-', '/'))}</small>` : ''}${dup ? ' <small>(같은 이름 있음)</small>' : ''}</button>`; }).join(' ')}</div>`);
+      // 삭제한 회차: 같은 이름 회차가 새로 생겼어도 숨기지 않음 (누르면 서버가 이유를 알려 줌) · 점검 입력 권한이면 누구나 되살림 (보기 전용·엑셀 원본일 때만 막힘)
+      const dl = d.deletedItems || [], adm = canEdit('점검');
+      if (dl.length) box.lastElementChild.insertAdjacentHTML('beforeend', `<div class="sub" style="margin-top:6px">삭제한 회차${adm ? '' : ' (보기 전용이라 되살릴 수 없음)'}: ${dl.map((x) => { const dup = (d.items || []).some((y) => norm(y.항목) === norm(x.항목)), dt = x.점검일 || x.예정일; return `<button type="button" class="chip" data-undel="${esc(x.id)}" ${adm ? '' : 'disabled'} title="${dup ? '같은 이름 회차가 이미 있음 · 그 회차를 먼저 정리해야 되살릴 수 있습니다' : '삭제 전 내용 그대로 되살림'}">↺ ${esc(nmI(x.항목, x.계약id))}${dt ? ` <small>${esc(String(dt).slice(5).replace('-', '/'))}</small>` : ''}${dup ? ' <small>(같은 이름 있음)</small>' : ''}</button>`; }).join(' ')}</div>`);
       $$('[data-undel]', box).forEach((b) => (b.onclick = async () => { b.disabled = true; try { const o = await api('undel', { t: '점검', id: b.dataset.undel }); if (o && o.ok === false) throw new Error(o.msg); invalidate(); LK = null; toast(`${o.row.항목} 회차를 되살렸습니다`); load(); } catch (e) { b.disabled = false; toast(e.message, true); } }));
       $$('[data-ri]', box).forEach((b) => (b.onclick = () => pick(left.find((x) => x.id === b.dataset.ri))));
     };
@@ -3323,7 +3323,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25k';
+const APP_VERSION = '2026-11-25l';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
