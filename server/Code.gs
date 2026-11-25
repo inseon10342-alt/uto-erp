@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-25b'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-25c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -319,7 +319,7 @@ function finalGet_(who, a) {
   return { name: f.n, mime: b.getContentType(), data: Utilities.base64Encode(b.getBytes()) };
 }
 const ACTIONS = {
-  boot: (who) => (migrateG_(who.user.email), fixApproved1117_(who.user.email), fixApproved1117b_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
+  boot: (who) => (migrateG_(who.user.email), fixApproved1117_(who.user.email), fixApproved1117b_(who.user.email), fixCleared1125_(who.user.email), { user: who.user, source: setting_('원본') || '엑셀', counts: cached_('counts', counts_), dbUrl: can_(who, '관리자') ? 'https://docs.google.com/spreadsheets/d/' + P.getProperty('DB_ID') : '' }),
   refresh: () => { bumpVer_(); return {}; }, // 새로고침 버튼: DB 를 직접 고쳤을 때도 바로 반영
   logout: (who) => { setDevice_(who.device.row, '해제', who.device.h); return {}; },
   dash: () => cached_('dash', dash_),
@@ -514,6 +514,7 @@ function save_(who, t, row, ver, isDelete) {
       if (t === '외주' && next.업체id) { const op = byId_('거래처')[next.업체id]; if (op) next.업체명 = op.거래처명; }
       if (t === '단가') { next.단가 = String(next.단가 == null ? '' : next.단가).replace(/[,\s원]/g, '') === '' ? '' : String(Math.round(num_(next.단가))); next.횟수 = Math.max(0, Math.round(num_(next.횟수))); }
     }
+    if (!isDelete) syncState_(t, cur, next);
     const err = validate_(t, next, cur);
     if (err) return { ok: false, code: 'invalid', msg: err };
     if (t === '계약' && !isDelete) {
@@ -1239,6 +1240,38 @@ function fixApproved1117_(by) {
 }
 
 // 사용자 승인(11-17): 논현동 91-7 「초기」(2026-04-22) → 「초기점검」 (다른 현장과 같은 이름 · 초기점검은 1회뿐). 1회만, 값이 그대로일 때만
+// 1회 정리(11-25): 그동안 웹에서 날짜(수신일·회신일·발송일·점검일)를 지웠는데 상태가 그대로 남은 줄만 바로잡음
+// 변경 이력에 「그 날짜를 지운 수정」이 있고, 지금도 날짜가 비어 있고 상태가 어긋난 줄만 → syncState_ 와 같은 규칙. 백업 먼저 · 줄마다 변경 이력
+function fixCleared1125_(by) {
+  if (/^done/.test(P.getProperty('FIX_1125') || '')) return null;
+  if ((setting_('원본') || '엑셀') !== '웹') return null;
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(2000)) return null;
+  try {
+    if (/^done/.test(P.getProperty('FIX_1125') || '')) return null;
+    TBL_ = {};
+    const F = { 자료요청: ['수신일'], 메일: ['회신일'], 검토: ['회신일'], 점검: ['발송일', '점검일', '작성완료일'] }, cand = {};
+    db_().getSheetByName('변경이력').getDataRange().getValues().slice(1).forEach((h) => {
+      const t = h[2], id = h[3]; if (!F[t] || h[4] !== '수정') return;
+      let b = {}, a = {}; try { b = JSON.parse(h[5] || '{}'); a = JSON.parse(h[6] || '{}'); } catch (e) { return; }
+      F[t].forEach((k) => { if (b[k] && !a[k]) (cand[t + '|' + id] = cand[t + '|' + id] || { t, id, ks: {} }).ks[k] = 1; });
+    });
+    const fixes = [];
+    Object.values(cand).forEach((c) => {
+      const cur = live_(c.t).find((r) => r.id === c.id); if (!cur) return;
+      const fake = {}; Object.keys(c.ks).forEach((k) => { fake[k] = 'x'; }); // 「그 날짜가 있었다가 지워짐」으로 보고 같은 규칙 적용
+      const next = Object.assign({}, clean_(cur)); syncState_(c.t, Object.assign({}, clean_(cur), fake), next);
+      const ch = {}; ['상태', '회신상태', '단계'].forEach((k) => { if (k in next && next[k] !== cur[k]) ch[k] = next[k]; });
+      if (Object.keys(c.ks).some((k) => cur[k])) return; // 지금은 다시 날짜가 들어가 있으면 손대지 않음
+      if (Object.keys(ch).length) fixes.push([c.t, cur, ch]);
+    });
+    if (!fixes.length) { P.setProperty('FIX_1125', 'done:고칠 줄 없음'); return null; }
+    const safety = backup_('날짜 지운 줄 상태 정리 직전', by || '시스템'), now = fmtT_(new Date());
+    fixes.forEach(([t, cur, ch]) => { const before = clean_(cur), c2 = Object.assign({}, ch, { 버전: (cur.버전 || 0) + 1, 수정일: now, 수정자: '상태 정리(날짜 지운 줄)' }); setSilent_(t, cur.id, c2); log_({ user: { email: by || '시스템' } }, t, cur.id, '수정', before, Object.assign({}, before, c2)); });
+    if (fixes.some(([t]) => t === '점검' || t === '검토')) derive_(true);
+    P.setProperty('FIX_1125', `done:${now} · ${fixes.length}줄 (${fixes.map(([t, c, ch]) => t + ':' + c.id + ':' + JSON.stringify(ch)).join(', ').slice(0, 300)}) · 백업 ${safety.name}`);
+    return fixes.length;
+  } catch (e) { P.setProperty('FIX_1125', 'err:' + e.message); return null; } finally { lock.releaseLock(); }
+}
 function fixApproved1117b_(by) {
   if (/^done/.test(P.getProperty('FIX_1117B') || '')) return null;
   if ((setting_('원본') || '엑셀') !== '웹') return null;
@@ -1739,7 +1772,7 @@ function xlVal_(k, v) {
 /** 자동 저장: 5분마다 돌며, 마지막 입력 뒤 2분이 지났으면 저장 */
 function exportTick() {
   if ((setting_('원본') || '엑셀') !== '웹') return;
-  try { ensureAll_(); migrateG_('자동'); fixApproved1117_('자동'); fixApproved1117b_('자동'); } catch (e) {}
+  try { ensureAll_(); migrateG_('자동'); fixApproved1117_('자동'); fixApproved1117b_('자동'); fixCleared1125_('자동'); } catch (e) {}
   const d = +(P.getProperty('EXPORT_DIRTY') || 0);
   if (!d || Date.now() - d < 2 * 60000) return;
   try {
@@ -1782,6 +1815,26 @@ function undel_(who, a) {
     delete TBL_[t]; derive_(true);
     return { row: next };
   } finally { lock.releaseLock(); }
+}
+/** 날짜를 지우거나 넣을 때 같이 움직여야 하는 상태 칸을 맞춤 (화면·버튼·모바일 어디서 저장해도 같게).
+ *  날짜가 「바뀐 경우」에만 손댐 → 손대지 않은 예전(엑셀) 데이터는 그대로 */
+function syncState_(t, cur, next) {
+  const was = (k) => !!(cur && cur[k]), now = (k) => !!next[k], cleared = (k) => was(k) && !now(k), added = (k) => !was(k) && now(k);
+  if (t === '자료요청') { // 수신일 ↔ 상태(수신완료)
+    if (cleared('수신일') && /완료/.test(next.상태 || '')) next.상태 = '요청중';
+    if (added('수신일') && (!next.상태 || next.상태 === '요청중')) next.상태 = '수신완료';
+  }
+  if (t === '메일') { // 회신일 ↔ 회신상태
+    if (cleared('회신일') && /받음|완료/.test(next.회신상태 || '')) next.회신상태 = /예/.test(next.회신필요 || '') ? '회신대기' : '';
+    if (added('회신일') && (!next.회신상태 || next.회신상태 === '회신대기')) next.회신상태 = '회신받음';
+  }
+  if (t === '검토') { // 회신일을 지우면 결과(검토완료·수정요청)도 없던 것으로 → 검토중
+    if (cleared('회신일') && /검토완료|수정요청/.test(next.상태 || '')) next.상태 = '검토중';
+  }
+  if (t === '점검') { // 점검일·발송일을 지운 회차가 예전 「완료」 단계에 묶여 있지 않게 → 단계를 비워 다시 계산
+    if ((cleared('발송일') || cleared('점검일')) && next.단계 === '완료') next.단계 = '';
+    if (cleared('작성완료일') && /작성 완료/.test(next.단계 || '')) next.단계 = '';
+  }
 }
 function setSilent_(t, id, ch) {
   const r = rows_(t).find((x) => x.id === id); if (!r) return;
