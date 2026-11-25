@@ -874,13 +874,16 @@ const rptLine = (x) => { // 보고서 상태 3가지: 작성 · 검토 · 발송
   return `<div class="rpt3"><span>작성 <b class="${w[0]}">${esc(w[1])}</b></span><span>검토 <b class="${v[0]}">${esc(v[1])}</b></span><span>시공사 발송 <b class="${d[0]}">${esc(d[1])}</b></span></div>`;
 };
 const STG = ['점검 전', '점검 예정', '보고서 작성중', '청구 대기', '입금 대기', '완료'];
-function sIdx(s) { s = String(s || ''); const i = STG.indexOf(s); if (i >= 0) return i; if (s === '보고서 작성 완료') return 2; if (/완료/.test(s)) return 5; if (/입금/.test(s)) return 4; if (/청구|발송/.test(s)) return 3; if (/작성|검토/.test(s)) return 2; if (/예정/.test(s)) return 1; return 0; }
+function sIdx(s) { s = String(s || ''); const i = STG.indexOf(s); if (i >= 0) return i; if (s === '발송 대기') return 4; // 입금 확인 · 보고서 발송 전 → 「입금·발송 대기」 칸 (예전엔 청구 대기 칸으로 잘못 셈)
+  if (s === '보고서 작성 완료') return 2; if (/완료/.test(s)) return 5; if (/입금/.test(s)) return 4; if (/청구|발송/.test(s)) return 3; if (/작성|검토/.test(s)) return 2; if (/예정/.test(s)) return 1; return 0; }
 function stgDots(list) { return `<span class="stg ${(list || []).length > 16 ? 'many' : ''}">${(list || []).map(([n, s]) => `<i class="s${sIdx(s)}" title="${esc(n)}: ${esc(s)}"></i>`).join('')}</span>`; }
-const STG_LEGEND = `<span class="legend">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n}</span>`).join('')}</span>`;
-function stepper(stage) {
-  const i = sIdx(stage), L = ['점검', '보고서', '발송', '청구', '입금'];
-  const cur = i === 0 ? -1 : i === 1 ? 0 : i === 2 ? 1 : i === 3 ? 3 : i === 4 ? 4 : 99;
-  return `<span class="step ${i === 5 ? 'g' : i === 2 ? 'w' : ''}" title="${esc(stage)}">${L.map((n, k) => `<span class="${k < cur || i === 5 ? 'on' : k === cur ? 'cur' : ''}">${n}</span>`).join('')}</span>`;
+const STG_LEGEND = `<span class="legend">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n === '입금 대기' ? '입금·발송 대기' : n}</span>`).join('')}</span>`;
+function stepper(stage) { // 칸마다 실제 진행으로 표시: 검토 완료 → 청구 대기 → 입금 대기 → 발송 대기(입금 확인 · 보고서 발송 전) → 완료
+  const st = String(stage || ''), i = sIdx(st), L = ['점검', '보고서', '발송', '청구', '입금'];
+  if (i === 5) return `<span class="step g" title="${esc(st)}">${L.map((n) => `<span class="on">${n}</span>`).join('')}</span>`;
+  const after = { '청구 대기': 1, '입금 대기': 2, '발송 대기': 3 }[st] || 0; // 보고서 검토까지 끝난 뒤 몇 걸음 왔는지
+  const k = { 점검: i >= 2 || after ? 'on' : i === 1 ? 'cur' : '', 보고서: after ? 'on' : i === 2 ? 'cur' : '', 청구: after >= 2 ? 'on' : after === 1 ? 'cur' : '', 입금: after >= 3 ? 'on' : after === 2 ? 'cur' : '', 발송: after === 3 ? 'cur' : '' };
+  return `<span class="step ${i === 2 ? 'w' : ''}" title="${esc(st)}">${L.map((n) => `<span class="${k[n]}">${n}</span>`).join('')}</span>`;
 }
 function dbar(n, win) { if (n == null) return '<span class="muted">—</span>'; win = win || 30; const f = Math.max(0.04, Math.min(1, (win - n) / win)); return `<span class="dbar ${n < 0 ? 'r' : n <= 14 ? 'w' : ''}"><span class="b"><i style="width:${f * 100}%"></i></span>${dlTag(n)}</span>`; }
 function hbar(parts) { const tot = parts.reduce((a, p) => a + Math.max(0, p[1]), 0) || 1; return `<div class="hbar">${parts.map(([n, v, c]) => (v > 0 ? `<i style="width:${v / tot * 100}%;background:${c}" title="${esc(n)} ${won(v)}"></i>` : '')).join('')}</div>`; }
@@ -1272,6 +1275,9 @@ async function openForm(t, row, onSaved) {
       if (cs.value !== cid || !document.body.contains(m)) return;
       const left = rndSort((d.items || []).filter((x) => !x.점검일));
       box.innerHTML = `<span>잔여 점검 ${left.length}</span><div>${left.length ? `<div class="chips">${left.map((x) => `<button type="button" class="chip" data-ri="${esc(x.id)}" title="${x.예정일 ? '예정일 ' + esc(x.예정일) : '날짜 없음'}">${esc(nmI(x.항목, x.계약id))}${x.예정일 ? ` <small>${esc(String(x.예정일).slice(5).replace('-', '/'))}</small>` : ''}</button>`).join('')}</div><div class="sub" style="margin-top:4px">회차를 누르면 그 회차에 일정을 넣습니다 · 목록에 없는 점검은 아래 점검항목에 직접 입력</div>` : '<div class="sub" style="padding-top:5px">남은 점검이 없습니다 · 아래 점검항목에 직접 입력하세요</div>'}</div>`;
+      const dl = (d.deletedItems || []).filter((x) => !(d.items || []).some((y) => norm(y.항목) === norm(x.항목)));
+      if (dl.length && can('관리자')) box.lastElementChild.insertAdjacentHTML('beforeend', `<div class="sub" style="margin-top:6px">삭제한 회차: ${dl.map((x) => `<button type="button" class="chip" data-undel="${esc(x.id)}" title="삭제 전 내용 그대로 되살림">↺ ${esc(nmI(x.항목, x.계약id))}</button>`).join(' ')}</div>`);
+      $$('[data-undel]', box).forEach((b) => (b.onclick = async () => { b.disabled = true; try { const o = await api('undel', { t: '점검', id: b.dataset.undel }); if (o && o.ok === false) throw new Error(o.msg); invalidate(); LK = null; toast(`${o.row.항목} 회차를 되살렸습니다`); load(); } catch (e) { b.disabled = false; toast(e.message, true); } }));
       $$('[data-ri]', box).forEach((b) => (b.onclick = () => pick(left.find((x) => x.id === b.dataset.ri))));
     };
     cs.addEventListener('change', load); load();
@@ -1306,7 +1312,8 @@ async function openForm(t, row, onSaved) {
     }
   };
   if ($('#freiss', m)) $('#freiss', m).onclick = () => reissue(row, () => { m.remove(); onSaved && onSaved(row); });
-  if ($('#fdel', m)) $('#fdel', m).onclick = async () => {
+  if ($('#fdel', m) && t === '점검') $('#fdel', m).onclick = () => delInsp(row, () => { m.remove(); onSaved && onSaved(null); });
+  else if ($('#fdel', m)) $('#fdel', m).onclick = async () => {
     const nm = row.현장명 || row.계약명 || row.거래처명 || row.항목 || row.연락일 || row.품명 || '';
     if (!(await ask({ title: '삭제', msg: `「${nm}」을(를) 삭제합니다.\n삭제한 내용은 변경 이력에 남아 복구할 수 있습니다.`, type: nm, ok: '삭제', danger: true }))) { return; }
     try { await api('del', { t, id: row.id, ver: row.버전 }); m.remove(); invalidate(); LK = null; toast('삭제했습니다 (변경이력에 남아 복구할 수 있습니다)'); onSaved && onSaved(null); } catch (e) { $('#fmsg', m).textContent = e.message; }
@@ -1314,6 +1321,16 @@ async function openForm(t, row, onSaved) {
 }
 // 세금계산서 취소·재발행: 같은 청구 건에 새 발행일·금액만 바꾸고, 원래 발행일·금액·사유를 비고 맨 앞에 남김 (새 청구 건을 만들지 않아 중복 청구가 생기지 않음 · 수정 전 값은 변경 이력에도 남음)
 // 직인 이미지 준비: 큰 사진도 그대로 올릴 수 있게 브라우저에서 줄이고(긴 변 420px → 60KB 넘으면 더 줄임), 흰 배경은 투명하게 (명세서 글자 위에 찍혀도 가리지 않게) → 400KB 이하 PNG
+// 점검 일정 삭제: 「일정만 지우기」(날짜만 비움 → 회차는 잔여 점검으로 남음) / 「회차 삭제」(회차 자체 · 관리자 · 나중에 되살리기 가능) 중 고름
+function delInsp(row, done) {
+  const prog = row.작성완료일 || row.발송일, hasDate = !!(row.예정일 || row.점검일) && !prog; // 보고서 작성·발송까지 간 회차는 날짜만 지우면 기록이 어긋나므로 막음
+  const d = modal('점검 일정 삭제', `<p style="margin:0 0 6px"><b>${esc(nmI(row.항목, row.계약id))}</b>${row.점검일 ? ' · 점검일 ' + esc(row.점검일) : row.예정일 ? ' · 예정일 ' + esc(row.예정일) : ''}</p>
+    <p class="sub" style="margin:0">「일정만 지우기」는 예정일·점검일만 비우고 회차는 <b>잔여 점검</b>으로 남깁니다.<br>「회차 삭제」는 이 회차 자체를 지웁니다 (계약 상세 「회차 정리」나 새 등록 창에서 되살릴 수 있음).</p>${prog ? `<p class="note warn" style="margin:8px 0 0">보고서 ${row.발송일 ? '발송' : '작성 완료'} 기록이 있는 회차라 날짜만 지울 수 없습니다. 날짜가 틀렸다면 「수정」에서 고치세요.</p>` : ''}`,
+    `<span class="msg" id="dxM"></span><button class="btn" data-close>취소</button>${can('관리자') ? '<button class="btn dan" id="dxAll">회차 삭제</button>' : ''}${hasDate ? '<button class="btn pri" id="dxDate">일정만 지우기</button>' : ''}`);
+  const run = async (b, f) => { b.disabled = true; try { await f(); d.remove(); invalidate(); LK = null; done && done(); } catch (e) { b.disabled = false; $('#dxM', d).textContent = e.message; } };
+  if ($('#dxDate', d)) $('#dxDate', d).onclick = (e) => run(e.target, async () => { await api('save', { t: '점검', row: { id: row.id, 예정일: '', 점검일: '' }, ver: row.버전 }); toast('일정을 지웠습니다 · 회차는 잔여 점검으로 남았습니다'); });
+  if ($('#dxAll', d)) $('#dxAll', d).onclick = (e) => run(e.target, async () => { await api('del', { t: '점검', id: row.id, ver: row.버전 }); toast('회차를 삭제했습니다 (되살릴 수 있습니다)'); });
+}
 function sealPrep(file) {
   return new Promise((res) => {
     const img = new Image(), u = URL.createObjectURL(file);
@@ -1407,7 +1424,7 @@ PAGES.home = async (m) => {
   m.innerHTML = head('업무 현황', `<span class="sub">기준일 ${r.today}</span><button class="btn" id="rf">새로고침</button>`) + `
   <div class="sumline">
     <button data-go="sites"><span>진행 중 현장</span><b>${k.진행현장}<small>곳 · 완료 ${k.완료현장}</small></b></button>
-    ${(() => { const fz = r.final ? r.final.미작성 + r.final.작성중 : 0; return `<button data-go="${fz && !k.작성중 ? 'finals' : 'todo'}"><span>보고서 작성 중</span><b>${k.작성중 + fz}<small>건${k.작성완료 ? ` · 작성 완료 ${k.작성완료}` : ''}</small></b></button>`; })()}
+    ${(() => { const fz = r.final ? r.final.미작성 + r.final.작성중 : 0; return `<button data-go="${fz && !k.작성중 ? 'finals' : 'todo'}"><span>보고서 작성 중</span><b>${k.작성중 + fz}<small>건</small></b></button><button data-go="reviews" title="보고서 작성 완료일만 기록되고 아직 검토 요청·발송 전인 보고서"><span>작성 완료 · 검토 전</span><b class="${k.작성완료 ? 'warn' : ''}">${k.작성완료 || 0}<small>건</small></b></button>`; })()}
     <button data-go="todo"><span>제출 기한 14일 이내</span><b class="${k.기한14 ? 'warn' : ''}">${k.기한14}<small>건${k.기한초과 ? ` · 초과 ${k.기한초과}` : ''}</small></b></button>
     <button data-go="todo"><span>처리할 일</span><b class="${S.todoN ? 'bad' : ''}">${S.todoN}<small>건</small></b></button>
     <button data-go="collect"><span>입금 대기</span><b>${won(k.입금대기)}<small>원 · ${k.입금대기건}건</small></b></button>
@@ -1417,7 +1434,7 @@ PAGES.home = async (m) => {
     <section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">기한 7일 이내 · 연락일 지남 · 자료·메일 회신 지연</span><a href="#todo" data-go="todo">전체 보기</a></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
     <section class="panel"><div class="ph"><h2>보고서 제출 기한</h2><span class="sub">작성 중 ${k.작성중}건${k.작성완료 ? ` · 작성 완료(검토·발송 전) ${k.작성완료}건` : ''} · 기한 가까운 순</span></div><div class="tbox">
       <table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th><th>비고</th></tr></thead><tbody>
-      ${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(nmI(w.항목, w.계약id, w.현장id))}${w.작성완료일 ? ' <span class="tag wd">보고서 작성 완료</span>' : ''}</div></td><td class="nw sub">${esc(w.점검일 || '—')}</td><td class="nw">${esc(w.기한 || '—')}</td><td>${dbar(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`).join('')}${finalRows(r.final && r.final.open, 5)}${!r.writing.length && !(r.final && r.final.open.length) ? '<tr><td colspan="5" class="empty">제출 전 보고서가 없습니다</td></tr>' : ''}
+      ${wGroups(r.writing, (w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(nmI(w.항목, w.계약id, w.현장id))}${w.작성완료일 ? ` <span class="tag wd">작성 완료 ${esc(md(w.작성완료일))}</span>` : ''}</div></td><td class="nw sub">${esc(w.점검일 || '—')}</td><td class="nw">${esc(w.기한 || '—')}</td><td>${dbar(w.남은날)}</td><td class="sub">${esc(w.비고)}</td></tr>`, 5, k)}${finalRows(r.final && r.final.open, 5)}${!r.writing.length && !(r.final && r.final.open.length) ? '<tr><td colspan="5" class="empty">제출 전 보고서가 없습니다</td></tr>' : ''}
       </tbody></table></div></section>
     ${r.final ? `<section class="panel"><div class="ph"><h2>종합보고서</h2><span class="sub">용역 완료 계약의 추가 요청 · 정기점검 보고서와 별도</span><a href="#finals" data-go="finals">관리</a></div>
       <div class="sumline flat"><button data-go="finals"><span>용역 완료</span><b>${r.final.완료용역}<small>건</small></b></button><button data-go="finals"><span>종합보고서 요청</span><b>${r.final.요청}<small>건</small></b></button><button data-go="finals" data-fst="미작성"><span>미작성</span><b class="${r.final.미작성 ? 'warn' : ''}">${r.final.미작성}</b></button><button data-go="finals" data-fst="작성 중"><span>작성 중</span><b>${r.final.작성중}${r.final.검토중 ? `<small> · 내부 검토 ${r.final.검토중}</small>` : ''}</b></button><button data-go="finals" data-fst="제출 완료"><span>제출 완료</span><b>${r.final.제출완료}</b></button></div>
@@ -1433,7 +1450,7 @@ PAGES.home = async (m) => {
       <tfoot><tr><td>12개월</td><td class="num">${months.reduce((a2, x) => a2 + ((mo.monthly[x] || {}).건수 || 0), 0)}</td><td class="num">${won(mv(0, '청구').reduce((a2, b2) => a2 + b2, 0))}</td><td class="num">${won(mv(0, '수금').reduce((a2, b2) => a2 + b2, 0))}</td><td class="num">${won(mv(0, '청구').reduce((a2, b2) => a2 + b2, 0) - mv(0, '수금').reduce((a2, b2) => a2 + b2, 0))}</td></tr></tfoot></table></div></section>
     <section class="panel"><div class="ph"><h2>진행 중 현장의 점검 단계</h2><span class="sub">${si.sites.filter((s) => s.진행).length}곳 · 점검 ${distTot}건</span></div><div class="sec">
       ${hbar(dist.map((v, i) => [STG[i], v, `var(--s${i})`]))}
-      <div class="legend" style="margin-top:8px">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n} <b>${dist[i]}</b></span>`).join('')}</div></div></section>
+      <div class="legend" style="margin-top:8px">${STG.map((n, i) => `<span><i style="background:var(--s${i})"></i>${n === '보고서 작성중' ? '작성 중' : n === '입금 대기' ? '입금·발송 대기' : n} <b>${dist[i]}</b></span>`).join('')}</div></div></section>
     <section class="panel"><div class="ph"><h2>최근 연락</h2><a href="#contacts" data-go="contacts">전체</a></div><div class="sec">
       ${timeline(r.contacts.slice(0, 5).map((c) => ({ d: `${c.연락일} · ${c.방법 || ''} ${c.담당자 || ''}`, h: `<a href="#" data-site="${esc(c.현장id)}">${esc(c.현장명)}</a><div class="sub">${esc(String(c.메모 || c.공정 || '').slice(0, 70))}</div>` }))) || '<div class="sub">없음</div>'}</div></section>
     ${r.recent.length ? `<details class="panel fold" id="recentBox" ${S.recentOpen ? 'open' : ''}><summary class="ph"><h2>최근 변경</h2><span class="sub">웹에서 등록·수정 ${r.recent.length}건 · 마지막 ${esc(r.recent[0].시각)}</span><i class="chev" aria-hidden="true"></i></summary><div class="sec"><table class="mini"><tbody>${r.recent.map((x) => `<tr><td class="nw sub">${esc(x.시각)}</td><td>${esc(x.표)} ${esc(x.동작)}</td><td class="sub">${esc(x.사용자)}</td></tr>`).join('')}</tbody></table></div></details>` : ''}
@@ -1525,9 +1542,15 @@ PAGES.todo = async (m) => {
   const r = await api('dash', {}, { cache: true });
   r.rq = await api('requests', {}, { cache: true }).catch(() => ({ requests: [], mails: [] }));
   m.innerHTML = head('내 할 일') + `<section class="panel"><div class="ph"><h2>처리할 일</h2><span class="sub">보고서 기한 7일 이내 · 다음 연락일이 지난 현장 · 7일 넘게 못 받은 자료·메일 회신</span></div>${todoTable(r) || '<div class="empty">지금 처리할 일이 없습니다</div>'}</section>
-  <section class="panel"><div class="ph"><h2>제출 전 보고서 전체</h2><span class="sub">${r.writing.length + ((r.final && r.final.open.length) || 0)}건 · 작성 완료 ${r.writing.filter((w) => w.작성완료일).length}건${r.final && r.final.open.length ? ` · 종합보고서 ${r.final.open.length}건` : ''}</span></div><div class="tbox"><table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th></tr></thead><tbody>${r.writing.map((w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(nmI(w.항목, w.계약id, w.현장id))}${w.작성완료일 ? ' <span class="tag wd">보고서 작성 완료</span>' : ''}</div></td><td class="nw sub">${esc(w.점검일)}</td><td class="nw">${esc(w.기한)}</td><td>${dbar(w.남은날)}</td></tr>`).join('')}${finalRows(r.final && r.final.open, 4)}${!r.writing.length && !(r.final && r.final.open.length) ? '<tr><td colspan="4" class="empty">없음</td></tr>' : ''}</tbody></table></div></section>`;
+  <section class="panel"><div class="ph"><h2>제출 전 보고서 전체</h2><span class="sub">${r.writing.length + ((r.final && r.final.open.length) || 0)}건 · 작성 완료 ${r.writing.filter((w) => w.작성완료일).length}건${r.final && r.final.open.length ? ` · 종합보고서 ${r.final.open.length}건` : ''}</span></div><div class="tbox"><table><thead><tr><th>현장 · 점검항목</th><th>점검일</th><th>제출 기한</th><th>남은 날</th></tr></thead><tbody>${wGroups(r.writing, (w) => `<tr class="click" data-site="${esc(w.현장id)}"><td><div class="t1">${esc(w.현장)}${subN(w.시공사)}</div><div class="t2">${esc(nmI(w.항목, w.계약id, w.현장id))}${w.작성완료일 ? ` <span class="tag wd">작성 완료 ${esc(md(w.작성완료일))}</span>` : ''}</div></td><td class="nw sub">${esc(w.점검일)}</td><td class="nw">${esc(w.기한)}</td><td>${dbar(w.남은날)}</td></tr>`, 4)}${finalRows(r.final && r.final.open, 4)}${!r.writing.length && !(r.final && r.final.open.length) ? '<tr><td colspan="4" class="empty">없음</td></tr>' : ''}</tbody></table></div></section>`;
   bindCommon(m);
 };
+// 제출 전 보고서를 「작성 중」과 「작성 완료(작성일만 기록 · 검토·발송 전)」로 나눠 줄 묶음
+function wGroups(list, row, cols, k) {
+  const a = list.filter((w) => !w.작성완료일), b = list.filter((w) => w.작성완료일), na = k ? k.작성중 : a.length, nb = k ? k.작성완료 : b.length;
+  const h = (t, n, shown, sub) => `<tr class="grp"><td colspan="${cols}"><b>${t}</b> <span class="sub">${n}건${shown < n ? ` · 기한 가까운 ${shown}건 표시` : ''}${sub ? ' · ' + sub : ''}</span></td></tr>`;
+  return (a.length ? h('작성 중', na, a.length) + a.map(row).join('') : '') + (b.length ? h('작성 완료 · 검토·발송 전', nb, b.length, '보고서 작성일만 기록됨 → 「보고서 검토 관리」에서 검토 요청') + b.map(row).join('') : '');
+}
 function bindCommon(root) {
   $$('[data-cday]', root).forEach((a) => (a.onclick = (e) => { e.preventDefault(); e.stopPropagation(); cdayAsk(a.dataset.cday, render); }));
   $$('[data-go]', root).forEach((b) => (b.onclick = (e) => { e.preventDefault(); go(b.dataset.go, b.dataset.fst ? { st: b.dataset.fst } : undefined); }));
@@ -1620,7 +1643,7 @@ async function siteDetail(el, id, tab) {
   const addT = () => openForm('연락', { 현장id: id, 연락일: today(), 방법: '전화' }, reload);
   $('#addT2', el).onclick = addT; if ($('#addT', el)) $('#addT', el).onclick = addT;
   if ($('#addI', el)) $('#addI', el).onclick = () => openForm('점검', { 계약id: (r.contracts.find((c) => c.상태 === '진행중') || r.contracts[0] || {}).id }, reload);
-  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal(r.contracts, r.items, reload);
+  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal(r.contracts, r.items, reload, r.deletedItems || []);
   $$('[data-ei]', el).forEach((b) => (b.onclick = () => openForm('점검', r.items.find((x) => x.id === b.dataset.ei), reload)));
   // 보고서 작성 완료 표시·취소 — 작성완료일만 바꾸고 검토·발송 상태는 건드리지 않음
   const setW = async (b, id, v) => {
@@ -1661,7 +1684,8 @@ function rndIssues(items) { // "비계2차 중복 · 해체3차 빠짐"
   return out.join(' · ');
 }
 /** 회차 정리: 이름 고치기 · 빈 회차 삭제 · 회차 추가 · 중복/빠진 회차 자동 정리 제안 */
-function rndModal(contracts, items, onDone) {
+function rndModal(contracts, items, onDone, deleted) {
+  deleted = (deleted || []).slice();
   const live = contracts.filter((c) => c && c.id); if (!live.length) return toast('계약이 없습니다', true);
   let cid = (live.find((c) => c.상태 === '진행중') || live[0]).id;
   const empty = (x) => !x.점검일 && !x.발송일 && !x.작성완료일 && (!x.단계 || x.단계 === '점검 전');
@@ -1673,9 +1697,12 @@ function rndModal(contracts, items, onDone) {
     $('#rnd', d).innerHTML = `${live.length > 1 ? `<div class="seg" role="group" style="margin-bottom:10px">${live.map((c) => `<button data-rc="${esc(c.id)}" class="${c.id === cid ? 'on' : ''}">${esc(c.연도 || '')} ${esc(String(c.계약명).slice(0, 14))}</button>`).join('')}</div>` : ''}
       ${iss ? `<div class="note" style="margin:0 0 10px"><b>확인 필요:</b> ${esc(iss)}${dupEmpty.length || miss.length ? `<div style="margin-top:6px"><button class="btn sm pri" id="rnAuto">자동 정리: ${[dupEmpty.length ? `진행 안 된 중복 ${dupEmpty.length}개 삭제` : '', miss.length ? `${miss.join(', ')} 추가` : ''].filter(Boolean).join(' · ')}</button></div>` : ''}</div>` : '<div class="note info" style="margin:0 0 10px">중복되거나 빠진 회차가 없습니다.</div>'}
       <div class="tbox"><table class="mini rndt keep"><thead><tr><th>회차 이름</th><th>진행</th><th>점검일</th><th></th></tr></thead><tbody>${L.map((x) => `<tr class="${cnt[norm(x.항목)] > 1 ? 'dup' : ''}"><td><input class="inp" data-rn="${esc(x.id)}" value="${esc(x.항목)}" aria-label="회차 이름"></td><td>${stageTag(x.단계 || '점검 전')}</td><td class="sub nw" title="${esc(x.점검일 || x.예정일 || '')}">${esc(x.점검일 ? md(x.점검일) : x.예정일 ? md(x.예정일) + ' 예정' : '—')}</td><td class="act">${empty(x) && can('관리자') ? `<button class="btn sm ghost" data-rdel="${esc(x.id)}">삭제</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="4" class="sub">회차가 없습니다</td></tr>'}</tbody></table></div>
+      ${(() => { const dl = deleted.filter((x) => x.계약id === cid); return dl.length ? `<div class="note" style="margin:10px 0 0"><b>삭제한 회차 ${dl.length}개</b> · 눌러서 되살립니다 (삭제 전 내용 그대로)<div class="chips" style="margin-top:6px">${dl.map((x) => `<button type="button" class="chip" data-undel="${esc(x.id)}">↺ ${esc(nmI(x.항목, x.계약id))}${x.점검일 || x.예정일 ? ` <small>${esc(String(x.점검일 || x.예정일).slice(5).replace('-', '/'))}</small>` : ''}</button>`).join('')}</div></div>` : ''; })()}
       <div style="display:flex;gap:6px;margin-top:10px"><input class="inp" id="rnNew" placeholder="새 회차 이름 (예: 해체3차)" style="flex:1"><button class="btn" id="rnAdd">회차 추가</button></div>
       <p class="sub" style="margin:8px 0 0">이름을 고친 뒤 「이름 바꾼 것 저장」을 누르세요. 삭제는 아직 진행되지 않은(점검일·발송 기록 없는) 회차만 할 수 있고, 변경 이력에 남아 복구할 수 있습니다. 같은 계약에 같은 이름의 회차는 새로 만들 수 없습니다.</p>`;
     $$('[data-rc]', d).forEach((b) => (b.onclick = () => { cid = b.dataset.rc; draw(); }));
+    $$('[data-undel]', d).forEach((b) => (b.onclick = async () => { const x = deleted.find((y) => y.id === b.dataset.undel); b.disabled = true;
+      try { const o = await api('undel', { t: '점검', id: x.id }); if (o && o.ok === false) throw new Error(o.msg); deleted.splice(deleted.indexOf(x), 1); items.push(Object.assign({}, o.row, { 단계: o.row.점검일 ? '' : '점검 전' })); changed = 1; invalidate(); LK = null; draw(); toast(`${x.항목} 회차를 되살렸습니다`); } catch (e) { b.disabled = false; toast(e.message, true); } }));
     $$('[data-rdel]', d).forEach((b) => (b.onclick = async () => { const x = items.find((y) => y.id === b.dataset.rdel); if (!(await ask({ title: '회차 삭제', msg: `「${x.항목}」 회차를 삭제합니다.\n(진행 기록이 없는 회차 · 변경 이력에서 복구 가능)`, ok: '삭제' }))) return;
       try { const o = await api('del', { t: '점검', id: x.id, ver: x.버전 }); if (o && o.ok === false) throw new Error(o.msg); items.splice(items.indexOf(x), 1); changed = 1; draw(); toast(`${x.항목} 삭제`); } catch (e) { toast(e.message, true); } }));
     $('#rnAdd', d).onclick = () => add([$('#rnNew', d).value.trim()]);
@@ -1792,7 +1819,7 @@ async function contractDetail(el, id, openCalc) {
   $('#addB', el).onclick = () => openForm('청구', { 계약id: id, 발행일: today() }, reload);
   $$('[data-eb]', el).forEach((b) => (b.onclick = () => openForm('청구', r.invoices.find((x) => x.id === b.dataset.eb), reload)));
   $('#mkTS', el).onclick = () => go('statement', { contract: id });
-  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal([c], r.items.map((x) => Object.assign({ 계약id: id }, x)), reload);
+  if ($('#rndFix', el)) $('#rndFix', el).onclick = () => rndModal([c], r.items.map((x) => Object.assign({ 계약id: id }, x)), reload, r.deletedItems || []);
   const setSt = async (v, msg) => { if (!(await ask({ title: msg[0], msg: msg[1], ok: msg[0] }))) return;
     const row = { id, 상태지정: v }; if (v) row.상태 = v; if (v === '완료' && !c.완료일) row.완료일 = today();
     try { const out = await api('save', { t: '계약', row, ver: c.버전 }); if (out.ok === false) throw new Error(out.msg); invalidate(); LK = null; toast(msg[2]); go(v === '진행중' ? 'contracts' : v === '완료' ? 'done' : S.page, { id }); } catch (e) { toast(e.message, true); } };
@@ -1927,8 +1954,7 @@ PAGES.schedule = async (m, p) => {
     ev0.stopPropagation();
     const e = evs[+b.dataset.xd];
     const row = await evRow(e, '삭제'); if (!row) return;
-    if (!(await ask({ title: '점검 일정 삭제', msg: `${e.d} · ${e.현장}\n「${row.항목 || ''}」 ${e.k === '점검' ? '점검' : '점검 예정'}을 삭제합니다.\n이 점검 1건만 삭제되며, 변경 이력에 남아 복구할 수 있습니다.`, ok: '삭제', danger: true }))) return;
-    try { await api('del', { t: '점검', id: row.id, ver: row.버전 }); invalidate(); toast('점검 일정을 삭제했습니다'); render(); } catch (er) { toast(er.message, true); }
+    delInsp(row, () => render());
   }));
   $$('[data-v]', m).forEach((b) => (b.onclick = () => { st.view = b.dataset.v; pref.set('calView', st.view); render(); }));
   $$('[data-d]', m).forEach((b) => (b.onclick = () => { st.sel = b.dataset.d; render(); }));
@@ -3223,7 +3249,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-24n';
+const APP_VERSION = '2026-11-25d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-24d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-25a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -355,6 +355,7 @@ const ACTIONS = {
   history: (who, a) => ({ history: history_(a.t, a.id) }),
   save: (who, a) => withAfter_(who, a, save_(who, a.t, a.row || {}, a.ver)),
   del: (who, a) => withAfter_(who, a, save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true)),
+  undel: (who, a) => withAfter_(who, a, undel_(who, a)),
   saveDoc: (who, a) => saveDoc_(who, a.doc || {}, a.ver, !!a.issue),
   cancelDoc: (who, a) => cancelDoc_(who, a),
   // 관리자
@@ -604,7 +605,7 @@ function siteDetail_(id) {
   // 점검별 내부 검토 이력 (보고서 검토 관리에서): 마지막 요청일 · 검토 완료 회신일
   const RVI = {}; live_('검토').filter((v) => ids.indexOf(v.계약id) >= 0).forEach((v) => { const k = v.계약id + '|' + key_(v.항목), o = RVI[k] = RVI[k] || { 요청: '', 회신: '' }; if (v.요청일 && String(v.요청일) > o.요청) o.요청 = String(v.요청일); if (v.상태 === '검토완료' && v.회신일 && String(v.회신일) > o.회신) o.회신 = String(v.회신일); });
   const items = live_('점검').filter((x) => ids.indexOf(x.계약id) >= 0).map((x) => { const rv = RVI[x.계약id + '|' + key_(x.항목)] || {}; return Object.assign(clean_(x), { 단계: stageOf_(x), 남은날: x.기한 && isWriting_(stageOf_(x)) ? dd_(x.기한, T) : null, 검토요청일: rv.요청 || '', 검토회신일: rv.회신 || '' }); });
-  return { site: clean_(s), contracts: cs, items, invoices: live_('청구').filter((b) => ids.indexOf(b.계약id) >= 0).map(clean_).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일))),
+  return { site: clean_(s), contracts: cs, items, deletedItems: rows_('점검').filter((x) => ids.indexOf(x.계약id) >= 0 && x.삭제 === 'Y').map(clean_), invoices: live_('청구').filter((b) => ids.indexOf(b.계약id) >= 0).map(clean_).sort((a, b) => String(b.발행일).localeCompare(String(a.발행일))),
     contacts: live_('연락').filter((x) => x.현장id === id).map(clean_).sort((a, b) => String(b.연락일).localeCompare(String(a.연락일))),
     docs: live_('문서').filter((d) => d.현장id === id || ids.indexOf(d.계약id) >= 0).map(clean_),
     requests: requestsList_().filter((q) => q.현장id === id), mails: mailsList_().filter((m) => m.현장id === id) };
@@ -615,6 +616,7 @@ function contractDetail_(id) {
   const Pn = byId_('거래처'), inv = live_('청구'), m = contractMoney_(c, inv);
   return { contract: Object.assign(clean_(c), m, { 현장명: (byId_('현장')[c.현장id] || {}).현장명 || '', 발주처: clean_(Pn[c.발주처id] || {}), 실제입금처: clean_(Pn[c.실제입금처id] || {}), 시공사: clean_(Pn[c.시공사id] || {}) }),
     items: live_('점검').filter((x) => x.계약id === id).map((x) => Object.assign(clean_(x), { 단계: stageOf_(x) })),
+    deletedItems: rows_('점검').filter((x) => x.계약id === id && x.삭제 === 'Y').map(clean_), // 삭제한 회차 (되살리기용)
     invoices: inv.filter((b) => b.계약id === id).map((b) => Object.assign(clean_(b), { 명세서: live_('문서').filter((d) => d.청구id === b.id && (d.상태 === '발행' || d.상태 === '취소')).map((d) => ({ id: d.id, 번호: d.번호, 상태: d.상태, 다름: docDiff_(d, b) })) })).sort((a, b) => String(a.발행일).localeCompare(String(b.발행일))),
     docs: live_('문서').filter((d) => d.계약id === id).map(clean_), prices: live_('단가').filter((u) => u.계약id === id).map(clean_),
     final: (live_('종합').find((f) => f.계약id === id) || null) };
@@ -759,7 +761,7 @@ function dash_() {
     kpi: { 진행현장: active.length, 완료현장: sites.length - active.length, 작성중: writing.filter((w) => !w.작성완료일).length, 작성완료: writing.filter((w) => w.작성완료일).length, 기한14: writing.filter((w) => w.남은날 != null && w.남은날 <= 14).length, 기한초과: writing.filter((w) => w.남은날 != null && w.남은날 < 0).length,
       입금대기: waitInv.reduce((s, b) => s + b.미입금, 0), 입금대기건: waitInv.length, 계약진행: m.contracts.filter((c) => c.상태 === '진행중').length, 계약완료: m.contracts.filter((c) => c.상태 !== '진행중').length },
     final: (() => { try { const f = finals_(); return Object.assign({}, f.kpi, { open: f.list.filter((r) => r.상태 !== '제출 완료').slice(0, 40).map((r) => Object.assign({}, r, { 검토: undefined, 파일: undefined })) }); } catch (e) { return null; } })(),
-    writing: writing.slice(0, 12), waitInv: waitInv.sort((a, b) => b.경과 - a.경과).slice(0, 10), contacts: contactsList_().slice(0, 6), todo, builder,
+    writing: writing.filter((w) => !w.작성완료일).slice(0, 12).concat(writing.filter((w) => w.작성완료일).slice(0, 12)), /* 작성 중 · 작성 완료(작성일만 기록, 검토·발송 전)를 따로 12건씩 */ waitInv: waitInv.sort((a, b) => b.경과 - a.경과).slice(0, 10), contacts: contactsList_().slice(0, 6), todo, builder,
     reviews: reviewsList_().filter((r) => r.대기), jobs: live_('일지').filter((j) => (j.상태 === '진행중' || j.상태 === '이월') && j.날짜 < T).sort((a, b) => String(b.날짜).localeCompare(String(a.날짜))).slice(0, 10).map(clean_),
     years: m.years, recent: recentChanges_(8) };
 }
@@ -1743,6 +1745,27 @@ function exportInfo_() {
   return { ready: !!sync, file, synced: sync ? sync.at : '', last: setting_('마지막 엑셀 저장'), error: setting_('엑셀 저장 오류'), pending: d ? fmtT_(new Date(d)) : '' };
 }
 /** 화면에 안 보이는 계산 칸만 조용히 고침 (버전·변경이력 그대로) */
+/** 삭제한 점검 회차 되살리기: 삭제 표시만 지움 (내용은 삭제 전 그대로) · 같은 이름의 회차가 이미 있으면 막음 · 변경 이력에 「복구」 */
+function undel_(who, a) {
+  const t = a.t; if (t !== '점검') throw new Error('지금은 삭제한 점검 회차만 되살릴 수 있습니다.');
+  need_(who, '관리자');
+  if ((setting_('원본') || '엑셀') === '엑셀') throw new Error('지금은 엑셀이 원본이라 웹에서 고칠 수 없습니다.');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    TBL_ = {}; ensureCols_(t);
+    const cols = SCHEMA[t].concat(META), sh = db_().getSheetByName(t), cur = rows_(t).find((r) => r.id === a.id);
+    if (!cur) throw new Error('되살릴 회차를 찾지 못했습니다. 새로고침해 보세요.');
+    if (cur.삭제 !== 'Y') return { row: clean_(cur) };
+    const next = Object.assign(clean_(cur), { 삭제: '' });
+    if (live_(t).some((x) => x.id !== cur.id && x.계약id === cur.계약id && key_(x.항목) === key_(cur.항목))) return { ok: false, code: 'invalid', msg: `이 계약에 「${cur.항목}」 회차가 이미 있어 되살릴 수 없습니다. 지금 있는 회차를 쓰세요.` };
+    const err = validate_(t, next, cur); if (err) return { ok: false, code: 'invalid', msg: err };
+    next.버전 = cur.버전 + 1; next.수정일 = fmtT_(new Date()); next.수정자 = who.user.email;
+    sh.getRange(cur._row, 1, 1, cols.length).setValues([cols.map((c) => (next[c] == null ? '' : next[c]))]);
+    log_(who, t, next.id, '복구', cur, next);
+    delete TBL_[t]; derive_(true);
+    return { row: next };
+  } finally { lock.releaseLock(); }
+}
 function setSilent_(t, id, ch) {
   const r = rows_(t).find((x) => x.id === id); if (!r) return;
   const cols = SCHEMA[t].concat(META), sh = db_().getSheetByName(t);
