@@ -1282,7 +1282,7 @@ async function openForm(t, row, onSaved) {
       // 삭제한 회차: 같은 이름 회차가 새로 생겼어도 숨기지 않음 (누르면 서버가 이유를 알려 줌) · 점검 입력 권한이면 누구나 되살림 (보기 전용·엑셀 원본일 때만 막힘)
       const dl = d.deletedItems || [], adm = canEdit('점검');
       if (dl.length) box.lastElementChild.insertAdjacentHTML('beforeend', `<div class="sub" style="margin-top:6px">삭제한 회차${adm ? '' : ' (보기 전용이라 되살릴 수 없음)'}: ${dl.map((x) => { const dup = (d.items || []).some((y) => norm(y.항목) === norm(x.항목)), dt = x.점검일 || x.예정일; return `<button type="button" class="chip" data-undel="${esc(x.id)}" ${adm ? '' : 'disabled'} title="${dup ? '같은 이름 회차가 이미 있음 · 그 회차를 먼저 정리해야 되살릴 수 있습니다' : '삭제 전 내용 그대로 되살림'}">↺ ${esc(nmI(x.항목, x.계약id))}${dt ? ` <small>${esc(String(dt).slice(5).replace('-', '/'))}</small>` : ''}${dup ? ' <small>(같은 이름 있음)</small>' : ''}</button>`; }).join(' ')}</div>`);
-      $$('[data-undel]', box).forEach((b) => (b.onclick = async () => { b.disabled = true; try { const o = await api('undel', { t: '점검', id: b.dataset.undel }); if (o && o.ok === false) throw new Error(o.msg); invalidate(); LK = null; toast(`${o.row.항목} 회차를 되살렸습니다`); load(); } catch (e) { b.disabled = false; toast(e.message, true); } }));
+      $$('[data-undel]', box).forEach((b) => (b.onclick = async () => { b.disabled = true; try { const r = await undelInsp(dl.find((x) => x.id === b.dataset.undel)); if (r) load(); else b.disabled = false; } catch (e) { b.disabled = false; toast(e.message, true); } }));
       $$('[data-ri]', box).forEach((b) => (b.onclick = () => pick(left.find((x) => x.id === b.dataset.ri))));
     };
     cs.addEventListener('change', load); load();
@@ -1326,14 +1326,38 @@ async function openForm(t, row, onSaved) {
 }
 // 세금계산서 취소·재발행: 같은 청구 건에 새 발행일·금액만 바꾸고, 원래 발행일·금액·사유를 비고 맨 앞에 남김 (새 청구 건을 만들지 않아 중복 청구가 생기지 않음 · 수정 전 값은 변경 이력에도 남음)
 // 직인 이미지 준비: 큰 사진도 그대로 올릴 수 있게 브라우저에서 줄이고(긴 변 420px → 60KB 넘으면 더 줄임), 흰 배경은 투명하게 (명세서 글자 위에 찍혀도 가리지 않게) → 400KB 이하 PNG
-// 점검 일정 삭제: 「일정만 지우기」(날짜만 비움 → 회차는 잔여 점검으로 남음) / 「회차 삭제」(회차 자체 · 관리자 · 나중에 되살리기 가능) 중 고름
+// 점검 일정 삭제: 일정(예정일·점검일)이 있으면 「일정 지우기」만 → 회차는 자동으로 잔여 점검 · 「회차 삭제」는 날짜 없는 회차(관리자)나 회차 정리에서
+// 삭제한 점검 회차 되살리기 (새 점검 등록 창 · 회차 정리 공용)
+// 날짜가 있던 회차는 「잔여 점검으로(일정 비움)」/「삭제 전 그대로」를 고름 · 보고서 작성·발송 기록이 있는 회차는 그대로만 (기록 보호)
+// 돌려줌: 되살린 뒤 행 (취소하면 null)
+function undelInsp(x) {
+  return new Promise((res, rej) => {
+    const dt = x.점검일 ? '점검일 ' + x.점검일 : x.예정일 ? '예정일 ' + x.예정일 : '', prog = x.작성완료일 || x.발송일;
+    const go = async (left) => {
+      const o = await api('undel', { t: '점검', id: x.id }); if (o && o.ok === false) throw new Error(o.msg);
+      let row = o.row;
+      if (left && (row.예정일 || row.점검일)) { const s2 = await api('save', { t: '점검', row: { id: row.id, 예정일: '', 점검일: '' }, ver: row.버전 }); if (s2 && s2.ok === false) throw new Error(s2.msg); row = Object.assign({}, row, (s2 && s2.row) || { 예정일: '', 점검일: '' }); }
+      invalidate(); LK = null;
+      toast(left || !row.점검일 ? `${row.항목} 회차를 되살렸습니다 · 잔여 점검에 있습니다` : `${row.항목} 회차를 되살렸습니다 · ${dt}이 있어 점검 이력으로 돌아갔습니다`);
+      return row;
+    };
+    if (!dt || prog) { go(false).then(res, rej); return; }
+    const d = modal('삭제한 회차 되살리기', `<p style="margin:0 0 6px"><b>${esc(nmI(x.항목, x.계약id))}</b> · ${esc(dt)}</p>
+      <p class="sub" style="margin:0">「잔여 점검으로」는 날짜를 비우고 <b>잔여 점검</b>에 넣습니다 (다시 일정을 잡을 때).<br>「삭제 전 그대로」는 ${esc(dt)}까지 그대로 되살립니다${x.점검일 ? ' (점검을 이미 한 회차일 때)' : ''}.</p>`,
+      `<span class="msg" id="udM"></span><button class="btn" data-close>취소</button><button class="btn" id="udAs">삭제 전 그대로</button><button class="btn pri" id="udLeft">잔여 점검으로</button>`);
+    let fin = false; const end = (v) => { if (!fin) { fin = true; d.remove(); res(v); } };
+    $$('[data-close]', d).forEach((b) => (b.onclick = () => end(null)));
+    const run = (b, left) => async () => { b.disabled = true; try { end(await go(left)); } catch (e) { b.disabled = false; $('#udM', d).textContent = e.message; } };
+    $('#udLeft', d).onclick = run($('#udLeft', d), true); $('#udAs', d).onclick = run($('#udAs', d), false);
+  });
+}
 function delInsp(row, done) {
   const prog = row.작성완료일 || row.발송일, hasDate = !!(row.예정일 || row.점검일) && !prog; // 보고서 작성·발송까지 간 회차는 날짜만 지우면 기록이 어긋나므로 막음
   const d = modal('점검 일정 삭제', `<p style="margin:0 0 6px"><b>${esc(nmI(row.항목, row.계약id))}</b>${row.점검일 ? ' · 점검일 ' + esc(row.점검일) : row.예정일 ? ' · 예정일 ' + esc(row.예정일) : ''}</p>
-    <p class="sub" style="margin:0">「일정만 지우기」는 예정일·점검일만 비우고 회차는 <b>잔여 점검</b>으로 남깁니다.<br>「회차 삭제」는 이 회차 자체를 지웁니다 (계약 상세 「회차 정리」나 새 등록 창에서 되살릴 수 있음).</p>${prog ? `<p class="note warn" style="margin:8px 0 0">보고서 ${row.발송일 ? '발송' : '작성 완료'} 기록이 있는 회차라 날짜만 지울 수 없습니다. 날짜가 틀렸다면 「수정」에서 고치세요.</p>` : ''}`,
-    `<span class="msg" id="dxM"></span><button class="btn" data-close>취소</button>${can('관리자') ? '<button class="btn dan" id="dxAll">회차 삭제</button>' : ''}${hasDate ? '<button class="btn pri" id="dxDate">일정만 지우기</button>' : ''}`);
+    <p class="sub" style="margin:0">${hasDate ? '예정일·점검일을 비우고, 회차는 자동으로 <b>잔여 점검</b>으로 돌아갑니다.<br>회차 자체를 없애려면 계약 상세의 「회차 정리」를 쓰세요.' : '「회차 삭제」는 이 회차 자체를 지웁니다 (계약 상세 「회차 정리」나 새 등록 창에서 되살릴 수 있음).'}</p>${prog ? `<p class="note warn" style="margin:8px 0 0">보고서 ${row.발송일 ? '발송' : '작성 완료'} 기록이 있는 회차라 날짜만 지울 수 없습니다. 날짜가 틀렸다면 「수정」에서 고치세요.</p>` : ''}`,
+    `<span class="msg" id="dxM"></span><button class="btn" data-close>취소</button>${hasDate ? '<button class="btn pri" id="dxDate">일정 지우기</button>' : can('관리자') ? '<button class="btn dan" id="dxAll">회차 삭제</button>' : ''}`); // 일정이 있으면 「일정 지우기」만 (지우면 잔여 점검) · 회차 삭제는 날짜 없는 회차나 회차 정리에서
   const run = async (b, f) => { b.disabled = true; try { await f(); d.remove(); invalidate(); LK = null; done && done(); } catch (e) { b.disabled = false; $('#dxM', d).textContent = e.message; } };
-  if ($('#dxDate', d)) $('#dxDate', d).onclick = (e) => run(e.target, async () => { await api('save', { t: '점검', row: { id: row.id, 예정일: '', 점검일: '' }, ver: row.버전 }); toast('일정을 지웠습니다 · 회차는 잔여 점검으로 남았습니다'); });
+  if ($('#dxDate', d)) $('#dxDate', d).onclick = (e) => run(e.target, async () => { await api('save', { t: '점검', row: { id: row.id, 예정일: '', 점검일: '' }, ver: row.버전 }); toast('일정을 지웠습니다 · 잔여 점검으로 돌아갔습니다'); });
   if ($('#dxAll', d)) $('#dxAll', d).onclick = (e) => run(e.target, async () => { await api('del', { t: '점검', id: row.id, ver: row.버전 }); toast('회차를 삭제했습니다 (되살릴 수 있습니다)'); });
 }
 function sealPrep(file) {
@@ -1707,7 +1731,7 @@ function rndModal(contracts, items, onDone, deleted) {
       <p class="sub" style="margin:8px 0 0">이름을 고친 뒤 「이름 바꾼 것 저장」을 누르세요. 삭제는 아직 진행되지 않은(점검일·발송 기록 없는) 회차만 할 수 있고, 변경 이력에 남아 복구할 수 있습니다. 같은 계약에 같은 이름의 회차는 새로 만들 수 없습니다.</p>`;
     $$('[data-rc]', d).forEach((b) => (b.onclick = () => { cid = b.dataset.rc; draw(); }));
     $$('[data-undel]', d).forEach((b) => (b.onclick = async () => { const x = deleted.find((y) => y.id === b.dataset.undel); b.disabled = true;
-      try { const o = await api('undel', { t: '점검', id: x.id }); if (o && o.ok === false) throw new Error(o.msg); deleted.splice(deleted.indexOf(x), 1); items.push(Object.assign({}, o.row, { 단계: o.row.점검일 ? '' : '점검 전' })); changed = 1; invalidate(); LK = null; draw(); toast(`${x.항목} 회차를 되살렸습니다`); } catch (e) { b.disabled = false; toast(e.message, true); } }));
+      try { const r = await undelInsp(x); if (!r) { b.disabled = false; return; } deleted.splice(deleted.indexOf(x), 1); items.push(Object.assign({}, r, { 단계: r.점검일 ? '' : '점검 전' })); changed = 1; draw(); } catch (e) { b.disabled = false; toast(e.message, true); } }));
     $$('[data-rdel]', d).forEach((b) => (b.onclick = async () => { const x = items.find((y) => y.id === b.dataset.rdel); if (!(await ask({ title: '회차 삭제', msg: `「${x.항목}」 회차를 삭제합니다.\n(진행 기록이 없는 회차 · 변경 이력에서 복구 가능)`, ok: '삭제' }))) return;
       try { const o = await api('del', { t: '점검', id: x.id, ver: x.버전 }); if (o && o.ok === false) throw new Error(o.msg); items.splice(items.indexOf(x), 1); changed = 1; draw(); toast(`${x.항목} 삭제`); } catch (e) { toast(e.message, true); } }));
     $('#rnAdd', d).onclick = () => add([$('#rnNew', d).value.trim()]);
@@ -3323,7 +3347,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25l';
+const APP_VERSION = '2026-11-25m';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
