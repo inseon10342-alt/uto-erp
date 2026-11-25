@@ -324,6 +324,10 @@ th.date,td.date{white-space:nowrap;font-variant-numeric:tabular-nums}
 input[type=date].inp{min-width:0;max-width:100%;box-sizing:border-box} /* 아이폰: 날짜 칸이 오른쪽으로 넘치지 않게 (기본 모양은 그대로 두어 글자가 세로 가운데에 오게) */
 input[type=date].inp::-webkit-date-and-time-value{text-align:left;margin:0}
 @supports (-webkit-touch-callout:none){input[type=date].inp{-webkit-appearance:none;appearance:none;display:block;width:100%;line-height:calc(var(--h) - 2px)}input[type=date].inp::-webkit-date-and-time-value{min-height:calc(var(--h) - 2px);line-height:calc(var(--h) - 2px)}} /* 아이폰 Safari 전용: 날짜 칸이 다른 칸보다 오른쪽으로 길어지는 것 막음 */
+.htx{border:1px solid var(--line2)}.htx .hr{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 8px;border-top:1px solid var(--line2);font-size:12.5px}
+.htx .hr:first-child{border-top:0}.htx .hk{color:var(--sub2)}.htx .hv{font-variant-numeric:tabular-nums;word-break:break-all;min-width:0}
+.htx .hchk{grid-template-columns:150px minmax(0,1fr)}.htx .hchk.ok .hv{color:var(--done-t)}.htx .hchk.warn .hv{color:var(--bad)}
+@media (max-width:760px){#htx{display:none!important}} /* 홈택스 복사용은 PC에서만 */
 .totbox b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;margin-left:6px}
 .paper{background:#E9ECEF;border:1px solid var(--line);padding:16px;overflow:auto}
 .xs-fit{margin:0 auto;overflow:hidden} /* 미리보기 축소: zoom 대신 transform (아이폰 사파리에서 zoom 이 표를 깨뜨림) */
@@ -2132,11 +2136,33 @@ PAGES.statement = async (m, p) => {
     sh.style.transform = k < 1 ? `scale(${k})` : ''; fit.style.width = Math.ceil(W * k) + 'px'; fit.style.height = Math.ceil(sh.offsetHeight * k) + 'px';
   };
   S._fitSheet = fitSheet;
+  // 홈택스 세금계산서 복사용 (엑셀 「거래명세서」 M13~N22와 같은 칸): 칸마다 복사 → 홈택스 입력칸에 붙여넣기
+  // 합계금액·비고(품목 줄)는 연결된 세금계산서가 있으면 그 값(엑셀: 수금대장 D·C열), 없으면 이 명세서 값 · 현장 주소 = 현장 관리의 주소
+  let invList = [];
+  const htx = () => {
+    const box = $('#htx'); if (!box) return;
+    if (doc.종류 !== '거래명세서') { box.innerHTML = ''; return; }
+    const c = calcLines(doc.lines), pt = pOf(doc.거래처id), site = (L.sites || []).find((x) => x.id === doc.현장id) || {};
+    const bl = doc.청구id ? (invList.find((b) => b.id === doc.청구id) || (docBill && docBill.id === doc.청구id ? docBill : null)) : null;
+    const total = bl && bl.청구액 !== '' && bl.청구액 != null ? Number(bl.청구액) : c.합계;
+    const names = doc.lines.map((l) => String(l.품명 || '').trim()).filter(Boolean);
+    const memo = bl && bl.품명 ? String(bl.품명) : names.join(', ');
+    const addr = String(site.주소 || '').trim(), sn = String(doc.현장명 || '').trim();
+    const sum = c.공급가 + c.세액, same = Math.round(sum - total) === 0;
+    const F = [['작성일자', doc.일자 || ''], ['공급받는자 등록번호', pt.biz || ''], ['상호 (공급받는자)', pt.n || ''], ['성명 (대표자)', pt.대표자 || ''],
+      ['공급가액 (숫자만)', c.lines.length ? String(c.공급가) : ''], ['세액 (숫자만)', c.lines.length ? String(c.세액) : ''], ['합계금액 (숫자만)', total ? String(total) : ''],
+      ['품목', sn ? sn + ' 정기안전점검 용역비' : ''], ['비고 (품목 줄)', memo], ['비고 (현장 주소)', addr]];
+    const miss = [!pt.biz && pt.id ? '등록번호 없음 → 거래처 관리에서 사업자번호 입력' : '', !addr && doc.현장id ? '현장 주소 없음 → 현장 관리에서 주소 입력' : ''].filter(Boolean);
+    box.innerHTML = `<h3>홈택스 세금계산서 복사용</h3><p class="sub" style="margin:0 0 6px">칸의 <b>복사</b>를 누른 뒤 홈택스 입력칸에 붙여넣기(Ctrl+V)${bl ? ` · 합계·비고는 연결된 세금계산서(${esc(bl.발행일 || '')}) 기준` : ''}</p>
+      <div class="htx">${F.map(([k, v]) => `<div class="hr"><span class="hk">${esc(k)}</span><span class="hv ${v ? '' : 'muted'}">${esc(v || '-')}</span><button class="btn sm ghost" type="button" data-hcopy="${esc(v)}" data-hk="${esc(k)}" ${v ? '' : 'disabled'}>복사</button></div>`).join('')}
+      <div class="hr hchk ${same && !miss.length ? 'ok' : 'warn'}"><span class="hk">확인</span><span class="hv">${miss.map((x) => '⚠ ' + esc(x) + '<br>').join('')}공급가액 ${won(c.공급가)} + 세액 ${won(c.세액)} = ${won(sum)}${same ? ' ✔ 합계 일치' : ` ⚠ 합계 다름 (합계금액 ${won(total)})`}</span></div></div>`;
+    $$('[data-hcopy]', box).forEach((b) => (b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.hcopy); toast(`${b.dataset.hk} 복사했습니다`); } catch (e) { toast('복사하지 못했습니다', 1); } }));
+  };
   const draw = () => {
     const c = calcLines(doc.lines), pt = pOf(doc.거래처id);
     $('#tot').innerHTML = `<span>공급가액<b>${won(c.공급가)}</b></span><span>세액<b>${won(c.세액)}</b></span><span>합계<b>${won(c.합계)}</b> 원</span>`;
     $('#sheet').innerHTML = sheetHTML(doc, c, co, pt.n) + (canceled ? '<div class="voidmk" aria-hidden="true">취 소</div>' : '');
-    fitSheet();
+    fitSheet(); htx();
     $$('#lines tr').forEach((tr, i) => { const l = c.lines[i]; if (l) { $('.s', tr).textContent = won(l.공급가액); $('.t', tr).textContent = won(l.세액); } });
   };
   const lineRow = (l, i) => `<tr data-i="${i}"><td><input class="inp" data-f="품명" value="${esc(l.품명)}" aria-label="품명 ${i + 1}" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단위" value="${esc(l.단위)}" style="width:44px" aria-label="단위" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="수량" value="${esc(l.수량)}" style="width:48px" inputmode="numeric" aria-label="수량" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단가" value="${l.단가 === '' ? '' : won(l.단가)}" inputmode="numeric" aria-label="단가" ${issued ? 'disabled' : ''}></td><td><select class="inp" data-f="VAT" aria-label="VAT" ${issued ? 'disabled' : ''}><option ${l.VAT !== '포함' ? 'selected' : ''}>별도</option><option ${l.VAT === '포함' ? 'selected' : ''}>포함</option></select></td><td class="num s"></td><td class="num t"></td><td>${issued ? '' : `<button class="tbtn" style="color:#6A6D66" data-rm="${i}" aria-label="줄 삭제">${ic('x', 14)}</button>`}</td></tr>`;
@@ -2155,6 +2181,7 @@ PAGES.statement = async (m, p) => {
       <div id="tot" class="totbox"></div>
       <p class="sub" style="margin:6px 0 0">VAT 별도: 공급가액 = 수량×단가, 세액 = 공급가액×0.1 반올림 · VAT 포함: 공급가액 = 수량×단가÷1.1 반올림, 세액 = 나머지 (엑셀 거래명세서와 같은 계산)</p></div>
     <div class="sec"><h3>기타 사항</h3><textarea class="inp" id="etc" ${issued ? 'disabled' : ''}>${esc(doc.기타사항)}</textarea><p class="sub" style="margin:4px 0 0">공급자 칸·기본 문구·직인은 통합관리 엑셀 「거래명세서」 시트에서 가져오며, 직인은 「시스템 설정」에서 등록합니다.</p></div>
+    <div class="sec" id="htx"></div>
     <div class="sec" id="smsg" style="color:var(--bad)"></div>
   </section><section class="paper"><div class="xs-fit"><div class="xs-wrap" id="sheet"></div></div></section></div>`;
   // 회차별 단가: 계약을 고르면 그 계약의 점검 · 단가를 받아 둠 (엑셀 회차단가_찾기와 같게: 공정 이름 → 점검항목 그대로 순서로 찾음)
@@ -2206,6 +2233,7 @@ PAGES.statement = async (m, p) => {
     return ok;
   };
   const blOpts = (P) => { // 세금계산서 고르기 목록: 이 계약의 발행된 계산서 (이미 명세서가 있으면 번호 표시)
+    invList = P ? P.inv || [] : invList; htx();
     const sel = $('#bl'); if (!sel) return;
     const list = (P ? P.inv : []).filter((b) => b.발행일).slice().sort((a, b) => String(b.발행일).localeCompare(String(a.발행일)));
     sel.innerHTML = '<option value="">(연결 안 함)</option>' + list.map((b) => { const ds = (b.명세서 || []).filter((d) => d.상태 === '발행' && d.id !== doc.id); return `<option value="${esc(b.id)}" ${b.id === doc.청구id ? 'selected' : ''}>${esc(b.발행일)} · ${esc(b.품명 || '')} · ${won(b.청구액)}원${ds.length ? ' · 명세서 ' + ds.map((d) => d.번호).join(', ') : ''}</option>`; }).join('');
@@ -3294,7 +3322,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25i';
+const APP_VERSION = '2026-11-25j';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();

@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-25c'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-25d'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -791,7 +791,7 @@ function recentChanges_(n) {
 }
 function counts_() { const o = {}; FROM_EXCEL.concat(['문서']).forEach((t) => { o[t] = live_(t).length; }); const cs = live_('계약'); o.진행계약 = cs.filter((c) => c.상태 === '진행중').length; o.완료계약 = cs.length - o.진행계약; return o; }
 function lookups_() {
-  return { sites: live_('현장').map((s) => ({ id: s.id, n: s.현장명 })).sort((a, b) => a.n.localeCompare(b.n)),
+  return { sites: live_('현장').map((s) => ({ id: s.id, n: s.현장명, 주소: s.주소 || '' })).sort((a, b) => a.n.localeCompare(b.n)),
     partners: live_('거래처').map((p) => ({ id: p.id, n: p.거래처명, biz: p.사업자번호, 대표자: p.대표자, 주소: p.주소, 업태: p.업태, 종목: p.종목 })).sort((a, b) => a.n.localeCompare(b.n)),
     contracts: contractList_().map((c) => ({ id: c.id, n: c.계약명, 연도: c.연도, 현장id: c.현장id, 상태: c.상태, 시공사: c.시공사 })),
     items: live_('점검').reduce((o, x) => { (o[x.계약id] = o[x.계약id] || []).push(x.항목); return o; }, {}),
