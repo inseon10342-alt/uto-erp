@@ -10,7 +10,7 @@
  */
 
 // ===================== 설정 =====================
-const SERVER_VERSION = '2026-11-25e'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
+const SERVER_VERSION = '2026-11-26a'; // @uto-erp-server · GitHub server/VERSION 과 같게 맞춤
 const CFG = {
   DB_NAME: '업무관리 DB',
   SOURCE_NAME: '통합관리',          // 가져올 엑셀: 이 글자가 들어간 가장 최근 .xlsm (스크립트 속성 XLSM_FILE_ID 로 고정 가능)
@@ -370,6 +370,7 @@ const ACTIONS = {
   doc: (who, a) => { const d = live_('문서').find((x) => x.id === a.id); const b = d && d.청구id ? live_('청구').find((x) => x.id === d.청구id) : null; return { doc: d ? clean_(d) : null, bill: b ? clean_(b) : null, diff: d && d.청구id ? docDiff_(d, b) : [] }; },
   linkDoc: (who, a) => linkDoc_(who, a),
   history: (who, a) => ({ history: history_(a.t, a.id) }),
+  jobFill: (who, a) => jobFill_(who, !!a.commit),
   save: (who, a) => withAfter_(who, a, save_(who, a.t, a.row || {}, a.ver)),
   del: (who, a) => withAfter_(who, a, save_(who, a.t, { id: a.id, 삭제: 'Y' }, a.ver, true)),
   undel: (who, a) => withAfter_(who, a, undel_(who, a)),
@@ -530,7 +531,105 @@ function save_(who, t, row, ver, isDelete) {
     delete TBL_[t];
     if (['계약', '점검', '청구', '검토'].indexOf(t) >= 0) derive_(true);
     if (t === '계약' && !isDelete && next.상태지정 && next.상태 !== next.상태지정) { setSilent_('계약', next.id, { 상태: next.상태지정 }); next.상태 = next.상태지정; } // 웹이 원본일 때만 계산 (엑셀 수식과 같게)
+    try { jobApply_(who, t, next.id, jobEvents_(t, cur, isDelete ? null : next)); } catch (e) { console.warn('업무일지 자동 기록 실패: ' + e); } // 저장은 그대로 성공
     return { row: next };
+  } finally { lock.releaseLock(); }
+}
+/* ───────── 업무일지 자동 기록 (엑셀 VBA가 하던 것과 같은 문구·업무구분) ─────────
+ *  다른 표에 저장할 때 일어난 일을 업무일지에 한 줄씩 남김 · 비고 맨 앞 「[자동] 표·id·일」 표시로 같은 일은 한 줄만
+ *  날짜가 바뀌면 일지 날짜도 따라감 · 날짜를 지우면 그 자동 줄도 삭제 표시 · 직접 적은 일지는 건드리지 않음 */
+const JOB_AUTO = ['연락', '점검', '청구', '검토', '메일', '자료요청', '계약', '종합'];
+function jobMark_(t, id, key) { return `[자동] ${t}·${id}·${key}`; }
+function jobEvents_(t, cur, next) {
+  if (JOB_AUTO.indexOf(t) < 0 || !next || next.삭제 === 'Y') return [];
+  const S = byId_('현장'), C = byId_('계약');
+  const c = next.계약id ? C[next.계약id] : null, sid = next.현장id || (c && c.현장id) || '';
+  const site = (S[sid] || {}).현장명 || (c && c.계약명) || '';
+  const has = (r, k) => !!(r && r[k] !== '' && r[k] != null), first = (s) => String(s == null ? '' : s).split('\n')[0].trim().slice(0, 80);
+  const out = [];
+  const ev = (field, kind, text, tok) => { // 날짜 칸: 생기거나 바뀌면 기록 · 지워지면 자동 줄 삭제
+    if (has(next, field) && (!has(cur, field) || String(cur[field]) !== String(next[field]))) out.push({ key: field, date: String(next[field]).slice(0, 10), kind, text, site, tok });
+    else if (has(cur, field) && !has(next, field)) out.push({ key: field, clear: true });
+  };
+  const created = (field, kind, text, tok) => { if (!cur) out.push({ key: '등록', date: String(next[field] || today_()).slice(0, 10), kind, text, site, tok }); };
+  const won = (v) => Number(v || 0).toLocaleString('en-US');
+  if (t === '연락') { const w = next.방법 === '방문' ? '현장 방문' : '현장 ' + (next.방법 || '전화'), what = first(next.공정 || next.메모); created('연락일', '통화·연락', `${w}: ${what}`, what); }
+  if (t === '점검') { const it = next.항목 || '';
+    ev('점검일', '현장점검', `${it} 점검`, it); ev('작성완료일', '보고서 작성', `${it} 보고서 작성 완료`, it); ev('발송일', '보고서 작성', `${it} 보고서 거래처 발송`, it); }
+  if (t === '검토') { const it = next.항목 || '';
+    created('요청일', '검토 요청·회신', `${it} 보고서 내부검토 요청${next.회차 ? ` (${next.회차}회차)` : ''}`, it);
+    ev('회신일', '검토 요청·회신', `${it} 보고서 검토 회신${next.상태 ? ': ' + next.상태 : ''}`, it); }
+  if (t === '청구') { const it = first(next.품명) || '세금계산서';
+    ev('발행일', '계산서·청구', `${it} 계산서 발행 (${won(next.청구액)}원)`, it); ev('입금일', '계산서·청구', `${it} 입금 확인`, it); }
+  if (t === '메일') { const k = { '보고서 발송': '보고서 작성', '계산서·청구서': '계산서·청구', '자료 요청': '자료 요청·수신', '내부검토': '검토 요청·회신' }[next.구분] || '행정·기타', ti = first(next.제목);
+    created('보낸날', k, `메일 발송 - ${ti}`, ti); ev('회신일', k, `메일 회신 받음 - ${ti}`, ti); }
+  if (t === '자료요청') { const d = first(next.자료 || next.항목);
+    created('요청일', '자료 요청·수신', `자료 요청: ${d}${next.항목 && next.자료 ? ` (${next.항목})` : ''}`, d); ev('수신일', '자료 요청·수신', `자료 수신: ${d}`, d); }
+  if (t === '계약') created('계약일', '행정·기타', `새 용역 등록 (${next.연도 || ''}-${next.No || ''})`, `${next.연도}-${next.No}`);
+  if (t === '종합') ev('제출일', '보고서 작성', '종합보고서 제출', '종합보고서');
+  return out;
+}
+/** 일지 한 줄 쓰기 (save_ 잠금 안에서 · 변경이력 남김) */
+function jobWrite_(who, cur, ch, act) {
+  ensureCols_('일지');
+  const sh = db_().getSheetByName('일지') || ensureSheet_(db_(), '일지', SCHEMA.일지.concat(META)), cols = SCHEMA.일지.concat(META);
+  const next = Object.assign({}, cur ? clean_(cur) : {}, ch);
+  if (!cur) next.id = newId_('일지');
+  next.버전 = (cur ? cur.버전 : 0) + 1; next.수정일 = fmtT_(new Date()); next.수정자 = who.user.email; next.삭제 = act === '삭제' ? 'Y' : '';
+  const vals = [cols.map((c) => (next[c] == null ? '' : next[c]))];
+  if (cur) sh.getRange(cur._row, 1, 1, cols.length).setValues(vals); else sh.appendRow(vals[0]);
+  log_(who, '일지', next.id, act, cur, next); delete TBL_['일지'];
+  return next;
+}
+function jobApply_(who, t, id, evs) {
+  if (!evs || !evs.length) return 0;
+  let n = 0;
+  evs.forEach((e) => {
+    const mk = jobMark_(t, id, e.key), ex = rows_('일지').find((j) => j.삭제 !== 'Y' && String(j.비고 || '').indexOf(mk) === 0);
+    if (e.clear) { if (ex) { jobWrite_(who, ex, {}, '삭제'); n++; } return; }
+    if (ex) { if (ex.날짜 !== e.date || ex.내용 !== e.text || ex.현장 !== e.site) { jobWrite_(who, ex, { 날짜: e.date, 내용: e.text, 현장: e.site }, '수정'); n++; } return; }
+    jobWrite_(who, null, { 날짜: e.date, 현장: e.site, 구분: e.kind, 내용: e.text, 상태: '완료', 후속: '', 비고: mk, 작성자: who.user.email }, '등록'); n++;
+  });
+  return n;
+}
+/** 빠진 자동 기록 채우기: 웹이 원본이 된 뒤의 변경이력을 다시 읽어 자동 기록이 없던 일을 찾음
+ *  같은 날·같은 현장·같은 업무구분에 그 내용(점검항목·제목 등)을 담은 일지가 이미 있으면(직접 적은 줄) 넣지 않음 · commit 전에는 목록만 */
+function jobFill_(who, commit) {
+  need_(who, '관리자');
+  if ((setting_('원본') || '엑셀') !== '웹') throw new Error('웹이 원본일 때만 쓸 수 있습니다.');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    TBL_ = {};
+    const v = db_().getSheetByName('변경이력').getDataRange().getValues();
+    let start = 1;
+    for (let i = v.length - 1; i >= 1; i--) if (String(v[i][2]) === '설정' && String(v[i][3]) === '원본' && /"웹"/.test(String(v[i][6]))) { start = i + 1; break; }
+    const want = {}, order = [];
+    for (let i = start; i < v.length; i++) {
+      const t = String(v[i][2]), act = String(v[i][4]); if (JOB_AUTO.indexOf(t) < 0 || (act !== '등록' && act !== '수정' && act !== '복구')) continue;
+      let b = null, a = null; try { b = v[i][5] ? JSON.parse(v[i][5]) : null; a = v[i][6] ? JSON.parse(v[i][6]) : null; } catch (e) { continue; }
+      if (!a) continue;
+      jobEvents_(t, act === '등록' ? null : b, a).forEach((e) => {
+        const mk = jobMark_(t, a.id, e.key);
+        if (e.clear) { delete want[mk]; return; }
+        if (!want[mk]) order.push(mk);
+        want[mk] = Object.assign({}, e, { mk, by: String(v[i][1] || '') });
+      });
+    }
+    const live = rows_('일지').filter((j) => j.삭제 !== 'Y'), nk = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
+    const items = [];
+    order.forEach((mk) => {
+      const e = want[mk]; if (!e) return;
+      const [, t, id] = mk.match(/^\[자동\] (.+?)·(.+?)·/) || [];
+      const src = live_(t).find((x) => x.id === id); if (!src) return; // 지금은 지워진 줄
+      if (e.key !== '등록' && !src[e.key]) return; // 그 뒤 날짜를 지움
+      if (live.some((j) => String(j.비고 || '').indexOf(mk) === 0)) return; // 이미 자동 기록 있음
+      if (live.some((j) => j.날짜 === e.date && nk(j.현장) === nk(e.site) && (nk(j.내용).indexOf(nk(e.tok)) >= 0 || nk(j.내용) === nk(e.text)))) return; // 직접 적은 같은 일
+      items.push(e);
+    });
+    items.sort((x, y) => String(x.date).localeCompare(String(y.date)));
+    if (!commit) return { items: items.map((e) => ({ 날짜: e.date, 현장: e.site, 구분: e.kind, 내용: e.text })), from: start > 1 ? norm_('수정일', v[start - 1][0]) : '' };
+    items.forEach((e) => jobWrite_({ user: { email: who.user.email } }, null, { 날짜: e.date, 현장: e.site, 구분: e.kind, 내용: e.text, 상태: '완료', 후속: '', 비고: e.mk, 작성자: e.by || who.user.email }, '등록'));
+    return { added: items.length };
   } finally { lock.releaseLock(); }
 }
 function validate_(t, r, cur) {

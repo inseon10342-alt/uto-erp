@@ -1223,7 +1223,7 @@ const FORMS = {
     ['#다음 일정'], ['예상점검', 'text'], ['예상시기', 'date'], ['다음연락', 'date'], ['#기타'], ['비고', 'area']],
 };
 const FLABEL2 = { 자료요청: { 원요청: '원요청 NO (보완 요청일 때)' }, 외주: { 업체id: '외주업체', 점검일: '점검일 (작업일)', 내용: '작업내용 (점검 구분)', 연결점검: '연결 점검 (쉼표로 구분)', 계약id: '용역 (현장)' }, 단가: { 항목: '점검항목 (공정 · 차수 뺀 이름)', 단가: '회당 단가 (원)', 회차: '해당 회차', 횟수: '횟수' }, 택배: { 비고: '운송장번호 · 비고', 항목: '점검항목' }, 일지: { 내용: '업무 내용', 구분: '업무 구분', 상태: '진행 상태' }, 검토: { 항목: '점검항목', 제목: '메일 제목 / 첨부파일', 상태: '검토 상태', 회신일: '검토 회신일', 요청일: '검토요청일 (발송일)' } };
-const FLABEL = { 계산서일: '계산서 일자', 청구금액: '청구금액 (VAT 포함)', 지급금액: '지급금액', 지급일: '지급일', 메모: '메모', 작성일: '작성일', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자)', 실제입금처id: '실제 입금처', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
+const FLABEL = { 계산서일: '계산서 일자', 청구금액: '청구금액 (VAT 포함)', 지급금액: '지급금액', 지급일: '지급일', 메모: '메모', 작성일: '작성일', 작성완료일: '보고서 작성 완료일 (작성만 끝난 날 — 검토·발송과 별개)', 분할입금: '분할 입금 기록 (날짜:금액, 쉼표로 구분 · 입금 관리의 「입금일 입력」에서 자동으로 적힘)', 회차: '발송 회차', 검토자: '검토자', 의견: '검토 내용 (상사 의견)', 조치: '수정사항 (조치 내용)', 재발송일: '수정 재발송일', 후속: '후속 할 일 (내일 / 이월)', 입금비고: '입금 비고', 기존수금: '기존 수금액 (예전 이월 · 참고)', 기존미입금: '기존 청구 미입금 (예전 이월 · 참고)', 계약외: '계약 외 금액', 할증: '할증분 (VAT 포함)', 자료: '요청 자료', 검토: '수신 자료 검토', 받는사람: '받는 사람', 보낸날: '보낸 날짜', 회신필요: '회신 필요', 회신상태: '회신 상태', 회신내용: '회신 내용', 회신첨부: '회신 첨부', 현장id: '현장', 계약id: '계약', 발주처id: '발주처(계약자 · 명세서·계산서 받는 곳)', 실제입금처id: '실제 입금처 (입금만 다른 곳에서 올 때)', 시공사id: '시공사', 공정: '현재 공정', 예상점검: '다음 점검 예상', 예상시기: '예상 시기', 다음연락: '다음 연락 예정일', 기한: '보고서 기한', 발송일: '거래처 발송일', 시기: '점검 시기', 항목: '점검항목', 이월수금: '이월 수금액', 종합보고서구분: '종합보고서 구분' };
 // ---- 현장 · 계약 고르기: 진행 중 / 완료로 나눠 보여 줌 (이름 옆 상태 표시 없음)
 function siteActive(L) { const a = {}, has = {}; L.contracts.forEach((c) => { has[c.현장id] = 1; if (c.상태 === '진행중') a[c.현장id] = 1; }); return (id) => !!a[id] || !has[id]; }
 function pickList(L, kind, st) {
@@ -2088,7 +2088,7 @@ PAGES.requests = async (m, p) => {
   $$('[data-s]', m).forEach((b) => (b.onclick = () => { st.s = b.dataset.s; $$('[data-s]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
   $$('[data-k2]', m).forEach((b) => (b.onclick = () => { st.k = b.dataset.k2; $$('[data-k2]', m).forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
   $('#q').oninput = (e) => { st.q = e.target.value; draw(); };
-  $('#add').onclick = () => openForm(st.tab === 'req' ? '자료요청' : '메일', st.tab === 'req' ? { 요청일: today(), 상태: '요청중' } : { 보낸날: today() }, reload);
+  $('#add').onclick = () => openForm(st.tab === 'req' ? '자료요청' : '메일', st.tab === 'req' ? { 요청일: today(), 상태: '요청중' } : { 보낸날: today(), 회신필요: '아니요' }, reload); // 새 메일: 회신 필요는 「아니요」가 기본 (필요할 때 「예」로)
   $('#xl').onclick = () => exportXlsx('자료요청_메일', [['자료요청', [['NO', '종류', '현장', '요청일', '방법', '담당자', '점검항목', '구분', '원요청 NO', '요청 자료', '회신 기한', '수신일', '상태', '검토']].concat(r.requests.map((q) => [q.NO, isSup(q) ? '보완요청' : '자료요청', q.현장명, q.요청일, q.방법, q.담당자, q.항목, q.구분, q.원요청, q.자료, q.기한, q.수신일, q.상태, q.검토]))], ['메일', [['NO', '현장', '구분', '점검항목', '받는 사람', '이메일', '보낸 날짜', '제목', '첨부', '회신 필요', '회신 상태', '회신일', '회신 내용']].concat(r.mails.map((x) => [x.NO, x.현장명, x.구분, x.항목, x.받는사람, x.이메일, x.보낸날, x.제목, x.첨부, x.회신필요, x.회신상태, x.회신일, x.회신내용]))]]);
 };
 
@@ -2147,7 +2147,7 @@ PAGES.statement = async (m, p) => {
   }
   if (doc.계약id && !doc.거래처id) {
     const r = await api('contract', { id: doc.계약id }, { cache: true }); const c = r.contract;
-    if (c) { doc.거래처id = c.실제입금처.id || c.발주처.id || ''; doc.현장id = c.현장id; doc.현장명 = c.현장명; const waiting = r.invoices.filter((b) => !b.입금일 && b.발행일).slice(-1)[0];
+    if (c) { doc.거래처id = c.발주처.id || c.실제입금처.id || ''; /* 명세서·계산서는 발주처(계약자) 앞으로 · 실제 입금처는 입금만 */ doc.현장id = c.현장id; doc.현장명 = c.현장명; const waiting = r.invoices.filter((b) => !b.입금일 && b.발행일).slice(-1)[0];
       if (waiting && !p.doc && !p.bill) { doc.청구id = waiting.id; doc.일자 = waiting.발행일; doc.lines = String(waiting.품명).split(/\s*,\s*/).filter(Boolean).map((n, i, a) => ({ 품명: n, 단위: '회', 수량: 1, 단가: Math.round(waiting.청구액 / 1.1 / a.length), VAT: '별도' })); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원에서 불러옴 (단가는 확인 후 고치세요)`;
         const PP = r.prices || [], pOf = (it) => { const u = PP.find((x) => norm(UP.procKey(x.항목)) === norm(UP.procKey(it))) || PP.find((x) => norm(x.항목) === norm(it)); return u && u.단가 !== '' ? Number(u.단가) : ''; };
         if (doc.lines.length && doc.lines.every((l) => pOf(l.품명) !== '')) { const vat = c.VAT기준 === '별도' ? '별도' : '포함'; doc.lines.forEach((l) => { l.단가 = pOf(l.품명); l.VAT = vat; }); doc.메모 = `수금대장 계산서 ${waiting.발행일} · ${won(waiting.청구액)}원의 점검 회차를 불러오고, 단가는 회차별 단가에서 넣었습니다 (VAT ${vat})`; } } }
@@ -2192,13 +2192,13 @@ PAGES.statement = async (m, p) => {
   };
   const lineRow = (l, i) => `<tr data-i="${i}"><td><input class="inp" data-f="품명" value="${esc(l.품명)}" aria-label="품명 ${i + 1}" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단위" value="${esc(l.단위)}" style="width:44px" aria-label="단위" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="수량" value="${esc(l.수량)}" style="width:48px" inputmode="numeric" aria-label="수량" ${issued ? 'disabled' : ''}></td><td><input class="inp" data-f="단가" value="${l.단가 === '' ? '' : won(l.단가)}" inputmode="numeric" aria-label="단가" ${issued ? 'disabled' : ''}></td><td><select class="inp" data-f="VAT" aria-label="VAT" ${issued ? 'disabled' : ''}><option ${l.VAT !== '포함' ? 'selected' : ''}>별도</option><option ${l.VAT === '포함' ? 'selected' : ''}>포함</option></select></td><td class="num s"></td><td class="num t"></td><td>${issued ? '' : `<button class="tbtn" style="color:#6A6D66" data-rm="${i}" aria-label="줄 삭제">${ic('x', 14)}</button>`}</td></tr>`;
   m.innerHTML = head('거래명세서 작성', `<span class="tag ${canceled ? 'r' : issued ? 'g' : ''}">${esc(doc.상태 || '새 문서')}${doc.번호 ? ' · ' + esc(doc.번호) : ''}</span>
-    ${issued && !canceled && doc.종류 === '거래명세서' && canEdit('청구') && (!doc.청구id || !docBill) ? '<button class="btn pri" id="mkBill" title="이 명세서 내용(발행일·거래처·품목·합계)으로 세금계산서를 등록하고 연결">세금계산서 등록</button>' : ''}${issued ? `${!canceled ? '<button class="btn" id="voidRe" title="세금계산서를 다른 거래처로 재발행할 때 등: 이 명세서를 「취소」로 남기고 같은 내용으로 새 명세서를 엽니다">취소 후 재발행</button>' : ''}<button class="btn" id="copy">복사해서 새로 작성</button>` : '<button class="btn" id="save">임시저장</button><button class="btn pri" id="issue">발행 (번호 부여)</button>'}<button class="btn" id="print">${ic('print', 15)} 인쇄 · PDF</button>`) + `
+    ${issued && !canceled && doc.종류 === '거래명세서' && canEdit('청구') && (!doc.청구id || !docBill) ? '<button class="btn pri" id="mkBill" title="이 명세서 내용(발행일·거래처·품목·합계)으로 세금계산서를 등록하고 연결">세금계산서 등록</button>' : ''}${issued ? `${!canceled ? '<button class="btn" id="voidRe" title="세금계산서를 다른 거래처로 재발행할 때 등: 이 명세서를 「취소」로 남기고 같은 내용으로 새 명세서를 엽니다">취소 후 재발행</button>' : ''}<button class="btn" id="newDoc" title="빈 거래명세서 작성 화면으로">새로 작성</button><button class="btn" id="copy">복사해서 새로 작성</button>` : '<button class="btn" id="save">임시저장</button><button class="btn pri" id="issue">발행 (번호 부여)</button>'}<button class="btn" id="print">${ic('print', 15)} 인쇄 · PDF</button>`) + `
   ${doc.메모 ? `<div class="note info">${esc(doc.메모)}</div>` : ''}${issued && !canceled && doc.종류 === '거래명세서' && !docBill ? `<div class="note warn"><b>세금계산서 미등록</b> · 이 명세서로 세금계산서를 아직 등록하지 않았습니다. 「세금계산서 등록」을 누르면 명세서 내용으로 채워지고 서로 연결됩니다.</div>` : ''}${docDiff.length && !canceled ? `<div class="note warn"><b>연결된 세금계산서와 다릅니다</b> · ${docDiff.map(esc).join(' · ')}<br>발행된 명세서는 자동으로 고치지 않습니다. 맞추려면 「취소 후 재발행」으로 다시 만드세요.</div>` : docBill && issued && !canceled ? `<div class="note info">세금계산서 ${esc(docBill.발행일 || '')} · ${esc(docBill.품명 || '')} · ${won(docBill.청구액)}원과 연결돼 있습니다 ✓</div>` : ''}${canceled ? `<div class="note warn"><b>취소된 명세서입니다</b>${doc.취소 ? ` · ${esc(doc.취소.일자 || '')} 취소${doc.취소.사유 ? ' · 사유: ' + esc(doc.취소.사유) : ''}` : ''} · 인쇄하면 「취소」 표시가 함께 찍힙니다</div>` : ''}
   <div class="stmt"><section class="panel">
     <div class="sec"><h3>현장 · 거래처</h3><div class="fg">
       <label>계약(현장)${cpick(L, 'contract', doc.계약id, `id="ct" ${issued ? 'disabled' : ''}`, '(선택 안 함)')}</label>
       <label>세금계산서<span style="display:flex;gap:6px;min-width:0"><select class="inp" id="bl" ${canceled ? 'disabled' : ''} title="이 명세서가 어느 세금계산서의 명세서인지 연결 (세금계산서 목록에 명세서 번호가 표시됨)"><option value="">(연결 안 함)</option></select>${issued && !canceled ? '<button class="btn sm" id="blSave" type="button" style="display:none">연결 저장</button>' : ''}</span></label>
-      <label><span>거래처 <b>*</b></span><select class="inp" id="pt" ${issued ? 'disabled' : ''}><option value="">거래처 선택 (계약을 고르면 입금처로 자동)</option>${L.partners.map((x) => `<option value="${x.id}" ${x.id === doc.거래처id ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select></label>
+      <label><span>거래처 <b>*</b></span><select class="inp" id="pt" ${issued ? 'disabled' : ''}><option value="">거래처 선택 (계약을 고르면 발주처로 자동)</option>${L.partners.map((x) => `<option value="${x.id}" ${x.id === doc.거래처id ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select><small class="sub" id="ptNote" style="display:block;margin-top:3px"></small></label>
       <label>발행일자<input class="inp" type="date" id="dt" value="${esc(doc.일자)}" ${issued ? 'disabled' : ''}></label>
       <label>현장명 (명세서 표시)<input class="inp" id="sn" value="${esc(doc.현장명 || '')}" ${issued ? 'disabled' : ''}></label></div></div>
     <div class="sec"><h3>품목 (최대 26줄)</h3><div class="tbox"><table class="items"><thead><tr><th>품명</th><th>단위</th><th>수량</th><th>단가</th><th>VAT</th><th class="num">공급가액</th><th class="num">세액</th><th></th></tr></thead><tbody id="lines">${doc.lines.map(lineRow).join('')}</tbody></table></div>
@@ -2248,7 +2248,7 @@ PAGES.statement = async (m, p) => {
   // 세금계산서 → 명세서 채우기: 계산서에 들어간 회차를 회차별 단가로 넣되, 합계가 계산서 금액과 다르면 계산서 금액을 그대로 나눠(VAT 포함) 합계를 맞춤
   const fillFromBill = (P, b) => {
     doc.청구id = b.id; doc.일자 = b.발행일 || doc.일자; if ($('#dt')) $('#dt').value = doc.일자;
-    const pn = b.입금자 ? L.partners.find((x) => norm(x.n) === norm(b.입금자)) : null, pid = (pn && pn.id) || payerOf(P); if (pid) { doc.거래처id = pid; if ($('#pt')) $('#pt').value = pid; }
+    const pid = payerOf(P); if (pid) { doc.거래처id = pid; if ($('#pt')) $('#pt').value = pid; }
     const its = rndSort(P.items.filter((x) => inBill(x, b))), vat = vatOf(P);
     let lines = its.map((x) => lineOf(P, x));
     const ok = lines.length && lines.every((l) => l.단가 !== '') && calcLines(lines).합계 === Number(b.청구액);
@@ -2258,13 +2258,15 @@ PAGES.statement = async (m, p) => {
     return ok;
   };
   const blOpts = (P) => { // 세금계산서 고르기 목록: 이 계약의 발행된 계산서 (이미 명세서가 있으면 번호 표시)
-    invList = P ? P.inv || [] : invList; htx();
+    invList = P ? P.inv || [] : invList; htx(); ptNote(P);
     const sel = $('#bl'); if (!sel) return;
     const list = (P ? P.inv : []).filter((b) => b.발행일).slice().sort((a, b) => String(b.발행일).localeCompare(String(a.발행일)));
     sel.innerHTML = '<option value="">(연결 안 함)</option>' + list.map((b) => { const ds = (b.명세서 || []).filter((d) => d.상태 === '발행' && d.id !== doc.id); return `<option value="${esc(b.id)}" ${b.id === doc.청구id ? 'selected' : ''}>${esc(b.발행일)} · ${esc(b.품명 || '')} · ${won(b.청구액)}원${ds.length ? ' · 명세서 ' + ds.map((d) => d.번호).join(', ') : ''}</option>`; }).join('');
     if (doc.청구id && !list.some((b) => b.id === doc.청구id) && docBill) sel.insertAdjacentHTML('beforeend', `<option value="${esc(docBill.id)}" selected>${esc(docBill.발행일 || '')} · ${esc(docBill.품명 || '')} · ${won(docBill.청구액)}원</option>`);
   };
-  const payerOf = (P) => (P.c && ((P.c.실제입금처 || {}).id || (P.c.발주처 || {}).id)) || '';
+  // 명세서·계산서 받는 곳 = 발주처(계약자, 보통 시공사) · 실제 입금처는 돈만 다른 곳에서 들어올 때 (입금 관리·입금자 표시용)
+  const payerOf = (P) => (P.c && ((P.c.발주처 || {}).id || (P.c.실제입금처 || {}).id)) || '';
+  const ptNote = (P) => { const el = $('#ptNote'); if (!el) return; const r = P && P.c && P.c.실제입금처; el.innerHTML = r && r.id && r.id !== doc.거래처id ? `입금은 <b>${esc(r.거래처명 || '')}</b>에서 받음 (계약의 실제 입금처) · 명세서·계산서는 위 거래처 앞으로` : ''; };
   const bindLines = () => {
     $$('#lines tr').forEach((tr) => { const i = +tr.dataset.i; $$('[data-f]', tr).forEach((inp) => (inp.oninput = inp.onchange = () => { let v = inp.value; if (inp.dataset.f === '단가') v = v.replace(/[^\d]/g, ''); doc.lines[i][inp.dataset.f] = v; draw(); })); });
     $$('#lines [data-f="품명"]').forEach((inp) => inp.addEventListener('change', async () => { // 품명이 그 계약의 점검항목이면 단가가 비어 있을 때 회차별 단가를 넣음
@@ -2319,8 +2321,8 @@ PAGES.statement = async (m, p) => {
         const miss = pick.filter((x) => priceOf(P, x.항목) === '').length; toast(`${pick.length}줄을 넣었습니다${miss ? ` · 단가 없는 ${miss}줄은 직접 입력하세요` : ''}`, !!miss);
       };
     };
-    $('#pt').onchange = (e) => { doc.거래처id = e.target.value; draw(); };
-    $('#ct').onchange = async (e) => { // 계약(현장)을 고르면: 거래처 = 실제 입금처(없으면 발주처) · 품목이 비어 있으면 점검했지만 계산서 발행 전인 회차를 회차별 단가로 채움
+    $('#pt').onchange = (e) => { doc.거래처id = e.target.value; draw(); if (doc.계약id) loadP(doc.계약id).then(ptNote); };
+    $('#ct').onchange = async (e) => { // 계약(현장)을 고르면: 거래처 = 발주처(없으면 실제 입금처) · 품목이 비어 있으면 점검했지만 계산서 발행 전인 회차를 회차별 단가로 채움
       doc.계약id = e.target.value; const c = L.contracts.find((x) => x.id === doc.계약id); if (c) { doc.현장id = c.현장id; doc.현장명 = c.n; $('#sn').value = c.n; } draw();
       doc.청구id = ''; blOpts(null);
       if (!doc.계약id) { doc.lines = [{ 품명: '', 단위: '회', 수량: 1, 단가: '', VAT: '별도' }]; $('#lines').innerHTML = doc.lines.map(lineRow).join(''); bindLines(); draw(); return; } const cid = doc.계약id, P = await loadP(cid); if (!P || doc.계약id !== cid) return;
@@ -2348,20 +2350,21 @@ PAGES.statement = async (m, p) => {
       } catch (e) { $('#smsg').textContent = e.message; }
     };
     $('#save').onclick = () => save(false); $('#issue').onclick = () => save(true);
-  } else $('#copy').onclick = () => go('statement', { doc: doc.id, copy: 1 });
+  } else { $('#copy').onclick = () => go('statement', { doc: doc.id, copy: 1 }); if ($('#newDoc')) $('#newDoc').onclick = () => go('statement', {}); }
   // 명세서 → 세금계산서 등록 (실제 업무 순서): 청구 등록 창을 명세서 내용으로 채우고, 저장하면 이 명세서와 연결
+  let fromInv = false; // 세금계산서 화면의 「미등록 명세서 → 등록」에서 왔으면 끝난 뒤 세금계산서 화면으로
   const mkBill = async () => {
     const P = doc.계약id ? await loadP(doc.계약id) : null, pt = pOf(doc.거래처id), names = doc.lines.map((l) => String(l.품명 || '').trim()).filter(Boolean);
     const links = P ? names.map((n) => (P.items.find((x) => !x._final && (norm(x.항목) === norm(n) || norm(nmI(x.항목, x.계약id)) === norm(n))) || {}).항목).filter(Boolean) : []; // 명세서 품목 중 점검 회차 → 연결점검
     const tot = calcLines(doc.lines).합계;
-    openForm('청구', { 계약id: doc.계약id || '', 발행일: doc.일자 || today(), 청구액: tot, 품명: names.join(', '), 입금자: pt.n || '', 연결점검: [...new Set(links)].join(', '), 비고: `거래명세서 ${doc.번호} 에서 등록` }, async (row) => {
+    openForm('청구', { 계약id: doc.계약id || '', 발행일: doc.일자 || today(), 청구액: tot, 품명: names.join(', '), 입금자: (P && P.c && P.c.실제입금처 && P.c.실제입금처.거래처명) || pt.n || '', 연결점검: [...new Set(links)].join(', '), 비고: `거래명세서 ${doc.번호} 에서 등록` }, async (row) => {
       if (!row || !row.id) return;
-      try { await api('linkDoc', { id: doc.id, ver: doc.버전, 청구id: row.id }); invalidate(); toast(`세금계산서를 등록하고 명세서 ${doc.번호}와 연결했습니다`); } catch (e) { toast(e.message, 1); }
-      go('statement', { doc: doc.id });
+      // 등록·연결이 끝나면 다음 명세서를 바로 쓰도록 빈 작성 화면으로 (방금 명세서는 문서 보관함에 있음) · 연결 실패 때만 이 명세서에 머묾
+      try { await api('linkDoc', { id: doc.id, ver: doc.버전, 청구id: row.id }); invalidate(); if (fromInv) { toast(`세금계산서를 등록하고 명세서 ${doc.번호}와 연결했습니다`); go('invoices'); } else { toast(`세금계산서를 등록하고 명세서 ${doc.번호}와 연결했습니다 · 새 명세서 작성 화면입니다`); go('statement', {}); } } catch (e) { toast(e.message, 1); go('statement', { doc: doc.id }); }
     });
   };
   if ($('#mkBill')) $('#mkBill').onclick = mkBill;
-  if (p.mkbill && $('#mkBill')) { delete p.mkbill; mkBill(); }
+  if (p.mkbill && $('#mkBill')) { delete p.mkbill; fromInv = true; mkBill(); }
   if ($('#voidRe')) $('#voidRe').onclick = () => { // 발행한 명세서를 「취소」로 남기고(지우지 않음 · 번호 그대로) 같은 내용으로 새 명세서 열기 → 거래처 바꿔서 발행
     const d = modal('명세서 취소 후 재발행', `<p class="sub" style="margin:0 0 10px">${esc(doc.번호 || '')} · ${esc(doc.현장명 || '')} · ${won(doc.합계 || 0)}원<br>이 명세서는 지우지 않고 「취소」로 남깁니다(번호·내용 그대로 · 문서 보관함 「취소」에서 확인). 같은 내용으로 새 명세서가 열리면 거래처·품목을 고쳐 발행하세요.</p>
       <div class="fg"><label class="full"><span>사유</span><input class="inp" id="vdW" placeholder="예: 세금계산서 거래처 변경 (○○건설 → △△개발)"></label></div>`,
@@ -2769,6 +2772,9 @@ function weekOf(iso) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDat
 async function quickSave(t, row, ver, msg) { try { await api('save', { t, row, ver }); invalidate(); LK = null; toast(msg || '저장했습니다'); render(); return true; } catch (e) { toast(e.message, 1); return false; } }
 
 // ---------- ① 업무일지: 달력 · 기록 · 바로 입력
+// 자동 기록 줄: 비고 맨 앞 「[자동] 표·id·일」 표시 (서버가 같은 일을 한 줄로 관리) → 화면에는 「자동」 표시만, 나머지 비고만 보여 줌
+const JOB_MK = /^\[자동\] \S+/;
+const jobMk = (j) => ((String((j && j.비고) || '').match(JOB_MK) || [])[0] || ''), jobNote = (j) => String((j && j.비고) || '').replace(JOB_MK, '').trim();
 const JOB_KINDS = ['입찰 확인', '보고서 작성', '계산서·청구', '통화·연락', '점검 준비', '현장점검', '자료 요청·수신', '검토 요청·회신', '업무 지원', '이동·출장', '회의·교육', '행정·기타'];
 const JOB_KC = { '입찰 확인': '#9AA7B4', '보고서 작성': '#D2AD69', '계산서·청구': '#7896B2', '통화·연락': '#82968A', '점검 준비': '#B7C8D8', '현장점검': '#6F927C', '자료 요청·수신': '#A9BCAE', '검토 요청·회신': '#C49A7A', '업무 지원': '#B5BBC1', '이동·출장': '#8FA3A0', '회의·교육': '#A79BB4', '행정·기타': '#C3C7CB' };
 const JOB_ST = ['완료', '진행중', '이월', '예정'];
@@ -2784,7 +2790,7 @@ PAGES.journal = async (m) => {
   const cnt = (k, v) => month.filter((j) => j[k] === v).length;
   const open = r.jobs.filter((j) => j.상태 === '진행중' || j.상태 === '이월' || (j.상태 === '예정' && j.날짜 <= T)).sort((a, b) => String(a.날짜).localeCompare(String(b.날짜)));
   const ent = (j, compact) => `<button class="jent ${st.edit === j.id ? 'on' : ''} ${compact ? 'c' : ''}" data-j="${esc(j.id)}" style="--kc:${JOB_KC[j.구분] || '#C3C7CB'}"><span class="jk">${esc(j.구분 || '구분 없음')}</span>
-    <span class="jb"><span class="jt">${j.현장 ? `<b>${esc(j.현장)}</b>` : ''}${compact ? '' : jobTag(j.상태)}</span><span class="jc">${esc(j.내용)}</span>${j.후속 ? `<span class="jf">↳ ${esc(j.후속)}</span>` : ''}</span>${compact ? `<i class="jd s-${esc(j.상태)}" title="${esc(j.상태)}"></i>` : ''}</button>`;
+    <span class="jb"><span class="jt">${j.현장 ? `<b>${esc(j.현장)}</b>` : ''}${compact ? '' : jobTag(j.상태)}</span><span class="jc">${jobMk(j) ? '<span class="tag t" title="다른 화면에서 저장할 때 자동으로 남은 기록">자동</span> ' : ''}${esc(j.내용)}</span>${j.후속 ? `<span class="jf">↳ ${esc(j.후속)}</span>` : ''}</span>${compact ? `<i class="jd s-${esc(j.상태)}" title="${esc(j.상태)}"></i>` : ''}</button>`;
   // 미니 달력 (건수만큼 진하게, 미완료가 있으면 점)
   const first = new Date(st.y, st.mo, 1), start = new Date(st.y, st.mo, 1 - ((first.getDay() + 6) % 7));
   const cells = Array.from({ length: 42 }, (_, i) => isoD(new Date(start.getFullYear(), start.getMonth(), start.getDate() + i)));
@@ -2801,7 +2807,7 @@ PAGES.journal = async (m) => {
     center = days.map((d) => { const list = (byDay[d] || []).filter(pass), dw = new Date(d + 'T00:00:00').getDay(); return `<div class="jday ${d === T ? 'today' : ''} ${d === st.sel ? 'sel' : ''}" id="jd-${d}"><button class="jdl ${dw === 0 ? 'sun' : dw === 6 ? 'sat' : ''}" data-d="${d}"><b>${+d.slice(8)}</b><span>${WD[dw]}${d === T ? ' · 오늘' : ''}</span><small>${list.length}건</small></button><div class="jlist">${list.map((j) => ent(j)).join('') || `<div class="jnone">기록 없음${ed ? ' — 오른쪽에서 바로 입력하세요' : ''}</div>`}</div></div>`; }).join('') || '<div class="empty">조건에 맞는 기록이 없습니다</div>';
   }
   const cur = st.edit ? r.jobs.find((j) => j.id === st.edit) : null, f = cur || { 날짜: st.sel, 상태: '완료', 구분: '' };
-  m.innerHTML = head('업무일지', `<div class="seg">${['월', '주'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전">‹</button><b class="jym">${st.view === '주' ? `${md(wk[0])} – ${md(wk[6])}` : `${st.y}년 ${st.mo + 1}월`}</b><button class="btn" id="nm" aria-label="다음">›</button><button class="btn" id="tm">오늘</button><button class="btn" id="xl">${ic('down', 15)} 엑셀</button>`) + lockNote('업무일지') + `
+  m.innerHTML = head('업무일지', `<div class="seg">${['월', '주'].map((v) => `<button data-v="${v}" class="${st.view === v ? 'on' : ''}">${v}</button>`).join('')}</div><button class="btn" id="pm" aria-label="이전">‹</button><b class="jym">${st.view === '주' ? `${md(wk[0])} – ${md(wk[6])}` : `${st.y}년 ${st.mo + 1}월`}</b><button class="btn" id="nm" aria-label="다음">›</button><button class="btn" id="tm">오늘</button><button class="btn" id="xl">${ic('down', 15)} 엑셀</button>${can('관리자') ? '<button class="btn" id="jfill" title="웹으로 바꾼 뒤 자동 기록이 빠진 일(점검·계산서·메일·자료요청 등)을 변경이력에서 찾아 채움">빠진 기록 채우기</button>' : ''}`) + lockNote('업무일지') + `
   <div class="jwrap ${st.view === '주' ? 'wk' : ''}">
     <aside class="jside">
       <section class="panel"><div class="ph"><h2>${st.y}년 ${st.mo + 1}월</h2><span class="sub">${month.length}건</span></div><div class="sec" style="padding:8px">${mcal}</div></section>
@@ -2819,7 +2825,7 @@ PAGES.journal = async (m) => {
           <label><span>업무 내용 <b>*</b></span><textarea class="inp" name="내용" rows="4" placeholder="무엇을 했는지 적으세요 (Ctrl+Enter 저장)">${esc(f.내용 || '')}</textarea></label>
           <span class="lb">진행 상태</span><div class="seg full">${JOB_ST.map((s) => `<button type="button" data-ps="${s}" class="${f.상태 === s ? 'on' : ''}">${s}</button>`).join('')}</div>
           <label><span>후속 할 일 (내일 / 이월)</span><input class="inp" name="후속" value="${esc(f.후속 || '')}"></label>
-          <label><span>비고</span><input class="inp" name="비고" value="${esc(f.비고 || '')}"></label>
+          <label><span>비고${jobMk(f) ? ' <small class="sub">(자동 기록)</small>' : ''}</span><input class="inp" name="비고" value="${esc(jobNote(f))}"></label>
           <div class="jfb">${cur && ed ? '<button type="button" class="btn dan" id="jdel">삭제</button>' : ''}<span class="msg" id="jmsg"></span><button class="btn pri" id="jsave" ${ed ? '' : 'disabled title="엑셀이 원본이거나 권한이 없습니다"'}>${cur ? '수정 저장' : '기록 저장'}</button></div>
         </form></section>
       <section class="panel"><div class="ph"><h2>후속 · 미완료</h2><span class="sub">${open.length}건 · 진행중 · 이월 · 지난 예정</span></div><div class="jopen">${open.slice(0, 30).map((j) => `<div class="jo"><button data-j="${esc(j.id)}" class="g"><span class="sub">${md(j.날짜)}</span> ${jobTag(j.상태)}<span class="t">${esc(j.현장 ? j.현장 + ' · ' : '')}${esc(j.후속 || j.내용)}</span></button>${ed ? `<button class="btn sm" data-done="${esc(j.id)}">완료</button>` : ''}</div>`).join('') || '<div class="empty">밀린 일이 없습니다</div>'}</div></section>
@@ -2843,7 +2849,7 @@ PAGES.journal = async (m) => {
   const save = async () => {
     const fd = Object.fromEntries(new FormData($('#jf')));
     if (!fd.내용.trim()) { $('#jmsg').textContent = '업무 내용을 입력하세요.'; return; }
-    const row = Object.assign({}, fd, pick); if (cur) row.id = cur.id;
+    const row = Object.assign({}, fd, pick); if (cur) row.id = cur.id; if (jobMk(cur)) row.비고 = jobMk(cur) + (String(row.비고 || '').trim() ? ' ' + String(row.비고).trim() : ''); // 자동 기록 표시는 지켜 둠
     $('#jsave').disabled = true;
     try { await api('save', { t: '일지', row, ver: cur ? cur.버전 : 0 }); invalidate(); toast(cur ? '수정했습니다' : '기록했습니다'); st.edit = null; st.sel = row.날짜; const d = new Date(row.날짜 + 'T00:00:00'); st.y = d.getFullYear(); st.mo = d.getMonth(); render(); }
     catch (e) { $('#jsave').disabled = false; $('#jmsg').textContent = e.message; }
@@ -2852,7 +2858,15 @@ PAGES.journal = async (m) => {
   $('#jf').onkeydown = (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && ed) { e.preventDefault(); save(); } };
   if ($('#jdel')) $('#jdel').onclick = async () => { if (!(await ask({ title: '기록 삭제', msg: `${cur.날짜} 「${String(cur.내용).slice(0, 30)}」 기록을 삭제합니다.\n변경 이력에 남아 복구할 수 있습니다.`, ok: '삭제', danger: true }))) return; try { await api('del', { t: '일지', id: cur.id, ver: cur.버전 }); invalidate(); st.edit = null; toast('삭제했습니다'); render(); } catch (e) { toast(e.message, 1); } };
   $$('[data-done]', m).forEach((b) => (b.onclick = () => { const j = r.jobs.find((x) => x.id === b.dataset.done); quickSave('일지', { id: j.id, 상태: '완료' }, j.버전, '완료로 바꿨습니다'); }));
-  $('#xl').onclick = () => exportXlsx('업무일지_' + ym, [[ym, [['날짜', '요일', '현장', '업무구분', '업무내용', '진행상태', '후속 할 일', '비고']].concat(month.filter(pass).map((j) => [j.날짜, WD[new Date(j.날짜 + 'T00:00:00').getDay()], j.현장, j.구분, j.내용, j.상태, j.후속, j.비고]))]]);
+  if ($('#jfill')) $('#jfill').onclick = async () => { // 미리보기 → 확인 후 추가 (직접 적은 같은 일은 빼고)
+    let pv; try { pv = await api('jobFill', {}); } catch (e) { toast(e.message, 1); return; }
+    const it = pv.items || [];
+    const d = modal('빠진 업무일지 채우기', it.length ? `<p class="sub" style="margin:0 0 8px">${pv.from ? esc(pv.from) + ' (웹으로 바꾼 때) 이후 ' : ''}변경이력에서 찾은 <b>${it.length}건</b>입니다. 같은 날·같은 현장에 직접 적은 같은 일은 뺐습니다. 「추가」를 누르면 업무일지에 「자동」으로 들어갑니다 (지금 있는 일지는 바꾸지 않음).</p>
+      <div style="max-height:52vh;overflow:auto"><table class="tbl"><thead><tr><th>날짜</th><th>현장</th><th>업무구분</th><th>내용</th></tr></thead><tbody>${it.map((x) => `<tr><td class="num">${esc(x.날짜)}</td><td>${esc(x.현장)}</td><td>${esc(x.구분)}</td><td>${esc(x.내용)}</td></tr>`).join('')}</tbody></table></div>` : '<p style="margin:0">빠진 기록이 없습니다.</p>',
+      `<span class="msg" id="jfM"></span><button class="btn" data-close>닫기</button>${it.length ? `<button class="btn pri" id="jfOk">${it.length}건 추가</button>` : ''}`, true);
+    if ($('#jfOk', d)) $('#jfOk', d).onclick = async (e) => { e.target.disabled = true; try { const o = await api('jobFill', { commit: 1 }); d.remove(); invalidate(); toast(`업무일지에 ${o.added}건을 채웠습니다`); render(); } catch (er) { e.target.disabled = false; $('#jfM', d).textContent = er.message; } };
+  };
+  $('#xl').onclick = () => exportXlsx('업무일지_' + ym, [[ym, [['날짜', '요일', '현장', '업무구분', '업무내용', '진행상태', '후속 할 일', '비고']].concat(month.filter(pass).map((j) => [j.날짜, WD[new Date(j.날짜 + 'T00:00:00').getDay()], j.현장, j.구분, j.내용, j.상태, j.후속, jobNote(j)]))]]);
   const tgt = $('#jd-' + st.sel); if (tgt && st.view === '월') { const box = $('#jlog'); box.scrollTop = tgt.offsetTop - box.offsetTop - 8; }
 };
 
@@ -3347,7 +3361,7 @@ async function start() {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 addEventListener('resize', () => { if (S.page === 'statement' && S._fitSheet) S._fitSheet(); });
 document.addEventListener('dblclick', (e) => { if (matchMedia('(max-width:760px)').matches) e.preventDefault(); }, { passive: false });
-const APP_VERSION = '2026-11-25m';
+const APP_VERSION = '2026-11-26d';
 (async () => { // GitHub 캐시 때문에 옛 화면이 열리면 새 버전으로 다시 엶
   try { const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' }); const v = (await r.json()).v; const u = new URL(location.href); if (v && v !== APP_VERSION && u.searchParams.get('v') !== v) { u.searchParams.set('v', v); location.replace(u.toString()); } } catch (e) {}
 })();
